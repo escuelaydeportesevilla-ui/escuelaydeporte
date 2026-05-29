@@ -514,16 +514,10 @@ document.getElementById("cpEditDelegado").addEventListener("click", function(){ 
 document.getElementById("cpEditFamilias").addEventListener("click", function(){ copiar("eCredFamilias","cpEditFamilias"); });
 
 document.getElementById("btnCopiarTodas").addEventListener("click", function() {
-  var txt = "CREDENCIALES - Escuela y Deporte
-App: app.escuelaydeporte.com
-
-";
-  txt += "Admin: " + document.getElementById("cAdmin").textContent + "
-";
-  txt += "Delegados: " + document.getElementById("cDelegado").textContent + "
-";
-  txt += "Familias: " + document.getElementById("cFamilias").textContent + "
-";
+  var txt = "CREDENCIALES - Escuela y Deporte\nApp: app.escuelaydeporte.com\n\n";
+  txt += "Admin: " + document.getElementById("cAdmin").textContent + "\n";
+  txt += "Delegados: " + document.getElementById("cDelegado").textContent + "\n";
+  txt += "Familias: " + document.getElementById("cFamilias").textContent + "\n";
   txt += "Arbitros: " + document.getElementById("cArbitro").textContent;
   navigator.clipboard.writeText(txt);
   var msg = document.getElementById("copiadoMsg");
