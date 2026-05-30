@@ -303,9 +303,10 @@ footer{background:var(--navy);color:rgba(255,255,255,0.4);text-align:center;padd
         <div class="credrow"><div class="credlabel">Delegados</div><div class="credval" id="cDelegado">-</div><button class="credcopy" id="cpDelegado">Copiar</button></div>
         <div class="credrow"><div class="credlabel">Familias</div><div class="credval" id="cFamilias">-</div><button class="credcopy" id="cpFamilias">Copiar</button></div>
         <div class="credrow"><div class="credlabel">Arbitros</div><div class="credval" id="cArbitro">-</div><button class="credcopy" id="cpArbitro">Copiar</button></div>
-        <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.1);">
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.1);display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <button class="btn btnsm" style="background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.3);" id="btnCopiarTodas">Copiar todas</button>
-          <span id="copiadoMsg" style="font-size:12px;color:var(--gold);margin-left:10px;opacity:0;"></span>
+          <button class="btn btnsm" style="background:#1E8449;color:white;display:none;" id="btnDescargarAcceso" onclick="descargarAccesoNuevo()">📥 Descargar archivo de acceso</button>
+          <span id="copiadoMsg" style="font-size:12px;color:var(--gold);opacity:0;"></span>
         </div>
       </div>
     </div>
@@ -528,6 +529,7 @@ function renderClubes() {
     out += "</div><div style='display:flex;gap:6px'>";
     out += "<button class='btn btnout btnsm' data-id='" + c.id + "' data-action='edit'>Editar</button>";
     out += "<button class='btn btnsm' data-id='" + c.id + "' data-action='toggle' style='background:" + (esAct?"#FEF9E7":"#D5F5E3") + ";color:" + (esAct?"#D4860A":"#1E8449") + "'>" + (esAct?"Suspender":"Activar") + "</button>";
+    out += "<button class='btn btnsm' data-id='" + c.id + "' data-action='descargar' style='background:#1E8449;color:white'>📥 Acceso</button>";
     out += "</div></div>";
     if (c.scriptUrl) out += "<div style='margin-top:8px'><a href='" + c.scriptUrl + "' target='_blank' class='btn btnout btnsm' style='font-size:10px'>Abrir app del club</a></div>";
     out += "</div></div>";
@@ -540,6 +542,7 @@ function renderClubes() {
       var action = this.dataset.action;
       if (action === "edit") openEdit(id);
       if (action === "toggle") toggleClub(id);
+      if (action === "descargar") generarConfigurador(id);
     });
   });
 }
@@ -586,6 +589,9 @@ function mostrarCreds(c) {
   var el = document.getElementById("credsResult");
   el.style.display = "block";
   el.scrollIntoView({ behavior: "smooth" });
+  // Show download button
+  var dlBtn = document.getElementById("btnDescargarAcceso");
+  if (dlBtn) dlBtn.style.display = "block";
 }
 
 function limpiar() {
