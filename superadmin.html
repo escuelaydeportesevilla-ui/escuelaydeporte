@@ -98,6 +98,103 @@ body{font-family:Barlow,sans-serif;background:var(--cream);color:var(--dark);}
 #statusbar{display:none;padding:8px 20px;font-size:12px;font-weight:600;color:white;text-align:center;}
 footer{background:var(--navy);color:rgba(255,255,255,0.4);text-align:center;padding:24px;font-size:11px;}
 .footlogo{width:160px;display:block;margin:0 auto 10px;border-radius:6px;}
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE MÓVIL VERTICAL
+   ══════════════════════════════════════════════════ */
+@media(max-width:700px){
+
+  /* ── LOGIN / SETUP ── */
+  .box{ padding:28px 18px; border-radius:16px; }
+  .logo{ width:150px; margin-bottom:16px; }
+  .bigtitle{ font-size:1.1rem; letter-spacing:2px; }
+  .sub{ font-size:11px; margin-bottom:18px; }
+
+  /* ── HEADER ── */
+  .hdr{ padding:12px 16px; gap:10px; flex-wrap:wrap; }
+  .hdrlogo{ width:80px; }
+  .hdrtitle{ font-size:1rem; letter-spacing:1px; }
+  .outbtn{ font-size:9px; padding:4px 10px; }
+  .cfgbtn{ font-size:8px; padding:3px 8px; margin-left:4px; }
+
+  /* ── STATS BANNER ── */
+  .statsbanner{ padding:12px 16px; gap:16px; }
+  .statval{ font-size:1.5rem; }
+  .statlbl{ font-size:8px; letter-spacing:1px; }
+
+  /* ── NAV ── */
+  .navrow{
+    padding:0;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .navrow::-webkit-scrollbar{ display:none; }
+  .navbtn{ padding:12px 14px; font-size:11px; letter-spacing:0.5px; }
+
+  /* ── MAIN ── */
+  .main{ padding:16px 12px 60px; }
+
+  /* ── SECTION HEADER ── */
+  .secrow h2{ font-size:1.1rem; }
+
+  /* ── BOTONES ── */
+  .btn{ font-size:11px; padding:8px 14px; }
+  .btnsm{ font-size:10px; padding:5px 10px; }
+  .actrow{ gap:8px; flex-wrap:wrap; }
+  .actrow input,
+  .actrow select{ width:100%; min-width:0; font-size:12px; }
+
+  /* ── CLUBES GRID ── */
+  .grid3{ grid-template-columns:1fr; }
+  .clubname{ font-size:1.1rem; }
+  .clubmeta{ font-size:11px; }
+  .clubfoot{ flex-direction:column; align-items:flex-start; gap:10px; }
+
+  /* ── FORM ── */
+  .fgrid{ grid-template-columns:1fr; }
+  .full{ grid-column:1; }
+  .finput{ font-size:13px; }
+  .ftarea{ font-size:13px; }
+
+  /* ── CREDENCIALES ── */
+  .credsbox{ padding:14px; }
+  .credval{ font-size:0.85rem; word-break:break-all; }
+  .credrow{ flex-wrap:wrap; gap:6px; }
+  .credlabel{ width:60px; }
+
+  /* ── PLANES GRID ── */
+  .plangrid{ grid-template-columns:1fr; }
+  .plancard{ padding:18px; }
+  .planname{ font-size:1.2rem; }
+  .planprice{ font-size:2rem; }
+
+  /* ── MODAL ── */
+  .modover{ align-items:flex-end; padding:0; }
+  .modbox{
+    border-radius:16px 16px 0 0;
+    max-height:92vh;
+    margin:auto 0 0;
+  }
+  .modhead{ padding:14px 16px 12px; }
+  .modbody{ padding:14px 16px; }
+  .modfoot{ padding:10px 16px; flex-wrap:wrap; gap:8px; }
+
+  /* ── ACTIVIDAD LOG ── */
+  .logitem{ flex-wrap:wrap; gap:4px; }
+  .logtxt{ font-size:12px; }
+  .logdate{ font-size:10px; width:100%; opacity:0.5; }
+
+  /* ── INFO BOX ── */
+  .infobox{ font-size:12px; padding:12px 14px; }
+
+  /* ── FOOTER ── */
+  footer{ padding:20px 12px 16px; font-size:10px; }
+  .footlogo{ width:130px; }
+
+  /* ── STATUS BAR ── */
+  #statusbar{ font-size:11px; padding:6px 12px; }
+}
 </style>
 </head>
 <body>
