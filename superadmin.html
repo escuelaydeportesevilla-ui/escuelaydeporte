@@ -100,27 +100,32 @@ footer{background:var(--navy);color:rgba(255,255,255,0.4);text-align:center;padd
 .footlogo{width:160px;display:block;margin:0 auto 10px;border-radius:6px;}
 
 /* ══════════════════════════════════════════════════
-   RESPONSIVE MÓVIL VERTICAL
+   RESPONSIVE MÓVIL — LEGIBILIDAD PRIMERO
+   Filosofía: scroll antes que comprimir
+   Texto mínimo 14px · Botones mínimo 44px
    ══════════════════════════════════════════════════ */
 @media(max-width:700px){
 
   /* ── LOGIN / SETUP ── */
-  .box{ padding:28px 18px; border-radius:16px; }
-  .logo{ width:150px; margin-bottom:16px; }
-  .bigtitle{ font-size:1.1rem; letter-spacing:2px; }
-  .sub{ font-size:11px; margin-bottom:18px; }
+  .box{ padding:32px 20px; border-radius:20px; }
+  .logo{ width:170px; margin-bottom:20px; }
+  .bigtitle{ font-size:1.2rem; letter-spacing:2px; }
+  .sub{ font-size:14px; margin-bottom:20px; }
+  .inp{ font-size:16px; padding:14px; min-height:48px; }
+  .mainbtn{ font-size:16px; padding:14px; min-height:48px; }
+  .setupnote{ font-size:13px; }
 
   /* ── HEADER ── */
-  .hdr{ padding:12px 16px; gap:10px; flex-wrap:wrap; }
-  .hdrlogo{ width:80px; }
-  .hdrtitle{ font-size:1rem; letter-spacing:1px; }
-  .outbtn{ font-size:9px; padding:4px 10px; }
-  .cfgbtn{ font-size:8px; padding:3px 8px; margin-left:4px; }
+  .hdr{ padding:14px 16px; gap:10px; flex-wrap:wrap; }
+  .hdrlogo{ width:90px; }
+  .hdrtitle{ font-size:1.1rem; letter-spacing:1px; }
+  .outbtn{ font-size:12px; padding:8px 14px; min-height:36px; }
+  .cfgbtn{ font-size:11px; padding:6px 10px; margin-left:4px; }
 
   /* ── STATS BANNER ── */
-  .statsbanner{ padding:12px 16px; gap:16px; }
-  .statval{ font-size:1.5rem; }
-  .statlbl{ font-size:8px; letter-spacing:1px; }
+  .statsbanner{ padding:16px; gap:20px; }
+  .statval{ font-size:2rem; }
+  .statlbl{ font-size:10px; letter-spacing:1px; }
 
   /* ── NAV ── */
   .navrow{
@@ -130,70 +135,85 @@ footer{background:var(--navy);color:rgba(255,255,255,0.4);text-align:center;padd
     scrollbar-width:none;
   }
   .navrow::-webkit-scrollbar{ display:none; }
-  .navbtn{ padding:12px 14px; font-size:11px; letter-spacing:0.5px; }
+  .navbtn{ padding:16px 16px; font-size:13px; min-height:52px; }
 
   /* ── MAIN ── */
-  .main{ padding:16px 12px 60px; }
+  .main{ padding:20px 14px 80px; }
 
   /* ── SECTION HEADER ── */
-  .secrow h2{ font-size:1.1rem; }
+  .secrow h2{ font-size:1.3rem; }
 
   /* ── BOTONES ── */
-  .btn{ font-size:11px; padding:8px 14px; }
-  .btnsm{ font-size:10px; padding:5px 10px; }
-  .actrow{ gap:8px; flex-wrap:wrap; }
+  .btn{ font-size:14px; padding:12px 18px; min-height:44px; }
+  .btnsm{ font-size:13px; padding:10px 14px; min-height:40px; }
+  .actrow{ gap:10px; flex-wrap:wrap; }
   .actrow input,
-  .actrow select{ width:100%; min-width:0; font-size:12px; }
+  .actrow select{
+    width:100%;
+    min-width:0;
+    font-size:15px;
+    padding:12px 14px;
+    min-height:44px;
+  }
 
   /* ── CLUBES GRID ── */
   .grid3{ grid-template-columns:1fr; }
-  .clubname{ font-size:1.1rem; }
-  .clubmeta{ font-size:11px; }
-  .clubfoot{ flex-direction:column; align-items:flex-start; gap:10px; }
+  .clubname{ font-size:1.3rem; }
+  .clubmeta{ font-size:14px; line-height:1.7; }
+  .clubfoot{ flex-direction:column; align-items:flex-start; gap:12px; }
 
   /* ── FORM ── */
-  .fgrid{ grid-template-columns:1fr; }
+  .fgrid{ grid-template-columns:1fr; gap:14px; }
   .full{ grid-column:1; }
-  .finput{ font-size:13px; }
-  .ftarea{ font-size:13px; }
+  .flabel{ font-size:12px; margin-bottom:6px; }
+  .finput{ font-size:15px; padding:12px 14px; min-height:48px; }
+  .ftarea{ font-size:15px; padding:12px 14px; min-height:90px; }
 
   /* ── CREDENCIALES ── */
-  .credsbox{ padding:14px; }
-  .credval{ font-size:0.85rem; word-break:break-all; }
-  .credrow{ flex-wrap:wrap; gap:6px; }
-  .credlabel{ width:60px; }
+  .credsbox{ padding:18px; }
+  .credstitle{ font-size:14px; }
+  .credval{ font-size:15px; word-break:break-all; }
+  .credlabel{ font-size:12px; width:80px; }
+  .credrow{ flex-wrap:wrap; gap:8px; padding:4px 0; }
+  .credcopy{ font-size:13px; padding:8px 14px; min-height:40px; }
 
   /* ── PLANES GRID ── */
   .plangrid{ grid-template-columns:1fr; }
-  .plancard{ padding:18px; }
-  .planname{ font-size:1.2rem; }
-  .planprice{ font-size:2rem; }
+  .plancard{ padding:24px; }
+  .planname{ font-size:1.4rem; }
+  .planprice{ font-size:2.5rem; }
+  .plandesc{ font-size:14px; line-height:1.6; }
 
-  /* ── MODAL ── */
+  /* ── MODAL — se abre desde abajo ── */
   .modover{ align-items:flex-end; padding:0; }
   .modbox{
-    border-radius:16px 16px 0 0;
+    border-radius:20px 20px 0 0;
     max-height:92vh;
     margin:auto 0 0;
   }
-  .modhead{ padding:14px 16px 12px; }
-  .modbody{ padding:14px 16px; }
-  .modfoot{ padding:10px 16px; flex-wrap:wrap; gap:8px; }
+  .modhead{ padding:18px 18px 14px; }
+  .modtitle{ font-size:1.1rem; }
+  .modclose{ width:36px; height:36px; font-size:16px; }
+  .modbody{ padding:16px 18px; }
+  .modbody .flabel{ font-size:12px; }
+  .modbody .finput{ font-size:15px; padding:12px 14px; min-height:48px; }
+  .modbody .ftarea{ font-size:15px; }
+  .modfoot{ padding:14px 18px; flex-wrap:wrap; gap:10px; }
 
   /* ── ACTIVIDAD LOG ── */
-  .logitem{ flex-wrap:wrap; gap:4px; }
-  .logtxt{ font-size:12px; }
-  .logdate{ font-size:10px; width:100%; opacity:0.5; }
+  .logitem{ flex-wrap:wrap; gap:6px; padding:14px 0; }
+  .logtxt{ font-size:14px; line-height:1.6; }
+  .logdate{ font-size:12px; width:100%; opacity:0.5; }
 
   /* ── INFO BOX ── */
-  .infobox{ font-size:12px; padding:12px 14px; }
-
-  /* ── FOOTER ── */
-  footer{ padding:20px 12px 16px; font-size:10px; }
-  .footlogo{ width:130px; }
+  .infobox{ font-size:14px; line-height:1.7; padding:14px 16px; }
 
   /* ── STATUS BAR ── */
-  #statusbar{ font-size:11px; padding:6px 12px; }
+  #statusbar{ font-size:13px; padding:10px 14px; }
+
+  /* ── FOOTER ── */
+  footer{ padding:24px 14px 20px; font-size:13px; }
+  .footlogo{ width:150px; }
 }
 </style>
 </head>
