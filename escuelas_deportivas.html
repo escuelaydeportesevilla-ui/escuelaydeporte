@@ -183,25 +183,27 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 .actions-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
 
 /* ══════════════════════════════════════════════════
-   RESPONSIVE MÓVIL VERTICAL
+   RESPONSIVE MÓVIL — LEGIBILIDAD PRIMERO
+   Filosofía: scroll antes que comprimir
+   Texto mínimo 14px · Botones mínimo 44px
    ══════════════════════════════════════════════════ */
 @media(max-width:700px){
 
   /* ── HERO ── */
-  .hero{ padding:20px 16px 20px; }
-  .hero-eyebrow{ font-size:9px; letter-spacing:2px; margin-bottom:8px; }
-  .hero-title{ font-size:1.7rem; margin-bottom:4px; }
-  .hero-sub{ font-size:11px; margin-bottom:16px; }
+  .hero{ padding:24px 16px; }
+  .hero-eyebrow{ font-size:11px; letter-spacing:2px; margin-bottom:10px; }
+  .hero-title{ font-size:2rem; margin-bottom:6px; }
+  .hero-sub{ font-size:14px; margin-bottom:20px; }
   .hero-stats{ gap:0; flex-wrap:wrap; }
-  .hstat{ padding:8px 14px 8px 0; margin-right:14px; }
-  .hstat .val{ font-size:1.6rem; }
-  .hstat .lbl{ font-size:8px; }
+  .hstat{ padding:10px 20px 10px 0; margin-right:20px; }
+  .hstat .val{ font-size:2rem; }
+  .hstat .lbl{ font-size:10px; }
 
   /* ── LOGIN ── */
-  .login-box{ padding:28px 20px; }
-  .login-logo{ width:160px; }
+  .login-box{ padding:32px 24px; }
+  .login-logo{ width:180px; }
 
-  /* ── NAV ── */
+  /* ── NAV — iconos grandes y tocables ── */
   .nav-bar{
     padding:0;
     overflow-x:auto;
@@ -209,150 +211,259 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
     scrollbar-width:none;
   }
   .nav-bar::-webkit-scrollbar{ display:none; }
-  .nav-btn{ padding:12px 14px; font-size:11px; letter-spacing:0.5px; }
+  .nav-btn{
+    padding:16px 16px;
+    font-size:13px;
+    letter-spacing:0.5px;
+    min-height:52px;
+  }
 
   /* ── MAIN ── */
-  .main{ padding:16px 12px 80px; }
+  .main{ padding:20px 14px 100px; }
 
   /* ── SECTION HEADER ── */
-  .section-header h2{ font-size:1.1rem; }
+  .section-header h2{ font-size:1.3rem; }
 
-  /* ── BOTONES ── */
-  .btn{ font-size:11px; padding:8px 14px; }
-  .btn-sm{ font-size:10px; padding:5px 10px; }
-  .actions-row{ gap:8px; flex-wrap:wrap; }
+  /* ── BOTONES — mínimo 44px alto ── */
+  .btn{ font-size:14px; padding:12px 18px; min-height:44px; }
+  .btn-sm{ font-size:13px; padding:10px 14px; min-height:40px; }
+  .actions-row{ gap:10px; flex-wrap:wrap; }
   .actions-row select,
-  .actions-row input{ font-size:12px; min-width:0; width:100%; }
+  .actions-row input{
+    font-size:15px;
+    min-width:0;
+    width:100%;
+    padding:12px 14px;
+    min-height:44px;
+  }
 
   /* ── TARJETAS MÓDULO ── */
-  .modulo-card{ padding:16px 14px; }
-  .mc-icon{ font-size:1.6rem; }
-  .mc-titulo{ font-size:1.1rem; }
-  .mc-desc{ font-size:11px; }
+  .modulo-card{ padding:20px 16px; }
+  .mc-icon{ font-size:2rem; margin-bottom:12px; }
+  .mc-titulo{ font-size:1.3rem; }
+  .mc-desc{ font-size:14px; line-height:1.5; }
 
   /* ── DEPORTES GRID ── */
-  .deportes-grid{ grid-template-columns:repeat(3,1fr); gap:8px; }
-  .deporte-emoji{ font-size:1.5rem; }
-  .deporte-nombre{ font-size:11px; }
+  .deportes-grid{ grid-template-columns:repeat(3,1fr); gap:10px; }
+  .deporte-emoji{ font-size:2rem; }
+  .deporte-nombre{ font-size:13px; }
 
   /* ── COMP CARDS ── */
   .comp-grid{ grid-template-columns:1fr; }
-  .comp-card-name{ font-size:1.1rem; }
+  .comp-card-name{ font-size:1.3rem; }
+  .comp-card-meta{ font-size:14px; }
+  .comp-card-sport{ font-size:11px; }
 
   /* ── EQUIPOS TABLA ── */
-  .tabla-wrap{ font-size:12px; }
-  thead th{ font-size:10px; padding:8px 10px; }
-  tbody td{ padding:8px 10px; }
+  .tabla-wrap{ font-size:14px; }
+  thead th{ font-size:12px; padding:12px 12px; }
+  tbody td{ padding:12px 12px; font-size:14px; }
+
+  /* ── CLASIFICACION — solo columnas esenciales ── */
+  .tabla-wrap table thead tr th:nth-child(4),
+  .tabla-wrap table thead tr th:nth-child(5),
+  .tabla-wrap table thead tr th:nth-child(6),
+  .tabla-wrap table thead tr th:nth-child(9){ display:none; }
+  .tabla-wrap table tbody tr td:nth-child(4),
+  .tabla-wrap table tbody tr td:nth-child(5),
+  .tabla-wrap table tbody tr td:nth-child(6),
+  .tabla-wrap table tbody tr td:nth-child(9){ display:none; }
 
   /* ── PARTIDO CARD ── */
   .partido-card{
     grid-template-columns:1fr;
     gap:0;
-    padding:12px;
+    padding:16px;
   }
-  .equipo-col{ justify-content:center; }
+  .equipo-col{ justify-content:center; padding:8px 0; }
   .equipo-col.visitante{ flex-direction:row; justify-content:center; }
-  .equipo-nombre{ font-size:0.9rem; }
-  .partido-resultado{ border-top:1px solid var(--gris-linea); border-bottom:1px solid var(--gris-linea); padding:10px 0; margin:8px 0; }
-  .resultado-score{ font-size:1.8rem; }
-  .partido-actions{ flex-wrap:wrap; justify-content:center; gap:6px; }
-
-  /* ── CLASIFICACION ── */
-  .pos-badge{ width:22px; height:22px; font-size:11px; }
+  .equipo-nombre{ font-size:1.1rem; }
+  .partido-resultado{
+    border-top:1px solid var(--gris-linea);
+    border-bottom:1px solid var(--gris-linea);
+    padding:14px 0; margin:4px 0;
+  }
+  .resultado-score{ font-size:2.2rem; }
+  .partido-meta{ font-size:13px; }
+  .partido-estado{ font-size:12px; padding:4px 10px; }
+  .partido-actions{
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:8px;
+    margin-top:12px;
+  }
 
   /* ── GOLEADORES ── */
-  .gol-row{ flex-wrap:wrap; gap:6px; }
-  .gol-num{ font-size:1.1rem; }
+  .gol-row{ flex-wrap:wrap; gap:8px; padding:12px 0; }
+  .gol-name{ font-size:15px; }
+  .gol-equipo{ font-size:13px; }
+  .gol-num{ font-size:1.3rem; }
 
-  /* ── MODAL ── */
-  .modal-box{ max-height:92vh; border-radius:16px 16px 0 0; margin:auto 0 0; }
+  /* ── MODAL — se abre desde abajo ── */
+  .modal-box{
+    max-height:92vh;
+    border-radius:20px 20px 0 0;
+    margin:auto 0 0;
+  }
   .modal-overlay{ align-items:flex-end; padding:0; }
-  .modal-head{ padding:14px 16px 12px; }
-  .modal-body{ padding:14px 16px; }
-  .modal-foot{ padding:10px 16px; flex-wrap:wrap; gap:8px; }
+  .modal-head{ padding:18px 18px 14px; }
+  .modal-title{ font-size:1.1rem; }
+  .modal-body{ padding:16px 18px; }
+  .modal-body label{ font-size:12px; }
+  .modal-body input,
+  .modal-body select,
+  .modal-body textarea{
+    font-size:15px;
+    padding:12px 14px;
+    min-height:44px;
+  }
+  .modal-foot{ padding:12px 18px; flex-wrap:wrap; gap:10px; }
 
   /* ── BUSCAR OVERLAY ── */
-  .buscar-box{ border-radius:16px 16px 0 0; max-height:85vh; }
+  .buscar-box{ border-radius:20px 20px 0 0; max-height:88vh; }
   .buscar-overlay{ align-items:flex-end; padding:0; }
+  .buscar-head input{ font-size:16px; padding:12px 14px; }
+  .buscar-item{ padding:14px 16px; }
+  .buscar-item .apellidos{ font-size:15px; }
+  .buscar-item .nombre{ font-size:13px; }
 
   /* ── FICHA OVERLAY ── */
-  .ficha-box{ border-radius:16px 16px 0 0; max-height:92vh; }
+  .ficha-box{ border-radius:20px 20px 0 0; max-height:92vh; }
   .ficha-overlay{ align-items:flex-end; padding:0; }
+  .ficha-nombre{ font-size:1.1rem; }
+  .ficha-body input,
+  .ficha-body textarea{
+    font-size:15px;
+    padding:12px 14px;
+    min-height:44px;
+  }
 
   /* ── FORM GRID ── */
-  .form-grid{ grid-template-columns:1fr; }
+  .form-grid{ grid-template-columns:1fr; gap:14px; }
   .form-full{ grid-column:1; }
+  .form-field input,
+  .form-field select,
+  .form-field textarea{
+    font-size:15px;
+    padding:12px 14px;
+    min-height:44px;
+  }
+  .form-field label{ font-size:12px; margin-bottom:6px; }
 
   /* ── ACTA MODAL ── */
-  .jugador-row{ flex-wrap:wrap; }
-  .jugador-row input.dorsal{ width:50px; }
-  .evento-row{ flex-wrap:wrap; }
+  .jugador-row{ flex-wrap:wrap; gap:8px; }
+  .jugador-row input{ font-size:15px; padding:10px 12px; min-height:44px; }
+  .jugador-row input.dorsal{ width:64px; }
+  .evento-row{ flex-wrap:wrap; gap:8px; }
   .evento-row select,
-  .evento-row input{ font-size:11px; min-width:0; }
+  .evento-row input{ font-size:14px; min-width:0; min-height:44px; }
+  .add-row-btn{ font-size:14px; padding:12px; min-height:44px; }
 
   /* ── COMING SOON ── */
-  .coming-soon{ padding:28px 16px; }
-  .coming-soon .cs-icon{ font-size:2rem; }
-  .coming-soon h3{ font-size:1.3rem; }
+  .coming-soon{ padding:32px 16px; }
+  .coming-soon .cs-icon{ font-size:2.5rem; }
+  .coming-soon h3{ font-size:1.4rem; }
+  .coming-soon p{ font-size:14px; }
 
   /* ── FEATURES GRID ── */
   .features-grid{ grid-template-columns:1fr; }
+  .ft-title{ font-size:1rem; }
+  .ft-desc{ font-size:14px; }
 
   /* ── MODULOS GRID ── */
-  .modulos-grid{ grid-template-columns:1fr 1fr; gap:10px; }
+  .modulos-grid{ grid-template-columns:1fr; gap:12px; }
 
   /* ── SPONSORS ── */
-  .sponsors-grid{ gap:10px; }
-  .sponsor-slot{ width:90px; height:48px; }
+  .sponsors-grid{ gap:12px; }
+  .sponsor-slot{ width:100px; height:54px; }
 
   /* ── PADRES HERO ── */
-  .padres-hero{ padding:20px 16px 16px; }
-  .padres-hero-title{ font-size:1.4rem; }
-  .padres-hero-sub{ font-size:11px; margin-bottom:14px; }
-  .padres-stats{ gap:16px; }
-  .padres-stat .val{ font-size:1.6rem; }
-  .padres-logout{ font-size:9px; padding:4px 10px; top:12px; right:12px; }
+  .padres-hero{ padding:24px 16px 20px; }
+  .padres-hero-title{ font-size:1.6rem; }
+  .padres-hero-sub{ font-size:14px; margin-bottom:16px; }
+  .padres-stats{ gap:20px; }
+  .padres-stat .val{ font-size:2rem; }
+  .padres-stat .lbl{ font-size:10px; }
+  .padres-logout{ font-size:11px; padding:6px 12px; top:14px; right:14px; }
 
   /* ── PADRES NAV ── */
   .padres-nav{ overflow-x:auto; scrollbar-width:none; }
   .padres-nav::-webkit-scrollbar{ display:none; }
-  .padres-nav-btn{ padding:12px 12px; font-size:11px; }
+  .padres-nav-btn{ padding:16px 14px; font-size:13px; min-height:52px; }
 
   /* ── PADRES MAIN ── */
-  .padres-main{ padding:16px 12px 60px; }
+  .padres-main{ padding:20px 14px 80px; }
 
   /* ── PCARD MATCH ── */
-  .pcard-match{ gap:6px; padding:12px; }
-  .pcard-team-name{ font-size:0.9rem; }
-  .pcard-score-num{ font-size:1.8rem; }
+  .pcard-match{ gap:8px; padding:16px; }
+  .pcard-team-name{ font-size:1.1rem; }
+  .pcard-score-num{ font-size:2.2rem; }
+  .pcard-score-meta{ font-size:13px; }
+  .pcard-goles{ font-size:13px; }
 
-  /* ── PCLASIF ── */
-  .pclasif-card .tabla-wrap{ font-size:11px; }
+  /* ── CLASIFICACION PADRES ── */
+  .pclasif-card .tabla-wrap{ font-size:14px; }
+  .pclasif-card thead th{ font-size:12px; padding:10px 8px; }
+  .pclasif-card tbody td{ padding:10px 8px; font-size:14px; }
+  .pclasif-card thead th:nth-child(4),
+  .pclasif-card thead th:nth-child(5),
+  .pclasif-card thead th:nth-child(6),
+  .pclasif-card thead th:nth-child(9){ display:none; }
+  .pclasif-card tbody td:nth-child(4),
+  .pclasif-card tbody td:nth-child(5),
+  .pclasif-card tbody td:nth-child(6),
+  .pclasif-card tbody td:nth-child(9){ display:none; }
 
-  /* ── NOTICIA CARD ── */
-  .noticia-titulo{ font-size:1rem; }
-  .noticia-contenido{ font-size:12px; }
+  /* ── NOTICIAS ── */
+  .noticia-titulo{ font-size:1.1rem; }
+  .noticia-contenido{ font-size:14px; line-height:1.7; }
+  .noticia-fecha{ font-size:12px; }
+  .noticia-cat{ font-size:11px; }
 
   /* ── FAQ ── */
-  .faq-pregunta{ font-size:13px; padding:12px 14px; }
+  .faq-pregunta{ font-size:15px; padding:16px 14px; min-height:56px; }
+  .faq-respuesta{ font-size:14px; line-height:1.7; }
 
   /* ── CONTACTO FORM ── */
-  .contacto-form{ padding:16px; }
+  .contacto-form{ padding:18px; }
+  .contacto-form h3{ font-size:1.1rem; }
+  .contacto-form input,
+  .contacto-form select,
+  .contacto-form textarea{
+    font-size:15px;
+    padding:12px 14px;
+    min-height:44px;
+  }
 
   /* ── ADMIN NOTICIAS ── */
   .noticia-admin-card{ flex-wrap:wrap; }
+  .noticia-admin-title{ font-size:15px; }
+  .noticia-admin-meta{ font-size:13px; }
 
-  /* ── EVAL METRICAS ── */
-  .eval-metricas{ grid-template-columns:1fr 1fr; }
+  /* ── SECCIÓN RESULTADOS ADMIN ── */
+  .jornada-title{ font-size:14px; padding:10px 14px; }
+
+  /* ── SUGERENCIAS ── */
+  .sug-msg{ font-size:14px; line-height:1.7; }
+  .sug-meta{ font-size:13px; }
 
   /* ── FOOTER ── */
-  .footer-logo{ width:160px; }
-  footer{ font-size:10px; padding:20px 12px 16px; }
+  .footer-logo{ width:180px; }
+  footer{ font-size:13px; padding:24px 14px 20px; }
 
   /* ── BARRA BUSCAR ── */
-  .buscar-btn{ margin-left:0; width:100%; justify-content:center; }
-  .tabs{ flex-wrap:wrap; }
-  .tab-btn{ font-size:11px; padding:6px 12px; }
+  .buscar-btn{
+    margin-left:0;
+    width:100%;
+    justify-content:center;
+    font-size:14px;
+    min-height:44px;
+  }
+  .tabs{ flex-wrap:wrap; gap:8px; }
+  .tab-btn{ font-size:13px; padding:10px 14px; min-height:44px; }
+
+  /* ── INFO BOX ── */
+  .info-box{ font-size:14px; line-height:1.7; padding:14px 16px; }
 }
 
   /* ── ÁRBITRO / ACTA ── */
