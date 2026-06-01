@@ -885,6 +885,144 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
   .tier-bronce  { background: #FDF0E6; color: #A04000; }
   .tier-media   { background: #EBF5FB; color: #2E6DA4; }
 
+
+  /* ═══ EVALUACIONES ═══════════════════════════════════════ */
+  .eval-grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+    gap: 14px; margin-bottom: 24px;
+  }
+
+  .deportista-card {
+    background: var(--blanco); border: 1.5px solid var(--gris-linea);
+    border-radius: 12px; padding: 16px 18px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: all .2s;
+  }
+  .deportista-card:hover {
+    border-color: var(--verde-claro);
+    box-shadow: 0 4px 16px rgba(45,80,22,.1);
+    transform: translateY(-1px);
+  }
+
+  .deportista-avatar {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--verde-bosque); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display',serif; font-size: 1rem;
+    font-weight: 900; flex-shrink: 0;
+  }
+
+  .deportista-info { flex: 1; }
+  .deportista-nombre { font-size: 14px; font-weight: 700; color: var(--gris-texto); }
+  .deportista-meta   { font-size: 11px; color: var(--gris-suave); margin-top: 2px; }
+
+  .eval-badge {
+    font-size: 10px; font-weight: 700; padding: 3px 8px;
+    border-radius: 10px; letter-spacing: 0.5px;
+  }
+  .eval-badge-ok  { background: #D5F5E3; color: #1E8449; }
+  .eval-badge-no  { background: var(--crema-oscuro); color: var(--gris-suave); }
+
+  /* Ficha evaluación */
+  .eval-categoria-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--verde-medio);
+    margin: 18px 0 10px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--crema-oscuro);
+  }
+  .eval-categoria-title:first-child { margin-top: 0; }
+
+  .eval-criterio {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px; flex-wrap: wrap;
+  }
+  .eval-criterio-label {
+    font-size: 13px; font-weight: 500; flex: 1; min-width: 120px;
+  }
+  .eval-nota-num {
+    width: 64px; text-align: center; padding: 7px 8px;
+    border-radius: 8px; border: 1.5px solid var(--gris-linea);
+    background: var(--crema); font-family: 'DM Sans',sans-serif;
+    font-size: 14px; font-weight: 700; outline: none; color: var(--gris-texto);
+  }
+  .eval-nota-num:focus { border-color: var(--verde-claro); background: var(--blanco); }
+
+  .eval-nota-cual {
+    padding: 7px 10px; border-radius: 8px;
+    border: 1.5px solid var(--gris-linea); background: var(--crema);
+    font-family: 'DM Sans',sans-serif; font-size: 13px; outline: none;
+    color: var(--gris-texto); min-width: 130px;
+  }
+  .eval-nota-cual:focus { border-color: var(--verde-claro); background: var(--blanco); }
+
+  /* Radar chart */
+  .radar-wrap {
+    background: var(--blanco); border: 1.5px solid var(--gris-linea);
+    border-radius: 12px; padding: 20px; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Historial */
+  .eval-historial-item {
+    background: var(--blanco); border: 1.5px solid var(--gris-linea);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 14px; cursor: pointer;
+    transition: background .1s;
+  }
+  .eval-historial-item:hover { background: var(--crema); }
+  .eval-hist-fecha {
+    font-size: 11px; font-weight: 700; color: var(--verde-medio);
+    text-align: center; min-width: 50px;
+  }
+  .eval-hist-info { flex: 1; }
+  .eval-hist-name { font-size: 13px; font-weight: 600; color: var(--gris-texto); }
+  .eval-hist-meta { font-size: 11px; color: var(--gris-suave); margin-top: 2px; }
+  .eval-hist-media {
+    font-family: 'Playfair Display',serif; font-size: 1.4rem;
+    font-weight: 900; color: var(--verde-bosque);
+  }
+
+  /* Media por categoría */
+  .eval-resumen-cat {
+    display: grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
+    gap: 10px; margin-bottom: 20px;
+  }
+  .eval-cat-item {
+    background: var(--crema); border-radius: 10px; padding: 12px;
+    text-align: center; border: 1px solid var(--gris-linea);
+  }
+  .eval-cat-icon { font-size: 1.4rem; margin-bottom: 4px; }
+  .eval-cat-nombre { font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; opacity: .55; margin-bottom: 4px; }
+  .eval-cat-nota {
+    font-family: 'Playfair Display',serif; font-size: 1.6rem;
+    font-weight: 900; color: var(--verde-bosque);
+  }
+  .eval-cat-cual { font-size: 11px; font-weight: 600; margin-top: 2px; }
+
+  /* Nota color */
+  .nota-sobresaliente { color: #1E8449; }
+  .nota-notable       { color: #2E6DA4; }
+  .nota-bien          { color: #E8A020; }
+  .nota-suficiente    { color: #E67E22; }
+  .nota-insuficiente  { color: #C0392B; }
+
+  /* PDF button */
+  .btn-pdf {
+    background: var(--rojo-suave); color: white;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-pdf:hover { background: #a93226; }
+
+  @media(max-width:700px){
+    .eval-criterio { gap: 8px; }
+    .eval-nota-num { width: 56px; font-size: 15px; min-height: 44px; }
+    .eval-nota-cual { font-size: 14px; min-height: 44px; min-width: 0; flex: 1; }
+    .eval-criterio-label { font-size: 14px; min-width: 100px; }
+    .eval-resumen-cat { grid-template-columns: repeat(2,1fr); }
+  }
+
 </style>
 </head>
 <body>
@@ -927,6 +1065,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
   <button class="nav-btn" id="navPatrocinadores" style="display:none" onclick="showTab('patrocinadores',this)">🤝 Patrocinadores</button>
   <button class="nav-btn" id="navNoticias" style="display:none" onclick="showTab('noticias',this)">📰 Noticias</button>
   <button class="nav-btn" id="navSugerencias" style="display:none" onclick="showTab('sugerencias',this)">📬 Sugerencias <span class="notif-badge" id="sugBadge" style="display:none">0</span></button>
+  <button class="nav-btn" id="navEval" style="display:none" onclick="showTab('evaluaciones',this)">📝 Evaluaciones</button>
   <button class="nav-btn" id="navArbitro" style="display:none" onclick="showTab('mispartidos',this)">🔴 Mis Partidos</button>
 </nav>
 
@@ -1055,6 +1194,23 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 <div id="tab-sugerencias" class="tab-panel">
   <div class="section-header"><h2>📬 Sugerencias de familias</h2><div class="section-line"></div></div>
   <div id="adminSugerenciasList"></div>
+</div>
+
+
+<!-- ══ TAB EVALUACIONES ══ -->
+<div id="tab-evaluaciones" class="tab-panel">
+  <div class="section-header"><h2>📝 Evaluación continua</h2><div class="section-line"></div></div>
+
+  <!-- Filtros -->
+  <div class="actions-row">
+    <select id="evalFiltroComp" class="btn btn-outline" style="font-family:'DM Sans',sans-serif;font-size:13px;min-width:220px;" onchange="renderEvalDeportistas()">
+      <option value="">— Selecciona una competición / escuela —</option>
+    </select>
+    <button class="btn btn-primary" id="btnVerHistorial" style="display:none" onclick="verHistorialGeneral()">📋 Ver historial</button>
+  </div>
+
+  <!-- Vista: lista de deportistas -->
+  <div id="evalDeportistasList"></div>
 </div>
 
 <!-- ══ TAB MIS PARTIDOS (ÁRBITRO) ══ -->
@@ -2940,6 +3096,596 @@ async function saveGoleador(){
     } catch(e) {}
   })();
 
+
+  // ══════════════════════════════════════════════════════════════
+  //  EVALUACIONES CONTINUAS
+  // ══════════════════════════════════════════════════════════════
+
+  const EVAL_CRITERIOS = {
+    fisico: [
+      { id:'resistencia', label:'Resistencia' },
+      { id:'velocidad',   label:'Velocidad' },
+      { id:'fuerza',      label:'Fuerza' },
+      { id:'coordinacion',label:'Coordinación' },
+      { id:'flexibilidad',label:'Flexibilidad' },
+    ],
+    tecnico: [
+      { id:'manejo',      label:'Manejo del balón' },
+      { id:'pase',        label:'Pase y recepción' },
+      { id:'tiro',        label:'Tiro / Remate' },
+      { id:'defensa',     label:'Defensa individual' },
+      { id:'posicion',    label:'Posicionamiento' },
+    ],
+    tactico: [
+      { id:'lectura',     label:'Lectura del juego' },
+      { id:'decision',    label:'Toma de decisiones' },
+      { id:'teamwork',    label:'Juego en equipo' },
+      { id:'concentracion',label:'Concentración' },
+    ],
+    actitud: [
+      { id:'esfuerzo',    label:'Esfuerzo y dedicación' },
+      { id:'actitud',     label:'Actitud en entrenamientos' },
+      { id:'respeto',     label:'Respeto a compañeros y árbitros' },
+      { id:'puntualidad', label:'Puntualidad y asistencia' },
+      { id:'companerismo',label:'Compañerismo' },
+    ]
+  };
+
+  const CUAL_OPTS = ['','Insuficiente','Suficiente','Bien','Notable','Sobresaliente'];
+  const NUM_TO_CUAL = (n) => {
+    n = parseFloat(n);
+    if (!n || n <= 0) return '';
+    if (n < 3)  return 'Insuficiente';
+    if (n < 5)  return 'Suficiente';
+    if (n < 7)  return 'Bien';
+    if (n < 9)  return 'Notable';
+    return 'Sobresaliente';
+  };
+  const CUAL_CLASS = {
+    'Sobresaliente':'nota-sobresaliente','Notable':'nota-notable',
+    'Bien':'nota-bien','Suficiente':'nota-suficiente','Insuficiente':'nota-insuficiente'
+  };
+
+  let currentEvalDeportista = null;
+  let evalStorage = {};    // key: "eval_<deportistaId>"
+
+  // Load eval data from localStorage
+  function loadEvals() {
+    try {
+      const raw = localStorage.getItem('ed_evaluaciones');
+      if (raw) evalStorage = JSON.parse(raw);
+    } catch(e) { evalStorage = {}; }
+  }
+
+  function saveEvals() {
+    try { localStorage.setItem('ed_evaluaciones', JSON.stringify(evalStorage)); } catch(e) {}
+  }
+
+  function getDeportistaEvals(did) {
+    return evalStorage['eval_' + did] || [];
+  }
+
+  // ── MOSTRAR PESTAÑAS EVAL ────────────────────────────────────
+  function applyEvalRoleUI() {
+    const canEval = userRole === 'admin' || userRole === 'delegado';
+    const navEl = document.getElementById('navEval');
+    if (navEl) navEl.style.display = canEval ? 'inline-flex' : 'none';
+  }
+
+  // ── RENDER LISTA DEPORTISTAS ─────────────────────────────────
+  function renderEvalDeportistas() {
+    loadEvals();
+    const compId = document.getElementById('evalFiltroComp')?.value || '';
+    const cont   = document.getElementById('evalDeportistasList');
+    const btnH   = document.getElementById('btnVerHistorial');
+
+    if (!compId) {
+      cont.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-title">Selecciona una competición</div><div class="empty-desc">Elige la competición o escuela para ver sus deportistas.</div></div>';
+      if (btnH) btnH.style.display = 'none';
+      return;
+    }
+
+    if (btnH) btnH.style.display = 'inline-flex';
+
+    // Get equipos of this competicion → get jugadores from goleadores or manual list
+    const equipos = (db.equipos || []).filter(e => e.competicionId === compId);
+    const goleadores = (db.goleadores || []).filter(g => g.competicionId === compId);
+
+    if (!goleadores.length) {
+      cont.innerHTML = '<div class="empty-state"><div class="empty-icon">🧑‍🤝‍🧑</div><div class="empty-title">Sin deportistas registrados</div><div class="empty-desc">Añade goleadores/jugadores en la pestaña de Goleadores primero, o añade deportistas directamente desde aquí.</div><button class="btn btn-primary" onclick="abrirEvalNuevoDeportista('' + compId + '')">+ Añadir deportista</button></div>';
+      return;
+    }
+
+    // Sort alphabetically
+    const sorted = [...goleadores].sort((a,b) => a.jugador.localeCompare(b.jugador, 'es'));
+
+    const grid = document.createElement('div');
+    grid.className = 'eval-grid-cards';
+
+    sorted.forEach(j => {
+      const evals  = getDeportistaEvals(j.id);
+      const ultima = evals.length ? evals[evals.length-1] : null;
+      const card   = document.createElement('div');
+      card.className = 'deportista-card';
+
+      const initials = j.jugador.split(' ').map(p=>p[0]||'').join('').substring(0,2).toUpperCase();
+      const eq = equipos.find(e => e.id === j.equipoId);
+
+      card.innerHTML = `
+        <div class="deportista-avatar">${initials}</div>
+        <div class="deportista-info">
+          <div class="deportista-nombre">${j.jugador}</div>
+          <div class="deportista-meta">${eq?.nombre||j.equipoNombre||'—'} ${ultima?'· Última eval: '+ultima.fecha:''}</div>
+        </div>
+        <span class="eval-badge ${evals.length?'eval-badge-ok':'eval-badge-no'}">${evals.length?evals.length+' eval':'Sin eval'}</span>`;
+
+      card.addEventListener('click', () => openEvalModal(j, eq));
+      grid.appendChild(card);
+    });
+
+    cont.innerHTML = '';
+    cont.appendChild(grid);
+  }
+
+  // ── OPEN EVAL MODAL ─────────────────────────────────────────
+  function openEvalModal(deportista, equipo) {
+    currentEvalDeportista = deportista;
+    loadEvals();
+
+    document.getElementById('evalModalTitle').textContent = deportista.jugador;
+    document.getElementById('evalModalSub').textContent   = (equipo?.nombre || deportista.equipoNombre || '—');
+    document.getElementById('evalFecha').value      = new Date().toISOString().split('T')[0];
+    document.getElementById('evalTemporada').value  = '';
+    document.getElementById('evalObservaciones').value = '';
+
+    buildEvalForm();
+    updateResumenCat();
+    switchEvalTab('nueva', document.getElementById('evalTabNueva'));
+    openModal('modalEval');
+  }
+
+  function buildEvalForm() {
+    const cats = {
+      fisico:  document.getElementById('evalCatFisico'),
+      tecnico: document.getElementById('evalCatTecnico'),
+      tactico: document.getElementById('evalCatTactico'),
+      actitud: document.getElementById('evalCatActitud'),
+    };
+
+    Object.entries(cats).forEach(([catKey, container]) => {
+      container.innerHTML = '';
+      EVAL_CRITERIOS[catKey].forEach(crit => {
+        const row = document.createElement('div');
+        row.className = 'eval-criterio';
+
+        const numId  = 'eval_' + crit.id + '_num';
+        const cualId = 'eval_' + crit.id + '_cual';
+
+        const cualOpts = CUAL_OPTS.map(o =>
+          `<option value="${o}">${o||'— Cualitativa —'}</option>`
+        ).join('');
+
+        row.innerHTML = `
+          <div class="eval-criterio-label">${crit.label}</div>
+          <input type="number" id="${numId}" class="eval-nota-num"
+            min="0" max="10" step="0.5" placeholder="—"
+            oninput="syncCual('${crit.id}')" />
+          <select id="${cualId}" class="eval-nota-cual"
+            onchange="syncNum('${crit.id}')">
+            ${cualOpts}
+          </select>`;
+
+        container.appendChild(row);
+      });
+    });
+  }
+
+  function syncCual(critId) {
+    const num  = parseFloat(document.getElementById('eval_' + critId + '_num').value);
+    const sel  = document.getElementById('eval_' + critId + '_cual');
+    if (!isNaN(num)) sel.value = NUM_TO_CUAL(num);
+    updateResumenCat();
+  }
+
+  function syncNum(critId) {
+    const sel = document.getElementById('eval_' + critId + '_cual');
+    const num = document.getElementById('eval_' + critId + '_num');
+    const map = {'Insuficiente':2,'Suficiente':4,'Bien':6,'Notable':8,'Sobresaliente':10};
+    if (sel.value && map[sel.value]) num.value = map[sel.value];
+    updateResumenCat();
+  }
+
+  function getNotasCat(catKey) {
+    const notas = [];
+    EVAL_CRITERIOS[catKey].forEach(c => {
+      const v = parseFloat(document.getElementById('eval_' + c.id + '_num')?.value);
+      if (!isNaN(v) && v > 0) notas.push(v);
+    });
+    return notas;
+  }
+
+  function mediaNotas(notas) {
+    if (!notas.length) return 0;
+    return notas.reduce((a,b) => a+b, 0) / notas.length;
+  }
+
+  function updateResumenCat() {
+    const cont = document.getElementById('evalResumenCat');
+    if (!cont) return;
+    const cats = [
+      { key:'fisico',  icon:'💪', label:'Físico' },
+      { key:'tecnico', icon:'⚽', label:'Técnico' },
+      { key:'tactico', icon:'🧠', label:'Táctico' },
+      { key:'actitud', icon:'🌟', label:'Actitud' },
+    ];
+    cont.innerHTML = cats.map(c => {
+      const m    = mediaNotas(getNotasCat(c.key));
+      const cual = m > 0 ? NUM_TO_CUAL(m) : '—';
+      const cls  = CUAL_CLASS[cual] || '';
+      return `<div class="eval-cat-item">
+        <div class="eval-cat-icon">${c.icon}</div>
+        <div class="eval-cat-nombre">${c.label}</div>
+        <div class="eval-cat-nota ${cls}">${m > 0 ? m.toFixed(1) : '—'}</div>
+        <div class="eval-cat-cual ${cls}">${cual}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── GUARDAR EVALUACIÓN ───────────────────────────────────────
+  async function guardarEval() {
+    if (!currentEvalDeportista) return;
+
+    const notas = {};
+    const allCriterios = [
+      ...EVAL_CRITERIOS.fisico,
+      ...EVAL_CRITERIOS.tecnico,
+      ...EVAL_CRITERIOS.tactico,
+      ...EVAL_CRITERIOS.actitud,
+    ];
+
+    allCriterios.forEach(c => {
+      notas[c.id] = {
+        num:  document.getElementById('eval_' + c.id + '_num')?.value || '',
+        cual: document.getElementById('eval_' + c.id + '_cual')?.value || '',
+      };
+    });
+
+    const medias = {
+      fisico:  mediaNotas(getNotasCat('fisico')).toFixed(1),
+      tecnico: mediaNotas(getNotasCat('tecnico')).toFixed(1),
+      tactico: mediaNotas(getNotasCat('tactico')).toFixed(1),
+      actitud: mediaNotas(getNotasCat('actitud')).toFixed(1),
+    };
+
+    const allNotas = [
+      ...getNotasCat('fisico'),
+      ...getNotasCat('tecnico'),
+      ...getNotasCat('tactico'),
+      ...getNotasCat('actitud'),
+    ];
+    const mediaGlobal = mediaNotas(allNotas).toFixed(1);
+
+    const evalRecord = {
+      id:           'ev_' + Date.now(),
+      deportistaId: currentEvalDeportista.id,
+      deportista:   currentEvalDeportista.jugador,
+      equipo:       currentEvalDeportista.equipoNombre || '',
+      fecha:        document.getElementById('evalFecha').value,
+      temporada:    document.getElementById('evalTemporada').value,
+      evaluador:    MONITOR_ID,
+      notas,
+      medias,
+      mediaGlobal,
+      observaciones: document.getElementById('evalObservaciones').value,
+    };
+
+    const key = 'eval_' + currentEvalDeportista.id;
+    if (!evalStorage[key]) evalStorage[key] = [];
+    evalStorage[key].push(evalRecord);
+    saveEvals();
+
+    const msg = document.getElementById('savedEval');
+    msg.classList.add('show');
+    setTimeout(() => msg.classList.remove('show'), 2500);
+
+    renderEvalDeportistas();
+  }
+
+  // ── HISTORIAL ────────────────────────────────────────────────
+  function verHistorial(deportista) {
+    loadEvals();
+    const evals = getDeportistaEvals(deportista.id);
+    const cont  = document.getElementById('evalHistorialList');
+
+    if (!evals.length) {
+      cont.innerHTML = '<div style="text-align:center;padding:24px;opacity:.4;">Sin evaluaciones registradas aún.</div>';
+      return;
+    }
+
+    cont.innerHTML = [...evals].reverse().map(e => `
+      <div class="eval-historial-item" onclick="cargarEvalHistorial('${deportista.id}','${e.id}')">
+        <div class="eval-hist-fecha">${e.fecha?.split('-').reverse().join('/')}</div>
+        <div class="eval-hist-info">
+          <div class="eval-hist-name">${e.temporada||'Sin temporada'} · ${e.evaluador||'—'}</div>
+          <div class="eval-hist-meta">
+            💪${e.medias?.fisico||'—'} ⚽${e.medias?.tecnico||'—'}
+            🧠${e.medias?.tactico||'—'} 🌟${e.medias?.actitud||'—'}
+          </div>
+        </div>
+        <div class="eval-hist-media ${CUAL_CLASS[NUM_TO_CUAL(e.mediaGlobal)]||''}">${e.mediaGlobal||'—'}</div>
+      </div>`).join('');
+  }
+
+  function cargarEvalHistorial(depId, evalId) {
+    const evals = getDeportistaEvals(depId);
+    const ev    = evals.find(e => e.id === evalId);
+    if (!ev) return;
+
+    // Load values into form
+    const allCriterios = [
+      ...EVAL_CRITERIOS.fisico, ...EVAL_CRITERIOS.tecnico,
+      ...EVAL_CRITERIOS.tactico, ...EVAL_CRITERIOS.actitud,
+    ];
+    allCriterios.forEach(c => {
+      const n = document.getElementById('eval_' + c.id + '_num');
+      const q = document.getElementById('eval_' + c.id + '_cual');
+      if (n && ev.notas?.[c.id]) { n.value = ev.notas[c.id].num; }
+      if (q && ev.notas?.[c.id]) { q.value = ev.notas[c.id].cual; }
+    });
+    document.getElementById('evalFecha').value      = ev.fecha || '';
+    document.getElementById('evalTemporada').value  = ev.temporada || '';
+    document.getElementById('evalObservaciones').value = ev.observaciones || '';
+    updateResumenCat();
+    switchEvalTab('nueva', document.getElementById('evalTabNueva'));
+  }
+
+  function verHistorialGeneral() {
+    // Show all evals for selected comp
+    alert('Selecciona un deportista para ver su historial individual.');
+  }
+
+  // ── RADAR CHART ──────────────────────────────────────────────
+  function drawRadar() {
+    const canvas = document.getElementById('radarCanvas');
+    if (!canvas) return;
+    const ctx  = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const cx = W/2, cy = H/2, r = Math.min(W,H)/2 - 30;
+    const cats = ['Físico','Técnico','Táctico','Actitud'];
+    const medias = [
+      mediaNotas(getNotasCat('fisico')),
+      mediaNotas(getNotasCat('tecnico')),
+      mediaNotas(getNotasCat('tactico')),
+      mediaNotas(getNotasCat('actitud')),
+    ];
+    const n = cats.length;
+
+    ctx.clearRect(0,0,W,H);
+
+    // Grid circles
+    for (let ring = 1; ring <= 5; ring++) {
+      ctx.beginPath();
+      for (let i = 0; i < n; i++) {
+        const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+        const x = cx + (r * ring/5) * Math.cos(angle);
+        const y = cy + (r * ring/5) * Math.sin(angle);
+        if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = 'rgba(45,80,22,0.15)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Axes
+    for (let i = 0; i < n; i++) {
+      const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+      ctx.strokeStyle = 'rgba(45,80,22,0.2)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Data polygon
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+      const val   = (medias[i] || 0) / 10;
+      const x = cx + r * val * Math.cos(angle);
+      const y = cy + r * val * Math.sin(angle);
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.fillStyle   = 'rgba(127,176,105,0.3)';
+    ctx.strokeStyle = '#4A7C2F';
+    ctx.lineWidth   = 2.5;
+    ctx.fill();
+    ctx.stroke();
+
+    // Points
+    for (let i = 0; i < n; i++) {
+      const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+      const val   = (medias[i] || 0) / 10;
+      const x = cx + r * val * Math.cos(angle);
+      const y = cy + r * val * Math.sin(angle);
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI*2);
+      ctx.fillStyle = '#2D5016';
+      ctx.fill();
+    }
+
+    // Labels
+    ctx.font = 'bold 13px Barlow, sans-serif';
+    ctx.fillStyle = '#2D5016';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < n; i++) {
+      const angle = (i / n) * Math.PI * 2 - Math.PI/2;
+      const x = cx + (r + 22) * Math.cos(angle);
+      const y = cy + (r + 22) * Math.sin(angle);
+      ctx.fillText(cats[i] + ' (' + (medias[i]||0).toFixed(1) + ')', x, y);
+    }
+
+    // Leyenda
+    const ley = document.getElementById('evalRadarLeyenda');
+    if (ley) {
+      const global = mediaNotas([...medias.filter(m=>m>0)]);
+      ley.innerHTML = `<div style="text-align:center;margin-top:10px;">
+        <div style="font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--verde-bosque);">${global.toFixed(1)}</div>
+        <div style="font-size:12px;opacity:.5;text-transform:uppercase;letter-spacing:1px;">Media global</div>
+        <div style="font-size:14px;font-weight:700;margin-top:4px;" class="${CUAL_CLASS[NUM_TO_CUAL(global)]||''}">${NUM_TO_CUAL(global)||'—'}</div>
+      </div>`;
+    }
+  }
+
+  // ── SWITCH EVAL TAB ─────────────────────────────────────────
+  function switchEvalTab(tab, btn) {
+    ['nueva','historial','radar'].forEach(t => {
+      document.getElementById('evalPanel' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = 'none';
+      document.getElementById('evalTab'   + t.charAt(0).toUpperCase() + t.slice(1)).classList.remove('active');
+    });
+    document.getElementById('evalPanel' + tab.charAt(0).toUpperCase() + tab.slice(1)).style.display = 'block';
+    if (btn) btn.classList.add('active');
+
+    if (tab === 'historial' && currentEvalDeportista) {
+      verHistorial(currentEvalDeportista);
+    }
+    if (tab === 'radar') {
+      setTimeout(drawRadar, 50);
+    }
+  }
+
+  // ── EXPORTAR PDF ─────────────────────────────────────────────
+  function exportarPDFEval() {
+    if (!currentEvalDeportista) return;
+
+    const medias = {
+      fisico:  mediaNotas(getNotasCat('fisico')),
+      tecnico: mediaNotas(getNotasCat('tecnico')),
+      tactico: mediaNotas(getNotasCat('tactico')),
+      actitud: mediaNotas(getNotasCat('actitud')),
+    };
+    const global = mediaNotas(Object.values(medias).filter(m=>m>0));
+    const fecha  = document.getElementById('evalFecha').value;
+    const temp   = document.getElementById('evalTemporada').value;
+    const obs    = document.getElementById('evalObservaciones').value;
+
+    const allCriterios = {
+      '💪 Capacidades Físicas':  EVAL_CRITERIOS.fisico,
+      '⚽ Aspectos Técnicos':    EVAL_CRITERIOS.tecnico,
+      '🧠 Aspectos Tácticos':    EVAL_CRITERIOS.tactico,
+      '🌟 Actitud y Valores':    EVAL_CRITERIOS.actitud,
+    };
+
+    let tablas = '';
+    Object.entries(allCriterios).forEach(([titulo, crits]) => {
+      let filas = crits.map(c => {
+        const num  = document.getElementById('eval_' + c.id + '_num')?.value || '—';
+        const cual = document.getElementById('eval_' + c.id + '_cual')?.value || '—';
+        return `<tr><td>${c.label}</td><td style="text-align:center;font-weight:700;">${num}</td><td style="text-align:center;">${cual}</td></tr>`;
+      }).join('');
+      tablas += `
+        <h3 style="margin:18px 0 8px;color:#2D5016;font-size:14px;">${titulo}</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead><tr style="background:#2D5016;color:white;">
+            <th style="padding:8px 12px;text-align:left;">Criterio</th>
+            <th style="padding:8px 12px;text-align:center;width:80px;">Nota</th>
+            <th style="padding:8px 12px;text-align:center;width:140px;">Cualitativa</th>
+          </tr></thead>
+          <tbody>${filas}</tbody>
+        </table>`;
+    });
+
+    const pdfHTML = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+    <title>Evaluación - ${currentEvalDeportista.jugador}</title>
+    <style>
+      body{font-family:Arial,sans-serif;margin:0;padding:24px;color:#222;font-size:13px;}
+      .header{background:#2D5016;color:white;padding:20px 24px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
+      .header h1{margin:0;font-size:20px;}
+      .header p{margin:4px 0;opacity:.7;font-size:12px;}
+      .resumen{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+      .res-item{background:#f5f5f0;border-radius:8px;padding:12px;text-align:center;}
+      .res-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:.5;margin-bottom:4px;}
+      .res-val{font-size:1.6rem;font-weight:900;color:#2D5016;}
+      .res-cual{font-size:11px;font-weight:700;margin-top:2px;}
+      table tbody tr:nth-child(even){background:#f9f9f7;}
+      table tbody td{padding:7px 12px;border-bottom:1px solid #eee;}
+      .obs{background:#f5f5f0;border-radius:8px;padding:14px;margin-top:18px;font-size:13px;line-height:1.7;}
+      .firma{margin-top:40px;display:flex;justify-content:space-between;}
+      .firma-item{text-align:center;}
+      .firma-linea{width:180px;border-top:1px solid #999;padding-top:6px;font-size:11px;opacity:.6;}
+      @media print{body{margin:0;}}
+    </style>
+    </head><body>
+    <div class="header">
+      <div>
+        <h1>${currentEvalDeportista.jugador}</h1>
+        <p>${currentEvalDeportista.equipoNombre||'—'} · Temporada ${temp||'—'}</p>
+        <p>Evaluador: ${MONITOR_ID} · Fecha: ${fecha}</p>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:2.5rem;font-weight:900;">${global.toFixed(1)}</div>
+        <div style="font-size:13px;opacity:.8;">${NUM_TO_CUAL(global)||'—'}</div>
+      </div>
+    </div>
+
+    <div class="resumen">
+      <div class="res-item"><div class="res-label">💪 Físico</div><div class="res-val">${medias.fisico.toFixed(1)}</div><div class="res-cual">${NUM_TO_CUAL(medias.fisico)}</div></div>
+      <div class="res-item"><div class="res-label">⚽ Técnico</div><div class="res-val">${medias.tecnico.toFixed(1)}</div><div class="res-cual">${NUM_TO_CUAL(medias.tecnico)}</div></div>
+      <div class="res-item"><div class="res-label">🧠 Táctico</div><div class="res-val">${medias.tactico.toFixed(1)}</div><div class="res-cual">${NUM_TO_CUAL(medias.tactico)}</div></div>
+      <div class="res-item"><div class="res-label">🌟 Actitud</div><div class="res-val">${medias.actitud.toFixed(1)}</div><div class="res-cual">${NUM_TO_CUAL(medias.actitud)}</div></div>
+      <div class="res-item" style="background:#2D5016;color:white;"><div class="res-label" style="opacity:.7;">MEDIA</div><div class="res-val" style="color:#7FB069;">${global.toFixed(1)}</div><div class="res-cual">${NUM_TO_CUAL(global)}</div></div>
+    </div>
+
+    ${tablas}
+
+    ${obs ? `<div class="obs"><strong>Observaciones:</strong><br>${obs}</div>` : ''}
+
+    <div class="firma">
+      <div class="firma-item"><div class="firma-linea">Evaluador: ${MONITOR_ID}</div></div>
+      <div class="firma-item"><div class="firma-linea">Escuela & Deporte · escuelaydeporte.com</div></div>
+    </div>
+    </body></html>`;
+
+    const win = window.open('', '_blank');
+    win.document.write(pdfHTML);
+    win.document.close();
+    setTimeout(() => win.print(), 500);
+  }
+
+  // ── PATCH populateFiltros to include eval filter ──────────
+  const _origPopulateEval = populateFiltros;
+  populateFiltros = function() {
+    _origPopulateEval();
+    const sel = document.getElementById('evalFiltroComp');
+    if (!sel) return;
+    const curr = sel.value;
+    sel.innerHTML = '<option value="">— Selecciona una competición / escuela —</option>';
+    (db.competiciones||[]).forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = (c.escudo||'🏆') + ' ' + c.nombre + ' · ' + (c.temporada||'');
+      sel.appendChild(opt);
+    });
+    if (curr) sel.value = curr;
+  };
+
+  // ── PATCH applyRoleUI ──────────────────────────────────────
+  const _origRoleUIEval = applyRoleUI;
+  applyRoleUI = function() {
+    _origRoleUIEval();
+    applyEvalRoleUI();
+  };
+
+  // ── PATCH renderAll ────────────────────────────────────────
+  const _origRenderAllEval = renderAll;
+  renderAll = function() {
+    _origRenderAllEval();
+    loadEvals();
+  };
+
 </script>
 
 <!-- ══ MODAL ACTA ÁRBITRO ══ -->
@@ -3196,6 +3942,91 @@ async function saveGoleador(){
       <div style="display:flex;gap:8px;">
         <button class="btn btn-outline btn-sm" onclick="closeModal('modalSponsor')">Cancelar</button>
         <button class="btn btn-acento btn-sm" onclick="saveSponsor()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ MODAL EVALUACIÓN ══ -->
+<div class="modal-overlay" id="modalEval" onclick="if(event.target===this)closeModal('modalEval')">
+  <div class="modal-box" style="max-width:580px;">
+    <div class="modal-head">
+      <div class="modal-color-bar" id="evalColorBar" style="width:6px;height:38px;border-radius:4px;background:var(--verde-claro);flex-shrink:0;"></div>
+      <div class="modal-header-text" style="flex:1;">
+        <div class="modal-title" id="evalModalTitle">Nueva evaluación</div>
+        <div class="modal-subtitle" id="evalModalSub"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalEval')">✕</button>
+    </div>
+
+    <!-- Tabs internos -->
+    <div style="display:flex;border-bottom:1.5px solid var(--crema-oscuro);padding:0 20px;">
+      <button class="nav-btn active" id="evalTabNueva" style="font-family:'DM Sans',sans-serif;font-size:12px;" onclick="switchEvalTab('nueva',this)">✏️ Nueva evaluación</button>
+      <button class="nav-btn" id="evalTabHistorial" style="font-family:'DM Sans',sans-serif;font-size:12px;" onclick="switchEvalTab('historial',this)">📋 Historial</button>
+      <button class="nav-btn" id="evalTabRadar" style="font-family:'DM Sans',sans-serif;font-size:12px;" onclick="switchEvalTab('radar',this)">📊 Gráfica</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- NUEVA EVALUACIÓN -->
+      <div id="evalPanelNueva">
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <div class="form-field" style="flex:1;min-width:140px;">
+            <label>Temporada</label>
+            <input type="text" id="evalTemporada" class="finput" placeholder="Ej. 2025-2026" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--gris-linea);background:var(--crema);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+          </div>
+          <div class="form-field" style="flex:1;min-width:140px;">
+            <label>Fecha</label>
+            <input type="date" id="evalFecha" class="finput" style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--gris-linea);background:var(--crema);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+          </div>
+        </div>
+
+        <!-- RESUMEN por categorías -->
+        <div class="eval-resumen-cat" id="evalResumenCat"></div>
+
+        <!-- CATEGORÍA: FÍSICO -->
+        <div class="eval-categoria-title">💪 Capacidades Físicas</div>
+        <div id="evalCatFisico"></div>
+
+        <!-- CATEGORÍA: TÉCNICO -->
+        <div class="eval-categoria-title">⚽ Aspectos Técnicos</div>
+        <div id="evalCatTecnico"></div>
+
+        <!-- CATEGORÍA: TÁCTICO -->
+        <div class="eval-categoria-title">🧠 Aspectos Tácticos</div>
+        <div id="evalCatTactico"></div>
+
+        <!-- CATEGORÍA: ACTITUDINAL -->
+        <div class="eval-categoria-title">🌟 Actitud y Valores</div>
+        <div id="evalCatActitud"></div>
+
+        <!-- OBSERVACIONES -->
+        <div class="eval-categoria-title">📝 Observaciones del evaluador</div>
+        <textarea id="evalObservaciones" placeholder="Comentarios, puntos fuertes, aspectos a mejorar..."
+          style="width:100%;min-height:80px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--gris-linea);background:var(--crema);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;resize:vertical;"></textarea>
+      </div>
+
+      <!-- HISTORIAL -->
+      <div id="evalPanelHistorial" style="display:none;">
+        <div id="evalHistorialList"></div>
+      </div>
+
+      <!-- RADAR CHART -->
+      <div id="evalPanelRadar" style="display:none;">
+        <div class="radar-wrap">
+          <canvas id="radarCanvas" width="300" height="300"></canvas>
+        </div>
+        <div id="evalRadarLeyenda"></div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <span class="saved-msg" id="savedEval">✔ Evaluación guardada</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalEval')">Cerrar</button>
+        <button class="btn btn-pdf btn-sm" onclick="exportarPDFEval()">📄 Exportar PDF</button>
+        <button class="btn btn-primary btn-sm" id="btnGuardarEval" onclick="guardarEval()">💾 Guardar evaluación</button>
       </div>
     </div>
   </div>
