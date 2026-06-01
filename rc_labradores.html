@@ -1440,7 +1440,7 @@ document.addEventListener('keydown', e => {
 // ══════════════════════════════════════════════════════════════
 async function initApp() {
   setStatus('loading','⏳ Conectando con Google Sheets…');
-  if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbymyot3_JEVp4Xs5DqYhH_vTJZOhtb3WsBSwb21k1ked2cbwC2sTT00mSvugrIG4B6B/exec') {
+  if (!SCRIPT_URL || !SCRIPT_URL.startsWith('http')) {
     setStatus('local','⚠ Modo local — configura la URL del Apps Script');
     renderAll(); return;
   }
@@ -1800,7 +1800,7 @@ function generarCalendario() {
   db.partidos.push(...newPartidos);
   saveLocal();
   // Save to Sheets
-  if (SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbymyot3_JEVp4Xs5DqYhH_vTJZOhtb3WsBSwb21k1ked2cbwC2sTT00mSvugrIG4B6B/exec') {
+  if (SCRIPT_URL && SCRIPT_URL.startsWith('http')) {
     newPartidos.forEach(p => apiCall('savePartido', p));
   }
   renderCalendario();
@@ -1813,7 +1813,7 @@ function generarCalendario() {
 //  API CALL
 // ══════════════════════════════════════════════════════════════
 async function apiCall(action, data={}) {
-  if (SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbymyot3_JEVp4Xs5DqYhH_vTJZOhtb3WsBSwb21k1ked2cbwC2sTT00mSvugrIG4B6B/exec') return {ok:true};
+  if (!SCRIPT_URL || !SCRIPT_URL.startsWith('http')) return {ok:true};
   try {
     const params = new URLSearchParams({ action, pwd:userPwd, modificadoPor:MONITOR_ID, ...data });
     const r = await fetch(SCRIPT_URL + '?' + params.toString());
@@ -2478,7 +2478,7 @@ async function saveGoleador(){
     document.getElementById('padresView').style.display = 'block';
     document.body.style.overflow = 'hidden';
     // Load data
-    if (SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbymyot3_JEVp4Xs5DqYhH_vTJZOhtb3WsBSwb21k1ked2cbwC2sTT00mSvugrIG4B6B/exec') {
+    if (SCRIPT_URL && SCRIPT_URL.startsWith('http')) {
       try {
         const r = await fetch(SCRIPT_URL + '?action=getAll&pwd=' + userPwd);
         const j = await r.json();
