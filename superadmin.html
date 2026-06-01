@@ -771,6 +771,65 @@ function renderActividad() {
   cont.innerHTML = out;
 }
 
+// ── GENERAR ARCHIVO DE ACCESO ─────────────────────────────────
+function generarConfigurador(clubId) {
+  var c = null;
+  for (var i = 0; i < db.clubes.length; i++) {
+    if (db.clubes[i].id === clubId) { c = db.clubes[i]; break; }
+  }
+  if (!c) return;
+  if (!c.scriptUrl) {
+    alert("Este club no tiene URL de Apps Script configurada. Edita el club y añade la URL primero.");
+    return;
+  }
+
+  var html = "<!DOCTYPE html><html lang='es'><head><meta charset='UTF-8'>";
+  html += "<meta name='viewport' content='width=device-width, initial-scale=1.0'>";
+  html += "<title>Acceso - " + c.nombre + "</title>";
+  html += "<style>";
+  html += "body{font-family:sans-serif;background:#0D1B2A;color:white;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;padding:20px;}";
+  html += ".box{background:rgba(255,255,255,0.05);border-radius:16px;padding:40px;max-width:420px;width:100%;}";
+  html += ".titulo{font-size:1.2rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#E8A020;margin-bottom:8px;}";
+  html += ".club{font-size:1.1rem;font-weight:700;color:white;margin-bottom:20px;}";
+  html += ".creds{background:rgba(255,255,255,0.08);border-radius:10px;padding:16px;margin-bottom:20px;text-align:left;}";
+  html += ".cred-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;}";
+  html += ".cred-lbl{opacity:0.5;text-transform:uppercase;letter-spacing:1px;font-size:11px;flex-shrink:0;}";
+  html += ".cred-val{font-weight:700;color:#E8A020;font-size:13px;word-break:break-all;}";
+  html += ".btn{display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#E8A020;color:#0D1B2A;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:2px;cursor:pointer;text-decoration:none;margin-top:8px;box-sizing:border-box;text-align:center;}";
+  html += ".sub{font-size:11px;opacity:0.4;margin-top:16px;line-height:1.6;}";
+  html += "</style></head><body>";
+  html += "<div class='box'>";
+  html += "<div class='titulo'>Escuela y Deporte</div>";
+  html += "<div class='club'>" + c.nombre + "</div>";
+  html += "<div class='creds'>";
+  html += "<div class='cred-row'><span class='cred-lbl'>Administrador</span><span class='cred-val'>" + c.adminPwd + "</span></div>";
+  html += "<div class='cred-row'><span class='cred-lbl'>Delegados</span><span class='cred-val'>" + c.delegadoPwd + "</span></div>";
+  html += "<div class='cred-row'><span class='cred-lbl'>Familias</span><span class='cred-val'>" + c.padresPwd + "</span></div>";
+  html += "<div class='cred-row'><span class='cred-lbl'>Arbitros</span><span class='cred-val'>" + PWD_ARBITRO + "</span></div>";
+  html += "</div>";
+  html += "<a class='btn' href='https://app.escuelaydeporte.com/escuelas_deportivas.html'>Abrir mi aplicacion</a>";
+  html += "<div class='sub'>Guarda este archivo. Contiene tus credenciales de acceso.<br>app.escuelaydeporte.com</div>";
+  html += "<scr" + "ipt>";
+  html += "try{localStorage.setItem('ed_script_url','" + c.scriptUrl + "');}catch(e){}";
+  html += "</scr" + "ipt>";
+  html += "</div></body></html>";
+
+  var blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement("a");
+  a.href     = url;
+  a.download = "acceso_" + c.nombre.toLowerCase().replace(/[^a-z0-9]/g, "_") + ".html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function descargarAccesoNuevo() {
+  var c = db.clubes[db.clubes.length - 1];
+  if (c) generarConfigurador(c.id);
+}
+
 // ── START ─────────────────────────────────────────────────────
 init();
 
