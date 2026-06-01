@@ -3192,7 +3192,7 @@ async function saveGoleador(){
     const goleadores = (db.goleadores || []).filter(g => g.competicionId === compId);
 
     if (!goleadores.length) {
-      cont.innerHTML = '<div class="empty-state"><div class="empty-icon">🧑‍🤝‍🧑</div><div class="empty-title">Sin deportistas registrados</div><div class="empty-desc">Añade goleadores/jugadores en la pestaña de Goleadores primero, o añade deportistas directamente desde aquí.</div><button class="btn btn-primary" onclick="abrirEvalNuevoDeportista('' + compId + '')">+ Añadir deportista</button></div>';
+      cont.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Sin deportistas registrados</div><div class="empty-desc">Añade jugadores en la pestaña de Goleadores primero.</div></div>';
       return;
     }
 
