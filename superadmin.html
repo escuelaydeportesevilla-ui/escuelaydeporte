@@ -807,7 +807,12 @@ function generarConfigurador(clubId) {
   html += "<div class='cred-row'><span class='cred-lbl'>Familias</span><span class='cred-val'>" + c.padresPwd + "</span></div>";
   html += "<div class='cred-row'><span class='cred-lbl'>Arbitros</span><span class='cred-val'>" + PWD_ARBITRO + "</span></div>";
   html += "</div>";
-  html += "<a class='btn' href='https://app.escuelaydeporte.com/escuelas_deportivas.html'>Abrir mi aplicacion</a>";
+  // Generate club slug for URL
+  var slug = c.nombre.toLowerCase().replace(/[^a-z0-9]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
+  var appUrl = "https://app.escuelaydeporte.com/" + slug + ".html";
+  html += "<a class='btn' href='" + appUrl + "'>Abrir mi aplicacion</a>";
+  html += "<div style='font-size:11px;opacity:0.5;margin-top:8px;word-break:break-all;'>" + appUrl + "</div>";
+  //
   html += "<div class='sub'>Guarda este archivo. Contiene tus credenciales de acceso.<br>app.escuelaydeporte.com</div>";
   html += "<scr" + "ipt>";
   html += "try{localStorage.setItem('ed_script_url','" + c.scriptUrl + "');}catch(e){}";
