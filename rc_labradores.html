@@ -1361,6 +1361,160 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
     .dep-datos-grid { grid-template-columns: 1fr 1fr; }
   }
 
+
+  /* ═══ DASHBOARD VISUAL ══════════════════════════════════════ */
+  .dash-welcome {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-medio) 100%);
+    border-radius: 16px; padding: 24px; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 16px; position: relative; overflow: hidden;
+  }
+  .dash-welcome::after {
+    content: ''; position: absolute; right: -20px; top: -20px;
+    width: 120px; height: 120px; border-radius: 50%;
+    background: rgba(232,160,32,0.15); pointer-events: none;
+  }
+  .dash-welcome-logo {
+    width: 60px; height: 60px; border-radius: 12px; object-fit: contain;
+    background: white; padding: 4px; flex-shrink: 0;
+  }
+  .dash-welcome-text { flex: 1; }
+  .dash-welcome-club {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 1.4rem;
+    font-weight: 900; text-transform: uppercase; letter-spacing: 1px;
+    color: white; line-height: 1;
+  }
+  .dash-welcome-sub { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 4px; }
+  .dash-welcome-stats { display: flex; gap: 16px; margin-top: 12px; }
+  .dash-welcome-stat .val {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 1.6rem;
+    font-weight: 900; color: var(--acento); line-height: 1;
+  }
+  .dash-welcome-stat .lbl {
+    font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: rgba(255,255,255,0.4);
+  }
+
+  /* Module grid */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .dash-module-card {
+    border-radius: 16px; padding: 20px 14px;
+    cursor: pointer; transition: all 0.2s; position: relative;
+    overflow: hidden; text-align: center;
+    border: none; display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+    min-height: 130px; justify-content: center;
+  }
+  .dash-module-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+  }
+  .dash-module-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(255,255,255,0.08); opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .dash-module-card:hover::before { opacity: 1; }
+
+  .dash-module-icon {
+    font-size: 2.4rem; line-height: 1; z-index: 1;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  }
+  .dash-module-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.5px; color: white; z-index: 1; line-height: 1.2;
+  }
+  .dash-module-count {
+    font-size: 10px; color: rgba(255,255,255,0.65);
+    z-index: 1; font-weight: 600;
+  }
+  .dash-module-badge {
+    position: absolute; top: 8px; right: 8px;
+    background: var(--acento); color: var(--navy);
+    font-size: 9px; font-weight: 900; padding: 2px 7px;
+    border-radius: 10px; z-index: 2;
+  }
+
+  /* Module colors */
+  .dm-competiciones { background: linear-gradient(135deg, #1B3A5C 0%, #2E6DA4 100%); }
+  .dm-equipos       { background: linear-gradient(135deg, #1E5631 0%, #27AE60 100%); }
+  .dm-calendario    { background: linear-gradient(135deg, #6E2C00 0%, #E67E22 100%); }
+  .dm-clasificacion { background: linear-gradient(135deg, #4A235A 0%, #8E44AD 100%); }
+  .dm-goleadores    { background: linear-gradient(135deg, #1A3A4A 0%, #2E86C1 100%); }
+  .dm-deportistas   { background: linear-gradient(135deg, #0E6655 0%, #117A65 100%); }
+  .dm-escuelas      { background: linear-gradient(135deg, #1A5276 0%, #2471A3 100%); }
+  .dm-evaluaciones  { background: linear-gradient(135deg, #7B241C 0%, #C0392B 100%); }
+  .dm-noticias      { background: linear-gradient(135deg, #7D6608 0%, #D4AC0D 100%); }
+  .dm-familias      { background: linear-gradient(135deg, #145A32 0%, #1E8449 100%); }
+  .dm-actas         { background: linear-gradient(135deg, #212F3D 0%, #566573 100%); }
+  .dm-patrocinadores{ background: linear-gradient(135deg, #4D3319 0%, #A04000 100%); }
+
+  /* Quick stats section */
+  .dash-section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--gris-suave);
+    margin-bottom: 12px; margin-top: 4px;
+  }
+
+  .dash-quick-stats {
+    display: grid; grid-template-columns: repeat(2,1fr); gap: 10px;
+    margin-bottom: 20px;
+  }
+  .dash-qs-card {
+    background: var(--blanco); border: 1.5px solid var(--gris-linea);
+    border-radius: 12px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .dash-qs-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+  }
+  .dash-qs-text { flex: 1; }
+  .dash-qs-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.5rem; font-weight: 900; color: var(--navy); line-height: 1;
+  }
+  .dash-qs-lbl {
+    font-size: 10px; font-weight: 600; color: var(--gris-suave);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* Proximos partidos en dashboard */
+  .dash-partido-item {
+    background: var(--blanco); border: 1.5px solid var(--gris-linea);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .dash-partido-fecha {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem;
+    font-weight: 800; color: var(--navy-claro); text-align: center;
+    min-width: 44px; line-height: 1.2;
+  }
+  .dash-partido-info { flex: 1; font-size: 13px; font-weight: 600; color: var(--navy); }
+  .dash-partido-meta { font-size: 11px; color: var(--gris-suave); margin-top: 2px; }
+  .dash-partido-hora {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 1rem;
+    font-weight: 800; color: var(--acento);
+  }
+
+  @media(max-width:700px){
+    .dash-grid { grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .dash-module-card { padding: 16px 10px; min-height: 110px; border-radius: 14px; }
+    .dash-module-icon { font-size: 2rem; }
+    .dash-module-name { font-size: 11px; }
+    .dash-welcome { padding: 18px; }
+    .dash-welcome-club { font-size: 1.2rem; }
+    .dash-quick-stats { grid-template-columns: repeat(2,1fr); }
+  }
+
 </style>
 </head>
 <body>
@@ -1395,7 +1549,8 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- NAV -->
 <nav class="nav-bar">
-  <button class="nav-btn active" onclick="showTab('competiciones',this)">🏆 Competiciones</button>
+  <button class="nav-btn active" id="navInicio" onclick="showTab('inicio',this)">🏠 Inicio</button>
+  <button class="nav-btn" onclick="showTab('competiciones',this)">🏆 Competiciones</button>
   <button class="nav-btn" onclick="showTab('equipos',this)">👥 Equipos</button>
   <button class="nav-btn" onclick="showTab('calendario',this)">📅 Calendario</button>
   <button class="nav-btn" onclick="showTab('clasificacion',this)">📊 Clasificación</button>
@@ -1412,7 +1567,103 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 <div class="main">
 
 <!-- ══ TAB COMPETICIONES ══ -->
-<div id="tab-competiciones" class="tab-panel active">
+<!-- ══ TAB INICIO (DASHBOARD) ══ -->
+<div id="tab-inicio" class="tab-panel active">
+
+  <!-- Bienvenida -->
+  <div class="dash-welcome">
+    <div>
+      <div class="dash-welcome-club">RC Labradores</div>
+      <div class="dash-welcome-sub">Panel de gestión deportiva · Escuela &amp; Deporte</div>
+      <div class="dash-welcome-stats">
+        <div class="dash-welcome-stat"><div class="val" id="dashStatDep">—</div><div class="lbl">Deportistas</div></div>
+        <div class="dash-welcome-stat"><div class="val" id="dashStatComp">—</div><div class="lbl">Competiciones</div></div>
+        <div class="dash-welcome-stat"><div class="val" id="dashStatPart">—</div><div class="lbl">Partidos</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Módulos -->
+  <div class="dash-section-title">Módulos disponibles</div>
+  <div class="dash-grid" id="dashGrid">
+
+    <div class="dash-module-card dm-competiciones" onclick="navToTab('competiciones')">
+      <div class="dash-module-icon">🏆</div>
+      <div class="dash-module-name">Competiciones</div>
+      <div class="dash-module-count" id="dmComp">—</div>
+    </div>
+
+    <div class="dash-module-card dm-deportistas" onclick="navToTab('deportistas')" id="dmCardDeportistas" style="display:none">
+      <div class="dash-module-icon">🧑‍🤝‍🧑</div>
+      <div class="dash-module-name">Deportistas</div>
+      <div class="dash-module-count" id="dmDep">—</div>
+    </div>
+
+    <div class="dash-module-card dm-escuelas" onclick="navToTab('escuelas')" id="dmCardEscuelas" style="display:none">
+      <div class="dash-module-icon">🏫</div>
+      <div class="dash-module-name">Escuelas</div>
+      <div class="dash-module-count" id="dmEsc">—</div>
+    </div>
+
+    <div class="dash-module-card dm-calendario" onclick="navToTab('calendario')">
+      <div class="dash-module-icon">📅</div>
+      <div class="dash-module-name">Calendario</div>
+      <div class="dash-module-count" id="dmCal">—</div>
+    </div>
+
+    <div class="dash-module-card dm-clasificacion" onclick="navToTab('clasificacion')">
+      <div class="dash-module-icon">📊</div>
+      <div class="dash-module-name">Clasificación</div>
+      <div class="dash-module-count" id="dmClasif">—</div>
+    </div>
+
+    <div class="dash-module-card dm-goleadores" onclick="navToTab('goleadores')">
+      <div class="dash-module-icon">⚽</div>
+      <div class="dash-module-name">Goleadores</div>
+      <div class="dash-module-count" id="dmGol">—</div>
+    </div>
+
+    <div class="dash-module-card dm-evaluaciones" onclick="navToTab('evaluaciones')" id="dmCardEval" style="display:none">
+      <div class="dash-module-icon">📝</div>
+      <div class="dash-module-name">Evaluaciones</div>
+      <div class="dash-module-count">Continuas</div>
+    </div>
+
+    <div class="dash-module-card dm-actas" onclick="navToTab('mispartidos')" id="dmCardActas" style="display:none">
+      <div class="dash-module-icon">📋</div>
+      <div class="dash-module-name">Mis actas</div>
+      <div class="dash-module-count">Árbitro</div>
+    </div>
+
+    <div class="dash-module-card dm-noticias" onclick="navToTab('noticias')" id="dmCardNoticias" style="display:none">
+      <div class="dash-module-icon">📰</div>
+      <div class="dash-module-name">Noticias</div>
+      <div class="dash-module-count" id="dmNot">—</div>
+    </div>
+
+    <div class="dash-module-card dm-patrocinadores" onclick="navToTab('patrocinadores')" id="dmCardPat" style="display:none">
+      <div class="dash-module-icon">🤝</div>
+      <div class="dash-module-name">Patrocinadores</div>
+      <div class="dash-module-count" id="dmPat">—</div>
+    </div>
+
+  </div>
+
+  <!-- Próximos partidos -->
+  <div id="dashProximos">
+    <div class="dash-section-title">Próximos partidos</div>
+    <div id="dashProximosList"></div>
+  </div>
+
+  <!-- Últimos resultados -->
+  <div id="dashResultados">
+    <div class="dash-section-title">Últimos resultados</div>
+    <div id="dashResultadosList"></div>
+  </div>
+
+</div>
+
+<div id="tab-competiciones" class="tab-panel">
   <div class="section-header"><h2>🏆 Competiciones activas</h2><div class="section-line"></div></div>
 
   <div class="actions-row" id="adminActionsComp" style="display:none">
@@ -5505,6 +5756,117 @@ async function saveGoleador(){
   applyRoleUI = function() {
     _baseRoleUIDep();
     applyDepRoleUI();
+  };
+
+
+  // ══════════════════════════════════════════════════════════════
+  //  DASHBOARD
+  // ══════════════════════════════════════════════════════════════
+
+  function navToTab(id) {
+    // Find the nav button for this tab and click it
+    const btns = document.querySelectorAll('.nav-btn');
+    let found = false;
+    btns.forEach(b => {
+      if (b.onclick && b.onclick.toString().includes("'" + id + "'")) {
+        b.click(); found = true;
+      }
+    });
+    if (!found) showTab(id, null);
+  }
+
+  function renderDashboard() {
+    // Stats
+    const deps  = (db.deportistas||[]).length;
+    const comps = (db.competiciones||[]).filter(c=>c.estado==='activa').length || (db.competiciones||[]).length;
+    const parts = (db.partidos||[]).length;
+
+    const el = (id) => document.getElementById(id);
+    if(el('dashStatDep'))  el('dashStatDep').textContent  = deps  || '0';
+    if(el('dashStatComp')) el('dashStatComp').textContent = comps || '0';
+    if(el('dashStatPart')) el('dashStatPart').textContent = parts || '0';
+
+    // Module counts
+    if(el('dmComp'))  el('dmComp').textContent  = (db.competiciones||[]).length + ' activas';
+    if(el('dmDep'))   el('dmDep').textContent   = deps + ' registrados';
+    if(el('dmEsc'))   el('dmEsc').textContent   = (db.escuelas||[]).length + ' escuelas';
+    if(el('dmCal'))   el('dmCal').textContent   = (db.partidos||[]).filter(p=>p.estado==='pendiente').length + ' pendientes';
+    if(el('dmClasif'))el('dmClasif').textContent= (db.equipos||[]).length + ' equipos';
+    if(el('dmGol'))   el('dmGol').textContent   = (db.goleadores||[]).length + ' jugadores';
+    if(el('dmNot'))   el('dmNot').textContent   = (db.noticias||[]).filter(n=>n.publicada==='true').length + ' publicadas';
+    if(el('dmPat'))   el('dmPat').textContent   = (db.patrocinadores||[]).length + ' patrocinadores';
+
+    // Show/hide modules based on role
+    const isAdmin   = userRole === 'admin';
+    const isDelegado= userRole === 'delegado';
+    const isArbitro = userRole === 'arbitro';
+    const canEdit   = isAdmin || isDelegado;
+
+    if(el('dmCardDeportistas')) el('dmCardDeportistas').style.display = canEdit ? 'flex' : 'none';
+    if(el('dmCardEscuelas'))    el('dmCardEscuelas').style.display    = canEdit ? 'flex' : 'none';
+    if(el('dmCardEval'))        el('dmCardEval').style.display        = canEdit ? 'flex' : 'none';
+    if(el('dmCardActas'))       el('dmCardActas').style.display       = isArbitro ? 'flex' : 'none';
+    if(el('dmCardNoticias'))    el('dmCardNoticias').style.display    = isAdmin ? 'flex' : 'none';
+    if(el('dmCardPat'))         el('dmCardPat').style.display         = isAdmin ? 'flex' : 'none';
+
+    // Proximos partidos
+    const proximos = (db.partidos||[])
+      .filter(p => p.estado === 'pendiente' && p.fecha)
+      .sort((a,b) => a.fecha.localeCompare(b.fecha))
+      .slice(0,3);
+
+    const proxEl = el('dashProximosList');
+    if (proxEl) {
+      if (!proximos.length) {
+        proxEl.innerHTML = '<div style="text-align:center;padding:16px;opacity:.4;font-size:13px;">Sin partidos programados</div>';
+      } else {
+        proxEl.innerHTML = proximos.map(p => {
+          const parts = (p.fecha||'').split('-');
+          const fechaStr = parts.length === 3 ? parts[2]+'/'+parts[1] : p.fecha;
+          return `<div class="dash-partido-item">
+            <div class="dash-partido-fecha">${fechaStr}</div>
+            <div class="dash-partido-info">
+              ${p.equipoLocalNombre||'—'} vs ${p.equipoVisitanteNombre||'—'}
+              <div class="dash-partido-meta">Jornada ${p.jornada||'—'} · ${p.campo||'Sin campo'}</div>
+            </div>
+            <div class="dash-partido-hora">${p.hora||'—'}</div>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    // Ultimos resultados
+    const resultados = (db.partidos||[])
+      .filter(p => p.estado === 'jugado')
+      .sort((a,b) => b.fecha.localeCompare(a.fecha))
+      .slice(0,3);
+
+    const resEl = el('dashResultadosList');
+    if (resEl) {
+      if (!resultados.length) {
+        resEl.innerHTML = '<div style="text-align:center;padding:16px;opacity:.4;font-size:13px;">Sin resultados aún</div>';
+      } else {
+        resEl.innerHTML = resultados.map(p => {
+          const parts = (p.fecha||'').split('-');
+          const fechaStr = parts.length === 3 ? parts[2]+'/'+parts[1] : p.fecha;
+          return `<div class="dash-partido-item">
+            <div class="dash-partido-fecha">${fechaStr}</div>
+            <div class="dash-partido-info">
+              ${p.equipoLocalNombre||'—'} vs ${p.equipoVisitanteNombre||'—'}
+              <div class="dash-partido-meta">Jornada ${p.jornada||'—'}</div>
+            </div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:900;color:var(--navy);">${p.golesLocal} - ${p.golesVisitante}</div>
+          </div>`;
+        }).join('');
+      }
+    }
+  }
+
+  // Patch renderAll to include dashboard
+  const _baseRenderAllDash = renderAll;
+  renderAll = function() {
+    _baseRenderAllDash();
+    renderDashboard();
   };
 
 </script>
