@@ -1621,6 +1621,199 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
   </div>
 </div>
 
+<!-- ══ MODAL ESCUELA ══ -->
+<div class="modal-overlay" id="modalEscuela" onclick="if(event.target===this)closeModal('modalEscuela')">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:var(--verde)"></div>
+      <div class="modal-head-title" id="modalEscuelaTitle">Nueva escuela deportiva</div>
+      <button class="modal-close" onclick="closeModal('modalEscuela')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field form-full"><label>Nombre de la escuela</label>
+          <input id="escNombre" type="text" placeholder="Ej. Escuela de Fútbol Base" /></div>
+        <div class="form-field"><label>Deporte</label>
+          <select id="escDeporte">
+            <option>Fútbol</option><option>Fútbol Sala</option><option>Baloncesto</option>
+            <option>Voleibol</option><option>Tenis</option><option>Natación</option>
+            <option>Atletismo</option><option>Hockey</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Temporada</label>
+          <input id="escTemporada" type="text" placeholder="Ej. 2025-2026" /></div>
+        <div class="form-field"><label>Estado</label>
+          <select id="escEstado"><option value="activa">Activa</option><option value="inactiva">Inactiva</option></select>
+        </div>
+        <div class="form-field form-full"><label>Descripción</label>
+          <textarea id="escDescripcion" placeholder="Objetivos, nivel, observaciones..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="saved-msg" id="savedEscuela">✔ Guardado</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalEscuela')">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveEscuela()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL GRUPO ══ -->
+<div class="modal-overlay" id="modalGrupo" onclick="if(event.target===this)closeModal('modalGrupo')">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:var(--navy-claro)"></div>
+      <div class="modal-head-title" id="modalGrupoTitle">Nuevo grupo</div>
+      <button class="modal-close" onclick="closeModal('modalGrupo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field form-full"><label>Nombre del grupo</label>
+          <input id="grpNombre" type="text" placeholder="Ej. Grupo Benjamín A" /></div>
+        <div class="form-field"><label>Categoría</label>
+          <input id="grpCategoria" type="text" placeholder="Ej. Benjamín, Alevín..." /></div>
+        <div class="form-field"><label>Entrenador / Monitor</label>
+          <input id="grpEntrenador" type="text" placeholder="Nombre del entrenador" /></div>
+        <div class="form-field"><label>Edad mínima</label>
+          <input id="grpEdadMin" type="number" min="3" max="18" placeholder="Ej. 8" /></div>
+        <div class="form-field"><label>Edad máxima</label>
+          <input id="grpEdadMax" type="number" min="3" max="18" placeholder="Ej. 10" /></div>
+        <div class="form-field"><label>Máx. alumnos</label>
+          <input id="grpMaxAlumnos" type="number" min="1" placeholder="Ej. 20" /></div>
+        <div class="form-field form-full"><label>Horario de entrenamiento</label>
+          <input id="grpHorario" type="text" placeholder="Ej. Lunes y Miércoles 17:00 - 18:30" /></div>
+        <div class="form-field form-full"><label>Instalación / Campo</label>
+          <input id="grpInstalacion" type="text" placeholder="Ej. Ciudad Deportiva Municipal" /></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="saved-msg" id="savedGrupo">✔ Guardado</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalGrupo')">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveGrupo()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ALUMNO ══ -->
+<div class="modal-overlay" id="modalAlumno" onclick="if(event.target===this)closeModal('modalAlumno')">
+  <div class="modal-box" style="max-width:580px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:var(--navy-claro)"></div>
+      <div class="modal-head-title" id="modalAlumnoTitle">Nuevo alumno</div>
+      <button class="modal-close" onclick="closeModal('modalAlumno')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Datos personales -->
+      <div class="ficha-seccion">
+        <div class="ficha-seccion-title">👤 Datos personales</div>
+        <div class="form-grid">
+          <div class="form-field"><label>Nombre</label><input id="aluNombre" type="text" placeholder="Nombre" /></div>
+          <div class="form-field"><label>Apellidos</label><input id="aluApellidos" type="text" placeholder="Apellidos" /></div>
+          <div class="form-field"><label>Fecha de nacimiento</label><input id="aluFechaNac" type="date" /></div>
+          <div class="form-field"><label>DNI / NIE</label><input id="aluDni" type="text" placeholder="00000000X" /></div>
+          <div class="form-field"><label>Teléfono</label><input id="aluTelefono" type="tel" placeholder="000 000 000" /></div>
+          <div class="form-field"><label>Email</label><input id="aluEmail" type="email" placeholder="alumno@email.com" /></div>
+        </div>
+      </div>
+      <!-- Tutor -->
+      <div class="ficha-seccion">
+        <div class="ficha-seccion-title">👨‍👩‍👧 Tutor / Familiar responsable</div>
+        <div class="form-grid">
+          <div class="form-field"><label>Nombre del tutor</label><input id="aluTutorNombre" type="text" placeholder="Nombre y apellidos" /></div>
+          <div class="form-field"><label>Parentesco</label>
+            <select id="aluTutorParentesco">
+              <option>Padre</option><option>Madre</option><option>Tutor legal</option><option>Otro</option>
+            </select>
+          </div>
+          <div class="form-field"><label>Teléfono tutor</label><input id="aluTutorTel" type="tel" placeholder="000 000 000" /></div>
+          <div class="form-field"><label>Email tutor</label><input id="aluTutorEmail" type="email" placeholder="tutor@email.com" /></div>
+        </div>
+      </div>
+      <!-- Datos médicos -->
+      <div class="ficha-seccion">
+        <div class="ficha-seccion-title">⚕️ Datos médicos</div>
+        <div class="form-grid">
+          <div class="form-field form-full"><label>Alergias</label>
+            <input id="aluAlergias" type="text" placeholder="Ej. Polen, frutos secos... o Ninguna" /></div>
+          <div class="form-field form-full"><label>Medicación habitual</label>
+            <input id="aluMedicacion" type="text" placeholder="Ej. Ventolín, Epipen... o Ninguna" /></div>
+          <div class="form-field form-full"><label>Observaciones médicas</label>
+            <textarea id="aluObsMedicas" placeholder="Lesiones previas, condiciones especiales, indicaciones del médico..."></textarea>
+          </div>
+          <div class="form-field form-full">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+              <input type="checkbox" id="aluAutImagen" style="width:18px;height:18px;" />
+              Autoriza el uso de imágenes y vídeos del alumno
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="saved-msg" id="savedAlumno">✔ Guardado</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalAlumno')">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveAlumno()">Guardar alumno</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ASISTENCIA ══ -->
+<div class="modal-overlay" id="modalAsistencia" onclick="if(event.target===this)closeModal('modalAsistencia')">
+  <div class="modal-box" style="max-width:540px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:var(--verde)"></div>
+      <div class="modal-head-title">📋 Parte de asistencia</div>
+      <button class="modal-close" onclick="closeModal('modalAsistencia')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="margin-bottom:16px;">
+        <div class="form-field"><label>Fecha</label><input id="asisFecha" type="date" /></div>
+        <div class="form-field"><label>Tipo de sesión</label>
+          <select id="asisTipo">
+            <option>Entrenamiento</option><option>Partido</option>
+            <option>Concentración</option><option>Evento</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="form-field form-full"><label>Descripción / Contenido de la sesión</label>
+          <input id="asisDesc" type="text" placeholder="Ej. Trabajo de pase y posicionamiento" /></div>
+      </div>
+
+      <div class="asistencia-header">
+        <div class="asistencia-header-title">Lista de alumnos</div>
+        <div style="font-size:12px;opacity:.7;">
+          <span id="asisContPresentes">0</span> presentes ·
+          <span id="asisContAusentes">0</span> ausentes
+        </div>
+      </div>
+      <div class="asistencia-lista" id="asisListaAlumnos"></div>
+
+      <div class="form-field" style="margin-top:14px;">
+        <label>Observaciones generales</label>
+        <textarea id="asisObservaciones" placeholder="Incidencias, notas de la sesión..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="saved-msg" id="savedAsistencia">✔ Parte guardado</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalAsistencia')">Cancelar</button>
+        <button class="btn btn-verde btn-sm" onclick="guardarAsistencia()">💾 Guardar parte</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL FICHA ALUMNO ══ -->
+<div class="modal-overlay" id="modalFichaAlumno" onclick="if(event.target===this)closeModal('modalFichaAlumno')">
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:var(--navy-claro)"></div>
+
 <script>
 // ══════════════════════════════════════════════════════════════
 //  CONFIGURACIÓN
@@ -3875,198 +4068,6 @@ async function saveGoleador(){
       <div class="firma-item"><div class="firma-linea">Escuela & Deporte · escuelaydeporte.com</div></div>
     </div>
     
-<!-- ══ MODAL ESCUELA ══ -->
-<div class="modal-overlay" id="modalEscuela" onclick="if(event.target===this)closeModal('modalEscuela')">
-  <div class="modal-box" style="max-width:480px;">
-    <div class="modal-head">
-      <div class="modal-head-stripe" style="background:var(--verde)"></div>
-      <div class="modal-head-title" id="modalEscuelaTitle">Nueva escuela deportiva</div>
-      <button class="modal-close" onclick="closeModal('modalEscuela')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-field form-full"><label>Nombre de la escuela</label>
-          <input id="escNombre" type="text" placeholder="Ej. Escuela de Fútbol Base" /></div>
-        <div class="form-field"><label>Deporte</label>
-          <select id="escDeporte">
-            <option>Fútbol</option><option>Fútbol Sala</option><option>Baloncesto</option>
-            <option>Voleibol</option><option>Tenis</option><option>Natación</option>
-            <option>Atletismo</option><option>Hockey</option><option>Otro</option>
-          </select>
-        </div>
-        <div class="form-field"><label>Temporada</label>
-          <input id="escTemporada" type="text" placeholder="Ej. 2025-2026" /></div>
-        <div class="form-field"><label>Estado</label>
-          <select id="escEstado"><option value="activa">Activa</option><option value="inactiva">Inactiva</option></select>
-        </div>
-        <div class="form-field form-full"><label>Descripción</label>
-          <textarea id="escDescripcion" placeholder="Objetivos, nivel, observaciones..."></textarea>
-        </div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <span class="saved-msg" id="savedEscuela">✔ Guardado</span>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline btn-sm" onclick="closeModal('modalEscuela')">Cancelar</button>
-        <button class="btn btn-primary btn-sm" onclick="saveEscuela()">Guardar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MODAL GRUPO ══ -->
-<div class="modal-overlay" id="modalGrupo" onclick="if(event.target===this)closeModal('modalGrupo')">
-  <div class="modal-box" style="max-width:520px;">
-    <div class="modal-head">
-      <div class="modal-head-stripe" style="background:var(--navy-claro)"></div>
-      <div class="modal-head-title" id="modalGrupoTitle">Nuevo grupo</div>
-      <button class="modal-close" onclick="closeModal('modalGrupo')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-field form-full"><label>Nombre del grupo</label>
-          <input id="grpNombre" type="text" placeholder="Ej. Grupo Benjamín A" /></div>
-        <div class="form-field"><label>Categoría</label>
-          <input id="grpCategoria" type="text" placeholder="Ej. Benjamín, Alevín..." /></div>
-        <div class="form-field"><label>Entrenador / Monitor</label>
-          <input id="grpEntrenador" type="text" placeholder="Nombre del entrenador" /></div>
-        <div class="form-field"><label>Edad mínima</label>
-          <input id="grpEdadMin" type="number" min="3" max="18" placeholder="Ej. 8" /></div>
-        <div class="form-field"><label>Edad máxima</label>
-          <input id="grpEdadMax" type="number" min="3" max="18" placeholder="Ej. 10" /></div>
-        <div class="form-field"><label>Máx. alumnos</label>
-          <input id="grpMaxAlumnos" type="number" min="1" placeholder="Ej. 20" /></div>
-        <div class="form-field form-full"><label>Horario de entrenamiento</label>
-          <input id="grpHorario" type="text" placeholder="Ej. Lunes y Miércoles 17:00 - 18:30" /></div>
-        <div class="form-field form-full"><label>Instalación / Campo</label>
-          <input id="grpInstalacion" type="text" placeholder="Ej. Ciudad Deportiva Municipal" /></div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <span class="saved-msg" id="savedGrupo">✔ Guardado</span>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline btn-sm" onclick="closeModal('modalGrupo')">Cancelar</button>
-        <button class="btn btn-primary btn-sm" onclick="saveGrupo()">Guardar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MODAL ALUMNO ══ -->
-<div class="modal-overlay" id="modalAlumno" onclick="if(event.target===this)closeModal('modalAlumno')">
-  <div class="modal-box" style="max-width:580px;">
-    <div class="modal-head">
-      <div class="modal-head-stripe" style="background:var(--navy-claro)"></div>
-      <div class="modal-head-title" id="modalAlumnoTitle">Nuevo alumno</div>
-      <button class="modal-close" onclick="closeModal('modalAlumno')">✕</button>
-    </div>
-    <div class="modal-body">
-      <!-- Datos personales -->
-      <div class="ficha-seccion">
-        <div class="ficha-seccion-title">👤 Datos personales</div>
-        <div class="form-grid">
-          <div class="form-field"><label>Nombre</label><input id="aluNombre" type="text" placeholder="Nombre" /></div>
-          <div class="form-field"><label>Apellidos</label><input id="aluApellidos" type="text" placeholder="Apellidos" /></div>
-          <div class="form-field"><label>Fecha de nacimiento</label><input id="aluFechaNac" type="date" /></div>
-          <div class="form-field"><label>DNI / NIE</label><input id="aluDni" type="text" placeholder="00000000X" /></div>
-          <div class="form-field"><label>Teléfono</label><input id="aluTelefono" type="tel" placeholder="000 000 000" /></div>
-          <div class="form-field"><label>Email</label><input id="aluEmail" type="email" placeholder="alumno@email.com" /></div>
-        </div>
-      </div>
-      <!-- Tutor -->
-      <div class="ficha-seccion">
-        <div class="ficha-seccion-title">👨‍👩‍👧 Tutor / Familiar responsable</div>
-        <div class="form-grid">
-          <div class="form-field"><label>Nombre del tutor</label><input id="aluTutorNombre" type="text" placeholder="Nombre y apellidos" /></div>
-          <div class="form-field"><label>Parentesco</label>
-            <select id="aluTutorParentesco">
-              <option>Padre</option><option>Madre</option><option>Tutor legal</option><option>Otro</option>
-            </select>
-          </div>
-          <div class="form-field"><label>Teléfono tutor</label><input id="aluTutorTel" type="tel" placeholder="000 000 000" /></div>
-          <div class="form-field"><label>Email tutor</label><input id="aluTutorEmail" type="email" placeholder="tutor@email.com" /></div>
-        </div>
-      </div>
-      <!-- Datos médicos -->
-      <div class="ficha-seccion">
-        <div class="ficha-seccion-title">⚕️ Datos médicos</div>
-        <div class="form-grid">
-          <div class="form-field form-full"><label>Alergias</label>
-            <input id="aluAlergias" type="text" placeholder="Ej. Polen, frutos secos... o Ninguna" /></div>
-          <div class="form-field form-full"><label>Medicación habitual</label>
-            <input id="aluMedicacion" type="text" placeholder="Ej. Ventolín, Epipen... o Ninguna" /></div>
-          <div class="form-field form-full"><label>Observaciones médicas</label>
-            <textarea id="aluObsMedicas" placeholder="Lesiones previas, condiciones especiales, indicaciones del médico..."></textarea>
-          </div>
-          <div class="form-field form-full">
-            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-              <input type="checkbox" id="aluAutImagen" style="width:18px;height:18px;" />
-              Autoriza el uso de imágenes y vídeos del alumno
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <span class="saved-msg" id="savedAlumno">✔ Guardado</span>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline btn-sm" onclick="closeModal('modalAlumno')">Cancelar</button>
-        <button class="btn btn-primary btn-sm" onclick="saveAlumno()">Guardar alumno</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MODAL ASISTENCIA ══ -->
-<div class="modal-overlay" id="modalAsistencia" onclick="if(event.target===this)closeModal('modalAsistencia')">
-  <div class="modal-box" style="max-width:540px;">
-    <div class="modal-head">
-      <div class="modal-head-stripe" style="background:var(--verde)"></div>
-      <div class="modal-head-title">📋 Parte de asistencia</div>
-      <button class="modal-close" onclick="closeModal('modalAsistencia')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid" style="margin-bottom:16px;">
-        <div class="form-field"><label>Fecha</label><input id="asisFecha" type="date" /></div>
-        <div class="form-field"><label>Tipo de sesión</label>
-          <select id="asisTipo">
-            <option>Entrenamiento</option><option>Partido</option>
-            <option>Concentración</option><option>Evento</option><option>Otro</option>
-          </select>
-        </div>
-        <div class="form-field form-full"><label>Descripción / Contenido de la sesión</label>
-          <input id!="asisDesc" id="asisDesc" type="text" placeholder="Ej. Trabajo de pase y posicionamiento" /></div>
-      </div>
-
-      <div class="asistencia-header">
-        <div class="asistencia-header-title">Lista de alumnos</div>
-        <div style="font-size:12px;opacity:.7;">
-          <span id="asisContPresentes">0</span> presentes ·
-          <span id="asisContAusentes">0</span> ausentes
-        </div>
-      </div>
-      <div class="asistencia-lista" id="asisListaAlumnos"></div>
-
-      <div class="form-field" style="margin-top:14px;">
-        <label>Observaciones generales</label>
-        <textarea id="asisObservaciones" placeholder="Incidencias, notas de la sesión..."></textarea>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <span class="saved-msg" id="savedAsistencia">✔ Parte guardado</span>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline btn-sm" onclick="closeModal('modalAsistencia')">Cancelar</button>
-        <button class="btn btn-verde btn-sm" onclick="guardarAsistencia()">💾 Guardar parte</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MODAL FICHA ALUMNO ══ -->
-<div class="modal-overlay" id="modalFichaAlumno" onclick="if(event.target===this)closeModal('modalFichaAlumno')">
-  <div class="modal-box" style="max-width:500px;">
-    <div class="modal-head">
-      <div class="modal-head-stripe" style="background:var(--navy-claro)"></div>
       <div class="modal-head-title" id="fichaAlumnoNombre">Ficha del alumno</div>
       <button class="modal-close" onclick="closeModal('modalFichaAlumno')">✕</button>
     </div>
