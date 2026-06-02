@@ -1195,6 +1195,172 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
     .toggle-asistencia.presente::after { transform: translateX(26px); }
   }
 
+
+  /* ═══ DEPORTISTAS ════════════════════════════════════════ */
+  .dep-search-bar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .dep-search-input {
+    flex: 1; min-width: 200px; padding: 11px 16px;
+    border-radius: 24px; border: 1.5px solid var(--gris-linea);
+    background: var(--blanco); font-family: 'Barlow',sans-serif;
+    font-size: 14px; outline: none; color: var(--gris-texto);
+  }
+  .dep-search-input:focus { border-color: var(--navy-claro); }
+
+  .dep-filtros {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .dep-filtro-btn {
+    font-family: 'Barlow Condensed',sans-serif; font-size: 12px;
+    font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    padding: 6px 16px; border-radius: 20px; border: 1.5px solid var(--gris-linea);
+    background: var(--blanco); color: var(--gris-suave); cursor: pointer;
+    transition: all .2s;
+  }
+  .dep-filtro-btn.active, .dep-filtro-btn:hover {
+    background: var(--navy); color: white; border-color: var(--navy);
+  }
+
+  /* Grid deportistas */
+  .dep-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px,1fr));
+    gap: 14px; margin-bottom: 24px;
+  }
+
+  .dep-card {
+    background: var(--blanco); border: 1.5px solid var(--gris-linea);
+    border-radius: 14px; overflow: hidden; cursor: pointer;
+    transition: all .2s; position: relative;
+  }
+  .dep-card:hover {
+    box-shadow: 0 6px 20px rgba(13,27,42,.1);
+    transform: translateY(-2px); border-color: transparent;
+  }
+
+  .dep-card-top {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-medio) 100%);
+    padding: 20px 16px 14px; display: flex; align-items: center; gap: 12px;
+  }
+  .dep-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--acento); color: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed',sans-serif; font-size: 1.2rem;
+    font-weight: 900; flex-shrink: 0; overflow: hidden;
+    border: 2px solid rgba(255,255,255,.2);
+  }
+  .dep-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .dep-card-name-wrap { flex: 1; }
+  .dep-card-apellidos {
+    font-family: 'Barlow Condensed',sans-serif; font-size: 1rem;
+    font-weight: 800; text-transform: uppercase; color: white;
+    line-height: 1.1;
+  }
+  .dep-card-nombre {
+    font-size: 12px; color: rgba(255,255,255,.6); margin-top: 2px;
+  }
+  .dep-alerta { font-size: 14px; margin-left: auto; }
+
+  .dep-card-body { padding: 12px 16px; }
+  .dep-card-meta { font-size: 12px; color: var(--gris-suave); margin-bottom: 4px; line-height: 1.5; }
+
+  .dep-vinculos {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px;
+  }
+  .dep-vinculo-tag {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; padding: 3px 8px; border-radius: 10px;
+    background: var(--crema); color: var(--gris-suave);
+    border: 1px solid var(--gris-linea);
+  }
+  .dep-vinculo-tag.equipo     { background: #EBF5FB; color: #2E6DA4; border-color: #BDC9D4; }
+  .dep-vinculo-tag.escuela    { background: #D5F5E3; color: #1E8449; border-color: #A9DFBF; }
+  .dep-vinculo-tag.competicion{ background: #F5EEF8; color: #8E44AD; border-color: #D2B4DE; }
+
+  /* Ficha completa modal */
+  .dep-ficha-header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-medio) 100%);
+    padding: 20px; display: flex; align-items: center; gap: 16px;
+    border-radius: 12px; margin-bottom: 16px;
+  }
+  .dep-ficha-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--acento); color: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed',sans-serif; font-size: 1.6rem;
+    font-weight: 900; flex-shrink: 0; overflow: hidden;
+    border: 3px solid rgba(255,255,255,.2); cursor: pointer;
+    position: relative;
+  }
+  .dep-ficha-avatar img { width:100%; height:100%; object-fit:cover; }
+  .dep-ficha-avatar .foto-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,.5);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity .2s; border-radius: 50%;
+    font-size: 18px;
+  }
+  .dep-ficha-avatar:hover .foto-overlay { opacity: 1; }
+  .dep-ficha-info { flex: 1; }
+  .dep-ficha-apellidos {
+    font-family: 'Barlow Condensed',sans-serif; font-size: 1.5rem;
+    font-weight: 900; text-transform: uppercase; color: white; line-height: 1;
+  }
+  .dep-ficha-nombre { font-size: 14px; color: rgba(255,255,255,.7); margin: 3px 0; }
+  .dep-ficha-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+
+  /* Secciones de la ficha */
+  .dep-seccion {
+    border-bottom: 1px solid var(--gris-linea);
+    padding-bottom: 14px; margin-bottom: 14px;
+  }
+  .dep-seccion:last-child { border-bottom: none; margin-bottom: 0; }
+  .dep-seccion-title {
+    font-size: 10px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--navy-claro); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .dep-datos-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr));
+    gap: 10px;
+  }
+  .dep-dato { }
+  .dep-dato-label { font-size: 10px; opacity: .5; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+  .dep-dato-value { font-size: 14px; font-weight: 500; color: var(--gris-texto); }
+
+  /* Vinculos en ficha */
+  .dep-vinculo-lista { display: flex; flex-direction: column; gap: 8px; }
+  .dep-vinculo-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--crema); border-radius: 8px; padding: 10px 12px;
+  }
+  .dep-vinculo-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .dep-vinculo-text { flex: 1; }
+  .dep-vinculo-name { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .dep-vinculo-sub  { font-size: 11px; color: var(--gris-suave); }
+
+  /* Stats deportista */
+  .dep-stats-row {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px;
+  }
+  .dep-stat-box {
+    background: var(--crema); border-radius: 8px; padding: 10px;
+    text-align: center; border: 1px solid var(--gris-linea);
+  }
+  .dep-stat-val { font-family: 'Barlow Condensed',sans-serif; font-size: 1.4rem; font-weight: 900; color: var(--navy); }
+  .dep-stat-lbl { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; opacity: .45; }
+
+  /* Input foto */
+  #depFotoInput { display: none; }
+
+  @media(max-width:700px){
+    .dep-grid { grid-template-columns: 1fr; }
+    .dep-stats-row { grid-template-columns: repeat(2,1fr); }
+    .dep-datos-grid { grid-template-columns: 1fr 1fr; }
+  }
+
 </style>
 </head>
 <body>
@@ -1237,6 +1403,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
   <button class="nav-btn" id="navPatrocinadores" style="display:none" onclick="showTab('patrocinadores',this)">🤝 Patrocinadores</button>
   <button class="nav-btn" id="navNoticias" style="display:none" onclick="showTab('noticias',this)">📰 Noticias</button>
   <button class="nav-btn" id="navSugerencias" style="display:none" onclick="showTab('sugerencias',this)">📬 Sugerencias <span class="notif-badge" id="sugBadge" style="display:none">0</span></button>
+  <button class="nav-btn" id="navDeportistas" style="display:none" onclick="showTab('deportistas',this)">🧑‍🤝‍🧑 Deportistas</button>
   <button class="nav-btn" id="navEscuelas" style="display:none" onclick="showTab('escuelas',this)">🏫 Escuelas</button>
   <button class="nav-btn" id="navEval" style="display:none" onclick="showTab('evaluaciones',this)">📝 Evaluaciones</button>
   <button class="nav-btn" id="navArbitro" style="display:none" onclick="showTab('mispartidos',this)">🔴 Mis Partidos</button>
@@ -1370,6 +1537,28 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 </div>
 
 
+
+
+<!-- ══ TAB DEPORTISTAS ══ -->
+<div id="tab-deportistas" class="tab-panel">
+  <div class="section-header"><h2>🧑‍🤝‍🧑 Deportistas</h2><div class="section-line"></div></div>
+
+  <div class="dep-search-bar">
+    <input class="dep-search-input" type="text" id="depBuscar"
+      placeholder="🔍 Buscar por nombre, apellidos, equipo..."
+      oninput="renderDeportistas()" />
+    <button class="btn btn-primary" id="btnNuevoDeportista" style="display:none" onclick="openModalDeportista()">+ Nuevo deportista</button>
+  </div>
+
+  <div class="dep-filtros" id="depFiltros">
+    <button class="dep-filtro-btn active" data-filtro="" onclick="setDepFiltro('',this)">Todos</button>
+    <button class="dep-filtro-btn" data-filtro="equipo" onclick="setDepFiltro('equipo',this)">Con equipo</button>
+    <button class="dep-filtro-btn" data-filtro="escuela" onclick="setDepFiltro('escuela',this)">En escuela</button>
+    <button class="dep-filtro-btn" data-filtro="alerta" onclick="setDepFiltro('alerta',this)">⚠️ Alerta médica</button>
+  </div>
+
+  <div class="dep-grid" id="depGrid"></div>
+</div>
 
 <!-- ══ TAB ESCUELAS DEPORTIVAS ══ -->
 <div id="tab-escuelas" class="tab-panel">
@@ -1813,6 +2002,148 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
   <div class="modal-box" style="max-width:500px;">
     <div class="modal-head">
       <div class="modal-head-stripe" style="background:var(--navy-claro)"></div>
+
+
+<!-- ══ MODAL DEPORTISTA (NUEVA FICHA) ══ -->
+<div class="modal-overlay" id="modalDeportista" onclick="if(event.target===this)closeModal('modalDeportista')">
+  <div class="modal-box" style="max-width:600px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:#117A65"></div>
+      <div class="modal-head-title" id="modalDepTitle">Nuevo deportista</div>
+      <button class="modal-close" onclick="closeModal('modalDeportista')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Avatar + foto -->
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+        <div class="dep-ficha-avatar" style="width:64px;height:64px;font-size:1.3rem;" onclick="document.getElementById('depFotoInput').click()">
+          <span id="depAvatarPreviewText">?</span>
+          <img id="depAvatarPreviewImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+          <div class="foto-overlay">📷</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px;">Foto del deportista</div>
+          <div style="font-size:11px;color:var(--gris-suave);">Haz clic en el avatar para subir una foto</div>
+          <input type="file" id="depFotoInput" accept="image/*" onchange="previewDepFoto(this)" />
+        </div>
+      </div>
+
+      <!-- Datos personales -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">👤 Datos personales</div>
+        <div class="form-grid">
+          <div class="form-field"><label>Nombre</label><input id="depNombre" type="text" placeholder="Nombre" oninput="updateDepAvatar()" /></div>
+          <div class="form-field"><label>Apellidos</label><input id="depApellidos" type="text" placeholder="Apellidos" oninput="updateDepAvatar()" /></div>
+          <div class="form-field"><label>Fecha de nacimiento</label><input id="depFechaNac" type="date" /></div>
+          <div class="form-field"><label>DNI / NIE</label><input id="depDni" type="text" placeholder="00000000X" /></div>
+          <div class="form-field"><label>Nº Licencia federativa</label><input id="depLicencia" type="text" placeholder="Opcional" /></div>
+          <div class="form-field"><label>Teléfono</label><input id="depTelefono" type="tel" placeholder="000 000 000" /></div>
+          <div class="form-field form-full"><label>Email</label><input id="depEmail" type="email" placeholder="deportista@email.com" /></div>
+        </div>
+      </div>
+
+      <!-- Datos deportivos -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">⚽ Datos deportivos</div>
+        <div class="form-grid">
+          <div class="form-field"><label>Posición / Especialidad</label>
+            <input id="depPosicion" type="text" placeholder="Ej. Portero, Alero..." /></div>
+          <div class="form-field"><label>Pie / Mano dominante</label>
+            <select id="depPieDominante">
+              <option value="">— Sin especificar —</option>
+              <option>Derecho</option><option>Izquierdo</option><option>Ambidiestro</option>
+            </select>
+          </div>
+          <div class="form-field"><label>Altura (cm)</label><input id="depAltura" type="number" placeholder="Ej. 165" /></div>
+          <div class="form-field"><label>Peso (kg)</label><input id="depPeso" type="number" placeholder="Ej. 58" /></div>
+        </div>
+      </div>
+
+      <!-- Vínculos -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">🔗 Vínculos</div>
+        <div class="form-grid">
+          <div class="form-field form-full"><label>Equipos (selecciona uno o varios)</label>
+            <select id="depEquiposSelect" multiple style="min-height:80px;font-size:13px;"></select>
+          </div>
+          <div class="form-field form-full"><label>Grupos / Escuelas deportivas (selecciona uno o varios)</label>
+            <select id="depGruposSelect" multiple style="min-height:80px;font-size:13px;"></select>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--gris-suave);margin-top:4px;">Mantén Ctrl para seleccionar varios</div>
+      </div>
+
+      <!-- Tutor -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">👨‍👩‍👧 Tutor / Familiar responsable</div>
+        <div class="form-grid">
+          <div class="form-field"><label>Nombre del tutor</label><input id="depTutorNombre" type="text" placeholder="Nombre y apellidos" /></div>
+          <div class="form-field"><label>Parentesco</label>
+            <select id="depTutorParentesco">
+              <option>Padre</option><option>Madre</option><option>Tutor legal</option><option>Otro</option>
+            </select>
+          </div>
+          <div class="form-field"><label>Teléfono tutor</label><input id="depTutorTel" type="tel" placeholder="000 000 000" /></div>
+          <div class="form-field"><label>Email tutor</label><input id="depTutorEmail" type="email" placeholder="tutor@email.com" /></div>
+        </div>
+      </div>
+
+      <!-- Médico -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">⚕️ Datos médicos</div>
+        <div class="form-grid">
+          <div class="form-field form-full"><label>Alergias</label>
+            <input id="depAlergias" type="text" placeholder="Ej. Polen, frutos secos... o Ninguna" /></div>
+          <div class="form-field form-full"><label>Medicación habitual</label>
+            <input id="depMedicacion" type="text" placeholder="Ej. Ventolín... o Ninguna" /></div>
+          <div class="form-field form-full"><label>Observaciones médicas</label>
+            <textarea id="depObsMedicas" placeholder="Lesiones previas, condiciones especiales..."></textarea>
+          </div>
+          <div class="form-field form-full">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+              <input type="checkbox" id="depAutImagen" style="width:18px;height:18px;" />
+              Autoriza el uso de imágenes y vídeos del deportista
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notas -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">📝 Notas internas</div>
+        <textarea id="depNotas" placeholder="Observaciones del club, historial de lesiones, objetivos..."></textarea>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <span class="saved-msg" id="savedDep">✔ Deportista guardado</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalDeportista')">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveDeportista()">Guardar deportista</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL FICHA DEPORTISTA ══ -->
+<div class="modal-overlay" id="modalFichaDeportista" onclick="if(event.target===this)closeModal('modalFichaDeportista')">
+  <div class="modal-box" style="max-width:580px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:#117A65"></div>
+      <div class="modal-head-title">Ficha del deportista</div>
+      <button class="modal-close" onclick="closeModal('modalFichaDeportista')">✕</button>
+    </div>
+    <div class="modal-body" id="fichaDepBody">
+    </div>
+    <div class="modal-foot">
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalFichaDeportista')">Cerrar</button>
+        <button class="btn btn-primary btn-sm" id="btnEditarDep">✏️ Editar</button>
+        <button class="btn btn-rojo btn-sm" id="btnEliminarDep" style="display:none">🗑 Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -4683,6 +5014,497 @@ async function saveGoleador(){
   applyRoleUI = function() {
     _baseRoleUIEsc();
     applyEscuelasRoleUI();
+  };
+
+
+  // ══════════════════════════════════════════════════════════════
+  //  MÓDULO DEPORTISTAS
+  // ══════════════════════════════════════════════════════════════
+
+  let depFiltroActivo = '';
+  let editingDepId    = null;
+  let depFotoB64      = null;
+
+  // ── ROLE UI ───────────────────────────────────────────────────
+  function applyDepRoleUI() {
+    const canEdit = userRole === 'admin' || userRole === 'delegado';
+    const navEl   = document.getElementById('navDeportistas');
+    if (navEl) navEl.style.display = canEdit ? 'inline-flex' : 'none';
+    const btnNew = document.getElementById('btnNuevoDeportista');
+    if (btnNew) btnNew.style.display = canEdit ? 'inline-flex' : 'none';
+  }
+
+  // ── FILTROS ───────────────────────────────────────────────────
+  function setDepFiltro(filtro, btn) {
+    depFiltroActivo = filtro;
+    document.querySelectorAll('.dep-filtro-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderDeportistas();
+  }
+
+  // ── RENDER GRID ───────────────────────────────────────────────
+  function renderDeportistas() {
+    const grid  = document.getElementById('depGrid');
+    if (!grid) return;
+    const q     = (document.getElementById('depBuscar')?.value || '').toLowerCase();
+    let lista   = db.deportistas || [];
+
+    // Filtro texto
+    if (q) lista = lista.filter(d =>
+      (d.nombre+d.apellidos+d.posicion).toLowerCase().includes(q) ||
+      getDepEquiposNombres(d).some(e => e.toLowerCase().includes(q))
+    );
+
+    // Filtro tipo
+    if (depFiltroActivo === 'equipo')  lista = lista.filter(d => safeParseJSON(d.equipos,[]).length > 0);
+    if (depFiltroActivo === 'escuela') lista = lista.filter(d => safeParseJSON(d.grupos,[]).length > 0);
+    if (depFiltroActivo === 'alerta')  lista = lista.filter(d =>
+      (d.alergias && d.alergias.toLowerCase() !== 'ninguna' && d.alergias !== '') ||
+      (d.medicacion && d.medicacion.toLowerCase() !== 'ninguna' && d.medicacion !== '')
+    );
+
+    lista = [...lista].sort((a,b) => a.apellidos.localeCompare(b.apellidos,'es'));
+
+    if (!lista.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">🧑‍🤝‍🧑</div>
+        <div class="empty-title">Sin deportistas</div>
+        <div class="empty-desc">Añade el primer deportista del club.</div>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = lista.map(d => {
+      const ini      = ((d.nombre||'')[0]+(d.apellidos||'')[0]).toUpperCase();
+      const edad     = d.fechaNacimiento ? calcularEdad(d.fechaNacimiento) : '—';
+      const tieneAlerta = (d.alergias && d.alergias.toLowerCase()!=='ninguna' && d.alergias!=='') ||
+                          (d.medicacion && d.medicacion.toLowerCase()!=='ninguna' && d.medicacion!=='');
+      const equiposIds   = safeParseJSON(d.equipos,[]);
+      const gruposIds    = safeParseJSON(d.grupos,[]);
+      const equiposNom   = getDepEquiposNombres(d).slice(0,2);
+      const gruposNom    = getDepGruposNombres(d).slice(0,2);
+
+      return `<div class="dep-card" onclick="verFichaDeportista('${d.id}')">
+        <div class="dep-card-top">
+          <div class="dep-avatar">
+            ${d.foto ? `<img src="${d.foto}" alt="${ini}">` : ini}
+          </div>
+          <div class="dep-card-name-wrap">
+            <div class="dep-card-apellidos">${d.apellidos||'—'}</div>
+            <div class="dep-card-nombre">${d.nombre||'—'}</div>
+          </div>
+          ${tieneAlerta ? '<div class="dep-alerta">⚠️</div>' : ''}
+        </div>
+        <div class="dep-card-body">
+          <div class="dep-card-meta">
+            ${edad !== '—' ? edad+' años · ' : ''}${d.posicion||''}
+            ${d.licencia ? ' · Lic. '+d.licencia : ''}
+          </div>
+          <div class="dep-vinculos">
+            ${equiposNom.map(e=>`<span class="dep-vinculo-tag equipo">⚽ ${e}</span>`).join('')}
+            ${gruposNom.map(g=>`<span class="dep-vinculo-tag escuela">🏫 ${g}</span>`).join('')}
+            ${equiposIds.length > 2 ? `<span class="dep-vinculo-tag">+${equiposIds.length-2}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function getDepEquiposNombres(d) {
+    const ids = safeParseJSON(d.equipos,[]);
+    return ids.map(id => {
+      const eq = (db.equipos||[]).find(e=>e.id===id);
+      return eq ? eq.nombre : '';
+    }).filter(Boolean);
+  }
+
+  function getDepGruposNombres(d) {
+    const ids = safeParseJSON(d.grupos,[]);
+    return ids.map(id => {
+      const gr = (db.grupos||[]).find(g=>g.id===id);
+      return gr ? gr.nombre : '';
+    }).filter(Boolean);
+  }
+
+  // ── FICHA COMPLETA ────────────────────────────────────────────
+  function verFichaDeportista(id) {
+    const d = (db.deportistas||[]).find(x=>x.id===id);
+    if (!d) return;
+
+    const ini = ((d.nombre||'')[0]+(d.apellidos||'')[0]).toUpperCase();
+    const edad = d.fechaNacimiento ? calcularEdad(d.fechaNacimiento) : '—';
+    const tieneAlerta = (d.alergias && d.alergias.toLowerCase()!=='ninguna' && d.alergias!=='') ||
+                        (d.medicacion && d.medicacion.toLowerCase()!=='ninguna' && d.medicacion!=='');
+
+    // Vínculos
+    const equiposIds = safeParseJSON(d.equipos,[]);
+    const gruposIds  = safeParseJSON(d.grupos,[]);
+    const equiposObjs  = equiposIds.map(id => (db.equipos||[]).find(e=>e.id===id)).filter(Boolean);
+    const gruposObjs   = gruposIds.map(id => (db.grupos||[]).find(g=>g.id===id)).filter(Boolean);
+
+    // Competiciones del deportista (derivadas de sus equipos)
+    const compSet = new Set();
+    equiposObjs.forEach(eq => { if(eq.competicionId) compSet.add(eq.competicionId); });
+    const compsObjs = [...compSet].map(id=>(db.competiciones||[]).find(c=>c.id===id)).filter(Boolean);
+
+    // Estadísticas de goleadores
+    const statsGol = (db.goleadores||[]).filter(g => {
+      const eq = (db.equipos||[]).find(e=>e.id===g.equipoId);
+      return g.jugador && g.jugador.toLowerCase().includes(d.nombre.toLowerCase()) &&
+             g.jugador.toLowerCase().includes(d.apellidos.toLowerCase().split(' ')[0]);
+    });
+    const totalGoles  = statsGol.reduce((s,g)=>(parseInt(g.goles)||0)+s,0);
+    const totalAmar   = statsGol.reduce((s,g)=>(parseInt(g.amarillas)||0)+s,0);
+    const totalRojas  = statsGol.reduce((s,g)=>(parseInt(g.rojas)||0)+s,0);
+
+    // Evaluaciones
+    const evalsKey  = 'eval_' + id;
+    let evalData = {};
+    try { const raw = localStorage.getItem('ed_evaluaciones'); if(raw){ const obj=JSON.parse(raw); evalData=obj[evalsKey]||[]; } } catch(e){}
+    const ultimaEval = evalData.length ? evalData[evalData.length-1] : null;
+
+    document.getElementById('fichaDepBody').innerHTML = `
+      <!-- Header deportista -->
+      <div class="dep-ficha-header">
+        <div class="dep-ficha-avatar" onclick="cambiarFotoDep('${d.id}')">
+          ${d.foto ? `<img src="${d.foto}" alt="${ini}">` : `<span>${ini}</span>`}
+          <div class="foto-overlay">📷</div>
+        </div>
+        <div class="dep-ficha-info">
+          <div class="dep-ficha-apellidos">${d.apellidos}</div>
+          <div class="dep-ficha-nombre">${d.nombre} · ${edad} años</div>
+          <div class="dep-ficha-badges">
+            ${d.posicion?`<span class="badge badge-activa">${d.posicion}</span>`:''}
+            ${d.licencia?`<span class="badge badge-pausada">Lic. ${d.licencia}</span>`:''}
+            ${tieneAlerta?'<span class="badge badge-suspendido">⚠️ Alerta médica</span>':''}
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats rápidas -->
+      <div class="dep-stats-row">
+        <div class="dep-stat-box"><div class="dep-stat-val">${equiposObjs.length}</div><div class="dep-stat-lbl">Equipos</div></div>
+        <div class="dep-stat-box"><div class="dep-stat-val">${compsObjs.length}</div><div class="dep-stat-lbl">Competiciones</div></div>
+        <div class="dep-stat-box"><div class="dep-stat-val">${totalGoles}</div><div class="dep-stat-lbl">Goles</div></div>
+        <div class="dep-stat-box"><div class="dep-stat-val">${evalData.length}</div><div class="dep-stat-lbl">Evaluaciones</div></div>
+      </div>
+
+      ${tieneAlerta?`<div class="alerta-medica" style="margin-bottom:14px;">
+        <strong>⚠️ Alerta médica</strong>
+        ${d.alergias&&d.alergias.toLowerCase()!=='ninguna'?'Alergias: '+d.alergias+'<br>':''}
+        ${d.medicacion&&d.medicacion.toLowerCase()!=='ninguna'?'Medicación: '+d.medicacion:''}
+      </div>`:''}
+
+      <!-- Datos personales -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">👤 Datos personales</div>
+        <div class="dep-datos-grid">
+          <div class="dep-dato"><div class="dep-dato-label">Fecha nacimiento</div><div class="dep-dato-value">${d.fechaNacimiento||'—'}</div></div>
+          <div class="dep-dato"><div class="dep-dato-label">DNI / NIE</div><div class="dep-dato-value">${d.dni||'—'}</div></div>
+          <div class="dep-dato"><div class="dep-dato-label">Teléfono</div><div class="dep-dato-value">${d.telefono||'—'}</div></div>
+          <div class="dep-dato"><div class="dep-dato-label">Email</div><div class="dep-dato-value">${d.email||'—'}</div></div>
+          ${d.altura?`<div class="dep-dato"><div class="dep-dato-label">Altura</div><div class="dep-dato-value">${d.altura} cm</div></div>`:''}
+          ${d.peso?`<div class="dep-dato"><div class="dep-dato-label">Peso</div><div class="dep-dato-value">${d.peso} kg</div></div>`:''}
+          ${d.pieDominante?`<div class="dep-dato"><div class="dep-dato-label">Pie dominante</div><div class="dep-dato-value">${d.pieDominante}</div></div>`:''}
+        </div>
+      </div>
+
+      <!-- Tutor -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">👨‍👩‍👧 Tutor responsable</div>
+        <div class="dep-datos-grid">
+          <div class="dep-dato"><div class="dep-dato-label">Nombre</div><div class="dep-dato-value">${d.tutorNombre||'—'} ${d.tutorParentesco?'('+d.tutorParentesco+')':''}</div></div>
+          <div class="dep-dato"><div class="dep-dato-label">Teléfono</div><div class="dep-dato-value">${d.tutorTelefono||'—'}</div></div>
+          <div class="dep-dato"><div class="dep-dato-label">Email</div><div class="dep-dato-value">${d.tutorEmail||'—'}</div></div>
+          <div class="dep-dato"><div class="dep-dato-label">Imagen</div><div class="dep-dato-value">${d.autorizacionImagen==='true'?'✅ Autorizada':'❌ No autorizada'}</div></div>
+        </div>
+      </div>
+
+      <!-- Vínculos -->
+      ${equiposObjs.length ? `<div class="dep-seccion">
+        <div class="dep-seccion-title">⚽ Equipos</div>
+        <div class="dep-vinculo-lista">
+          ${equiposObjs.map(eq=>{
+            const comp=(db.competiciones||[]).find(c=>c.id===eq.competicionId);
+            return `<div class="dep-vinculo-item">
+              <div class="dep-vinculo-icon">⚽</div>
+              <div class="dep-vinculo-text">
+                <div class="dep-vinculo-name">${eq.nombre}</div>
+                <div class="dep-vinculo-sub">${comp?comp.nombre+' · '+comp.temporada:''}</div>
+              </div>
+              <span class="dep-vinculo-tag equipo">${comp?.deporte||''}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>` : ''}
+
+      ${gruposObjs.length ? `<div class="dep-seccion">
+        <div class="dep-seccion-title">🏫 Escuelas deportivas</div>
+        <div class="dep-vinculo-lista">
+          ${gruposObjs.map(gr=>{
+            const esc=(db.escuelas||[]).find(e=>e.id===gr.escuelaId);
+            return `<div class="dep-vinculo-item">
+              <div class="dep-vinculo-icon">🏫</div>
+              <div class="dep-vinculo-text">
+                <div class="dep-vinculo-name">${gr.nombre}</div>
+                <div class="dep-vinculo-sub">${esc?esc.nombre+' · '+gr.horario:''}${gr.entrenador?' · '+gr.entrenador:''}</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>` : ''}
+
+      <!-- Última evaluación -->
+      ${ultimaEval ? `<div class="dep-seccion">
+        <div class="dep-seccion-title">📝 Última evaluación · ${ultimaEval.fecha}</div>
+        <div class="dep-stats-row">
+          <div class="dep-stat-box"><div class="dep-stat-val ${CUAL_CLASS[NUM_TO_CUAL(ultimaEval.medias?.fisico)]||''}">${ultimaEval.medias?.fisico||'—'}</div><div class="dep-stat-lbl">💪 Físico</div></div>
+          <div class="dep-stat-box"><div class="dep-stat-val ${CUAL_CLASS[NUM_TO_CUAL(ultimaEval.medias?.tecnico)]||''}">${ultimaEval.medias?.tecnico||'—'}</div><div class="dep-stat-lbl">⚽ Técnico</div></div>
+          <div class="dep-stat-box"><div class="dep-stat-val ${CUAL_CLASS[NUM_TO_CUAL(ultimaEval.medias?.tactico)]||''}">${ultimaEval.medias?.tactico||'—'}</div><div class="dep-stat-lbl">🧠 Táctico</div></div>
+          <div class="dep-stat-box"><div class="dep-stat-val ${CUAL_CLASS[NUM_TO_CUAL(ultimaEval.medias?.actitud)]||''}">${ultimaEval.medias?.actitud||'—'}</div><div class="dep-stat-lbl">🌟 Actitud</div></div>
+        </div>
+        <div style="text-align:center;margin-top:8px;">
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:900;color:var(--navy);">${ultimaEval.mediaGlobal}</span>
+          <span style="font-size:13px;color:var(--gris-suave);margin-left:6px;">${NUM_TO_CUAL(ultimaEval.mediaGlobal)||''}</span>
+        </div>
+      </div>` : ''}
+
+      <!-- Médico -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">⚕️ Datos médicos</div>
+        <div class="dep-datos-grid">
+          <div class="dep-dato"><div class="dep-dato-label">Alergias</div><div class="dep-dato-value">${d.alergias||'Ninguna'}</div></div>
+          <div class="dep-dato"><div class="dep-dato-label">Medicación</div><div class="dep-dato-value">${d.medicacion||'Ninguna'}</div></div>
+        </div>
+        ${d.observacionesMedicas?`<div style="margin-top:8px;font-size:13px;color:#444;">${d.observacionesMedicas}</div>`:''}
+      </div>
+
+      ${d.notas?`<div class="dep-seccion">
+        <div class="dep-seccion-title">📝 Notas internas</div>
+        <div style="font-size:13px;color:#444;line-height:1.7;">${d.notas}</div>
+      </div>`:''}
+    `;
+
+    // Botones del footer
+    document.getElementById('btnEditarDep').onclick = () => { closeModal('modalFichaDeportista'); editDeportista(id); };
+    document.getElementById('btnEliminarDep').style.display = userRole==='admin' ? 'inline-flex' : 'none';
+    document.getElementById('btnEliminarDep').onclick = () => deleteDeportista(id);
+
+    openModal('modalFichaDeportista');
+  }
+
+  // ── FOTO ──────────────────────────────────────────────────────
+  function previewDepFoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      depFotoB64 = e.target.result;
+      const img  = document.getElementById('depAvatarPreviewImg');
+      const txt  = document.getElementById('depAvatarPreviewText');
+      if (img) { img.src = depFotoB64; img.style.display = 'block'; }
+      if (txt)   txt.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function cambiarFotoDep(id) {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        const foto = ev.target.result;
+        const dep = (db.deportistas||[]).find(x=>x.id===id);
+        if (dep) { dep.foto = foto; saveLocal(); await apiCall('saveDeportista', dep); }
+        closeModal('modalFichaDeportista');
+        renderDeportistas();
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
+
+  function updateDepAvatar() {
+    const nombre   = document.getElementById('depNombre')?.value || '';
+    const apellidos= document.getElementById('depApellidos')?.value || '';
+    const ini = ((nombre[0]||'')+(apellidos[0]||'')).toUpperCase() || '?';
+    const txt = document.getElementById('depAvatarPreviewText');
+    const img = document.getElementById('depAvatarPreviewImg');
+    if (txt && img && img.style.display === 'none') txt.textContent = ini;
+  }
+
+  // ── POPULATE SELECTS ──────────────────────────────────────────
+  function populateDepSelects() {
+    const eqSel = document.getElementById('depEquiposSelect');
+    const grSel = document.getElementById('depGruposSelect');
+    if (!eqSel || !grSel) return;
+
+    eqSel.innerHTML = (db.equipos||[]).map(e => {
+      const comp = (db.competiciones||[]).find(c=>c.id===e.competicionId);
+      return `<option value="${e.id}">${e.nombre}${comp?' · '+comp.nombre:''}`;
+    }).join('');
+
+    grSel.innerHTML = (db.grupos||[]).map(g => {
+      const esc = (db.escuelas||[]).find(e=>e.id===g.escuelaId);
+      return `<option value="${g.id}">${g.nombre}${esc?' · '+esc.nombre:''}`;
+    }).join('');
+  }
+
+  // ── CRUD DEPORTISTAS ──────────────────────────────────────────
+  function openModalDeportista() {
+    editingDepId = null; depFotoB64 = null;
+    document.getElementById('modalDepTitle').textContent = 'Nuevo deportista';
+    ['depNombre','depApellidos','depDni','depLicencia','depTelefono','depEmail',
+     'depPosicion','depAltura','depPeso','depAlergias','depMedicacion','depObsMedicas','depNotas',
+     'depTutorNombre','depTutorTel','depTutorEmail']
+      .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('depFechaNac').value = '';
+    document.getElementById('depPieDominante').value = '';
+    document.getElementById('depTutorParentesco').value = 'Padre';
+    document.getElementById('depAutImagen').checked = false;
+    const img = document.getElementById('depAvatarPreviewImg');
+    const txt = document.getElementById('depAvatarPreviewText');
+    if (img) { img.style.display='none'; img.src=''; }
+    if (txt) { txt.style.display='flex'; txt.textContent='?'; }
+    populateDepSelects();
+    openModal('modalDeportista');
+  }
+
+  function editDeportista(id) {
+    const d = (db.deportistas||[]).find(x=>x.id===id); if(!d) return;
+    editingDepId = id; depFotoB64 = d.foto || null;
+    document.getElementById('modalDepTitle').textContent = 'Editar deportista';
+    document.getElementById('depNombre').value           = d.nombre||'';
+    document.getElementById('depApellidos').value        = d.apellidos||'';
+    document.getElementById('depFechaNac').value         = d.fechaNacimiento||'';
+    document.getElementById('depDni').value              = d.dni||'';
+    document.getElementById('depLicencia').value         = d.licencia||'';
+    document.getElementById('depTelefono').value         = d.telefono||'';
+    document.getElementById('depEmail').value            = d.email||'';
+    document.getElementById('depPosicion').value         = d.posicion||'';
+    document.getElementById('depPieDominante').value     = d.pieDominante||'';
+    document.getElementById('depAltura').value           = d.altura||'';
+    document.getElementById('depPeso').value             = d.peso||'';
+    document.getElementById('depAlergias').value         = d.alergias||'';
+    document.getElementById('depMedicacion').value       = d.medicacion||'';
+    document.getElementById('depObsMedicas').value       = d.observacionesMedicas||'';
+    document.getElementById('depNotas').value            = d.notas||'';
+    document.getElementById('depTutorNombre').value      = d.tutorNombre||'';
+    document.getElementById('depTutorParentesco').value  = d.tutorParentesco||'Padre';
+    document.getElementById('depTutorTel').value         = d.tutorTelefono||'';
+    document.getElementById('depTutorEmail').value       = d.tutorEmail||'';
+    document.getElementById('depAutImagen').checked      = d.autorizacionImagen==='true';
+
+    // Preview foto
+    const img = document.getElementById('depAvatarPreviewImg');
+    const txt = document.getElementById('depAvatarPreviewText');
+    if (d.foto && img && txt) {
+      img.src = d.foto; img.style.display = 'block'; txt.style.display = 'none';
+    }
+
+    populateDepSelects();
+
+    // Set selected equipos
+    const equiposIds = safeParseJSON(d.equipos,[]);
+    const eqSel = document.getElementById('depEquiposSelect');
+    if (eqSel) Array.from(eqSel.options).forEach(o => o.selected = equiposIds.includes(o.value));
+
+    // Set selected grupos
+    const gruposIds = safeParseJSON(d.grupos,[]);
+    const grSel = document.getElementById('depGruposSelect');
+    if (grSel) Array.from(grSel.options).forEach(o => o.selected = gruposIds.includes(o.value));
+
+    openModal('modalDeportista');
+  }
+
+  async function saveDeportista() {
+    const nombre    = document.getElementById('depNombre').value.trim();
+    const apellidos = document.getElementById('depApellidos').value.trim();
+    if (!nombre || !apellidos) { alert('Nombre y apellidos son obligatorios'); return; }
+
+    // Get selected equipos
+    const eqSel  = document.getElementById('depEquiposSelect');
+    const grSel  = document.getElementById('depGruposSelect');
+    const equiposIds = eqSel ? Array.from(eqSel.selectedOptions).map(o=>o.value) : [];
+    const gruposIds  = grSel ? Array.from(grSel.selectedOptions).map(o=>o.value) : [];
+
+    // Derivar competiciones y escuelas de equipos y grupos
+    const compIds = [...new Set(equiposIds.map(id=>{
+      const eq=(db.equipos||[]).find(e=>e.id===id); return eq?.competicionId||'';
+    }).filter(Boolean))];
+    const escIds = [...new Set(gruposIds.map(id=>{
+      const gr=(db.grupos||[]).find(g=>g.id===id); return gr?.escuelaId||'';
+    }).filter(Boolean))];
+
+    const rec = {
+      id:                   editingDepId || ('dep_'+Date.now()),
+      nombre,
+      apellidos,
+      fechaNacimiento:      document.getElementById('depFechaNac').value,
+      dni:                  document.getElementById('depDni').value,
+      licencia:             document.getElementById('depLicencia').value,
+      telefono:             document.getElementById('depTelefono').value,
+      email:                document.getElementById('depEmail').value,
+      foto:                 depFotoB64 || (editingDepId?(db.deportistas||[]).find(x=>x.id===editingDepId)?.foto||'':''),
+      posicion:             document.getElementById('depPosicion').value,
+      pieDominante:         document.getElementById('depPieDominante').value,
+      altura:               document.getElementById('depAltura').value,
+      peso:                 document.getElementById('depPeso').value,
+      tutorNombre:          document.getElementById('depTutorNombre').value,
+      tutorParentesco:      document.getElementById('depTutorParentesco').value,
+      tutorTelefono:        document.getElementById('depTutorTel').value,
+      tutorEmail:           document.getElementById('depTutorEmail').value,
+      alergias:             document.getElementById('depAlergias').value,
+      medicacion:           document.getElementById('depMedicacion').value,
+      observacionesMedicas: document.getElementById('depObsMedicas').value,
+      autorizacionImagen:   String(document.getElementById('depAutImagen').checked),
+      equipos:              JSON.stringify(equiposIds),
+      competiciones:        JSON.stringify(compIds),
+      grupos:               JSON.stringify(gruposIds),
+      escuelas:             JSON.stringify(escIds),
+      notas:                document.getElementById('depNotas').value,
+      fechaInscripcion:     editingDepId ? ((db.deportistas||[]).find(x=>x.id===editingDepId)?.fechaInscripcion || new Date().toLocaleDateString('es-ES')) : new Date().toLocaleDateString('es-ES'),
+      estado:               'activo',
+      modificadoPor:        MONITOR_ID,
+    };
+
+    if (!db.deportistas) db.deportistas = [];
+    const idx = db.deportistas.findIndex(x=>x.id===editingDepId);
+    if (idx>=0) db.deportistas[idx]=rec; else db.deportistas.push(rec);
+    saveLocal();
+
+    // Send to Sheets (without foto if too large)
+    const syncRec = {...rec};
+    if ((syncRec.foto||'').length > 40000) syncRec.foto = '';
+    await apiCall('saveDeportista', syncRec);
+
+    showSaved('savedDep');
+    setTimeout(() => { closeModal('modalDeportista'); renderDeportistas(); }, 1200);
+  }
+
+  async function deleteDeportista(id) {
+    if (!confirm('Eliminar este deportista?')) return;
+    db.deportistas = (db.deportistas||[]).filter(d=>d.id!==id);
+    saveLocal(); await apiCall('deleteDeportista',{id});
+    closeModal('modalFichaDeportista');
+    renderDeportistas();
+  }
+
+  // ── PATCH RENDER ALL ──────────────────────────────────────────
+  const _baseRenderAllDep = renderAll;
+  renderAll = function() {
+    _baseRenderAllDep();
+    if (!db.deportistas) db.deportistas = [];
+    renderDeportistas();
+    applyDepRoleUI();
+  };
+
+  const _baseRoleUIDep = applyRoleUI;
+  applyRoleUI = function() {
+    _baseRoleUIDep();
+    applyDepRoleUI();
   };
 
 </script>
