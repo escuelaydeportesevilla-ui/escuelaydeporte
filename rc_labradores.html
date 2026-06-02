@@ -1023,6 +1023,178 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
     .eval-resumen-cat { grid-template-columns: repeat(2,1fr); }
   }
 
+
+  /* ═══ ESCUELAS DEPORTIVAS ════════════════════════════════ */
+  .escuelas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+    gap: 14px; margin-bottom: 24px;
+  }
+
+  .escuela-card {
+    background: var(--blanco); border: 1.5px solid var(--gris-linea);
+    border-radius: 12px; overflow: hidden; transition: all .2s; cursor: pointer;
+  }
+  .escuela-card:hover { box-shadow: 0 6px 20px rgba(13,27,42,.1); transform: translateY(-2px); }
+
+  .escuela-stripe { height: 4px; background: var(--verde); }
+  .escuela-body { padding: 16px 18px; }
+  .escuela-deporte {
+    font-size: 10px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--gris-suave); margin-bottom: 4px;
+  }
+  .escuela-nombre {
+    font-family: 'Barlow Condensed',sans-serif; font-size: 1.3rem;
+    font-weight: 800; text-transform: uppercase; color: var(--navy); margin-bottom: 4px;
+  }
+  .escuela-meta { font-size: 12px; color: var(--gris-suave); margin-bottom: 12px; line-height: 1.5; }
+  .escuela-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--gris-linea); padding-top: 10px; gap: 8px; flex-wrap: wrap;
+  }
+  .escuela-stats { display: flex; gap: 12px; font-size: 11px; color: var(--gris-suave); }
+  .escuela-stat span { font-weight: 700; color: var(--navy); }
+
+  /* Grupos */
+  .grupo-card {
+    background: var(--blanco); border: 1.5px solid var(--gris-linea);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all .2s;
+  }
+  .grupo-card:hover { border-color: var(--navy-claro); box-shadow: 0 3px 12px rgba(13,27,42,.08); }
+
+  .grupo-icon {
+    width: 44px; height: 44px; border-radius: 10px; background: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+  }
+  .grupo-info { flex: 1; }
+  .grupo-nombre { font-weight: 700; font-size: 14px; color: var(--navy); margin-bottom: 2px; }
+  .grupo-meta { font-size: 11px; color: var(--gris-suave); line-height: 1.5; }
+  .grupo-badge {
+    font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+    letter-spacing: 0.5px; background: var(--crema); color: var(--gris-suave);
+  }
+
+  /* Alumnos */
+  .alumno-row {
+    display: flex; align-items: center; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid var(--gris-linea); transition: background .1s;
+  }
+  .alumno-row:hover { background: var(--crema); margin: 0 -4px; padding: 10px 4px; border-radius: 8px; }
+  .alumno-avatar {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--navy-claro);
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0;
+  }
+  .alumno-info { flex: 1; }
+  .alumno-nombre { font-weight: 600; font-size: 14px; color: var(--navy); }
+  .alumno-meta { font-size: 11px; color: var(--gris-suave); }
+  .alumno-actions { display: flex; gap: 6px; }
+
+  /* Asistencia */
+  .asistencia-header {
+    background: var(--navy); color: white; border-radius: 10px 10px 0 0;
+    padding: 12px 16px; display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 0;
+  }
+  .asistencia-header-title {
+    font-family: 'Barlow Condensed',sans-serif; font-size: 1rem;
+    font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .asistencia-lista {
+    background: var(--blanco); border: 1.5px solid var(--gris-linea);
+    border-radius: 0 0 10px 10px; overflow: hidden;
+  }
+  .asistencia-alumno {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    border-bottom: 1px solid var(--gris-linea); transition: background .1s;
+  }
+  .asistencia-alumno:last-child { border-bottom: none; }
+  .asistencia-alumno:hover { background: var(--crema); }
+  .asistencia-nombre { flex: 1; font-size: 14px; font-weight: 500; color: var(--navy); }
+
+  .toggle-asistencia {
+    width: 52px; height: 28px; border-radius: 14px; border: none; cursor: pointer;
+    position: relative; transition: background .25s; flex-shrink: 0;
+  }
+  .toggle-asistencia::after {
+    content: ''; position: absolute; width: 22px; height: 22px;
+    border-radius: 50%; background: white; top: 3px; left: 3px;
+    transition: transform .25s; box-shadow: 0 1px 4px rgba(0,0,0,.2);
+  }
+  .toggle-asistencia.presente { background: var(--verde); }
+  .toggle-asistencia.presente::after { transform: translateX(24px); }
+  .toggle-asistencia.ausente { background: var(--gris-linea); }
+
+  .asis-hist-item {
+    background: var(--blanco); border: 1.5px solid var(--gris-linea);
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all .2s;
+  }
+  .asis-hist-item:hover { border-color: var(--navy-claro); }
+  .asis-fecha {
+    font-family: 'Barlow Condensed',sans-serif; font-size: 1rem;
+    font-weight: 800; color: var(--navy-claro); text-align: center; min-width: 52px;
+  }
+  .asis-info { flex: 1; }
+  .asis-tipo { font-weight: 600; font-size: 13px; color: var(--navy); }
+  .asis-meta { font-size: 11px; color: var(--gris-suave); margin-top: 2px; }
+  .asis-pct {
+    font-family: 'Barlow Condensed',sans-serif; font-size: 1.4rem;
+    font-weight: 900; color: var(--verde);
+  }
+
+  /* Vista detalle alumno */
+  .ficha-seccion {
+    border-bottom: 1px solid var(--gris-linea); padding-bottom: 14px; margin-bottom: 14px;
+  }
+  .ficha-seccion:last-child { border-bottom: none; }
+  .ficha-seccion-title {
+    font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--navy-claro); margin-bottom: 10px;
+  }
+  .ficha-row {
+    display: flex; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;
+  }
+  .ficha-field { flex: 1; min-width: 140px; }
+  .ficha-label { font-size: 10px; opacity: .5; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+  .ficha-value { font-size: 13px; font-weight: 500; color: var(--gris-texto); }
+
+  /* Alerta médica */
+  .alerta-medica {
+    background: #FDEDEC; border: 1.5px solid var(--rojo); border-radius: 8px;
+    padding: 10px 14px; margin-bottom: 12px; font-size: 12px; color: var(--rojo);
+  }
+  .alerta-medica strong { display: block; margin-bottom: 2px; }
+
+  /* Stats escuela */
+  .escuela-stats-bar {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px;
+  }
+  .escuela-stat-card {
+    background: var(--blanco); border: 1.5px solid var(--gris-linea);
+    border-radius: 10px; padding: 14px; text-align: center;
+  }
+  .escuela-stat-val {
+    font-family: 'Barlow Condensed',sans-serif; font-size: 2rem;
+    font-weight: 900; color: var(--navy); line-height: 1;
+  }
+  .escuela-stat-lbl {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; opacity: .45; margin-top: 3px;
+  }
+
+  @media(max-width:700px){
+    .escuelas-grid { grid-template-columns: 1fr; }
+    .grupo-card { flex-wrap: wrap; }
+    .escuela-stats-bar { grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .asistencia-nombre { font-size: 15px; }
+    .toggle-asistencia { width: 56px; height: 30px; }
+    .toggle-asistencia::after { width: 24px; height: 24px; }
+    .toggle-asistencia.presente::after { transform: translateX(26px); }
+  }
+
 </style>
 </head>
 <body>
@@ -1065,6 +1237,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
   <button class="nav-btn" id="navPatrocinadores" style="display:none" onclick="showTab('patrocinadores',this)">🤝 Patrocinadores</button>
   <button class="nav-btn" id="navNoticias" style="display:none" onclick="showTab('noticias',this)">📰 Noticias</button>
   <button class="nav-btn" id="navSugerencias" style="display:none" onclick="showTab('sugerencias',this)">📬 Sugerencias <span class="notif-badge" id="sugBadge" style="display:none">0</span></button>
+  <button class="nav-btn" id="navEscuelas" style="display:none" onclick="showTab('escuelas',this)">🏫 Escuelas</button>
   <button class="nav-btn" id="navEval" style="display:none" onclick="showTab('evaluaciones',this)">📝 Evaluaciones</button>
   <button class="nav-btn" id="navArbitro" style="display:none" onclick="showTab('mispartidos',this)">🔴 Mis Partidos</button>
 </nav>
@@ -1196,6 +1369,60 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
   <div id="adminSugerenciasList"></div>
 </div>
 
+
+
+<!-- ══ TAB ESCUELAS DEPORTIVAS ══ -->
+<div id="tab-escuelas" class="tab-panel">
+  <div class="section-header"><h2>🏫 Escuelas deportivas</h2><div class="section-line"></div></div>
+
+  <!-- Vista 1: Lista de escuelas -->
+  <div id="vistaEscuelas">
+    <div class="actions-row" id="adminActionsEscuelas" style="display:none">
+      <button class="btn btn-primary" onclick="openModalEscuela()">+ Nueva escuela</button>
+    </div>
+    <div class="escuelas-grid" id="escuelasGrid"></div>
+  </div>
+
+  <!-- Vista 2: Detalle escuela → grupos -->
+  <div id="vistaGrupos" style="display:none">
+    <div class="actions-row">
+      <button class="btn btn-outline" onclick="volverEscuelas()">← Volver</button>
+      <div id="escuelaActualTitle" style="font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:800;text-transform:uppercase;color:var(--navy);"></div>
+      <button class="btn btn-primary" id="btnNuevoGrupo" style="display:none" onclick="openModalGrupo()">+ Nuevo grupo</button>
+    </div>
+    <div class="escuela-stats-bar" id="escuelaStatsBar"></div>
+    <div id="gruposLista"></div>
+  </div>
+
+  <!-- Vista 3: Detalle grupo → alumnos + asistencia -->
+  <div id="vistaAlumnos" style="display:none">
+    <div class="actions-row">
+      <button class="btn btn-outline" onclick="volverGrupos()">← Volver</button>
+      <div id="grupoActualTitle" style="font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:800;text-transform:uppercase;color:var(--navy);"></div>
+      <button class="btn btn-primary" id="btnNuevoAlumno" style="display:none" onclick="openModalAlumno()">+ Añadir alumno</button>
+      <button class="btn btn-verde" id="btnTomarAsistencia" style="display:none" onclick="abrirAsistencia()">📋 Tomar asistencia</button>
+    </div>
+
+    <!-- Sub-tabs -->
+    <div style="display:flex;gap:0;border-bottom:2px solid var(--gris-linea);margin-bottom:20px;">
+      <button class="nav-btn active" id="subTabAlumnos" onclick="switchSubTab('alumnos',this)" style="font-size:12px;">👥 Alumnos</button>
+      <button class="nav-btn" id="subTabAsistencia" onclick="switchSubTab('asistencia',this)" style="font-size:12px;">📋 Asistencia</button>
+    </div>
+
+    <div id="subPanelAlumnos">
+      <div class="card">
+        <div id="alumnosLista"></div>
+      </div>
+    </div>
+
+    <div id="subPanelAsistencia" style="display:none">
+      <div class="actions-row">
+        <button class="btn btn-verde" id="btnNuevaAsistencia" style="display:none" onclick="abrirAsistencia()">📋 Nuevo parte</button>
+      </div>
+      <div id="asistenciaHistorial"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ══ TAB EVALUACIONES ══ -->
 <div id="tab-evaluaciones" class="tab-panel">
@@ -3647,7 +3874,213 @@ async function saveGoleador(){
       <div class="firma-item"><div class="firma-linea">Evaluador: ${MONITOR_ID}</div></div>
       <div class="firma-item"><div class="firma-linea">Escuela & Deporte · escuelaydeporte.com</div></div>
     </div>
-    </body></html>`;
+    
+<!-- ══ MODAL ESCUELA ══ -->
+<div class="modal-overlay" id="modalEscuela" onclick="if(event.target===this)closeModal('modalEscuela')">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:var(--verde)"></div>
+      <div class="modal-head-title" id="modalEscuelaTitle">Nueva escuela deportiva</div>
+      <button class="modal-close" onclick="closeModal('modalEscuela')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field form-full"><label>Nombre de la escuela</label>
+          <input id="escNombre" type="text" placeholder="Ej. Escuela de Fútbol Base" /></div>
+        <div class="form-field"><label>Deporte</label>
+          <select id="escDeporte">
+            <option>Fútbol</option><option>Fútbol Sala</option><option>Baloncesto</option>
+            <option>Voleibol</option><option>Tenis</option><option>Natación</option>
+            <option>Atletismo</option><option>Hockey</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Temporada</label>
+          <input id="escTemporada" type="text" placeholder="Ej. 2025-2026" /></div>
+        <div class="form-field"><label>Estado</label>
+          <select id="escEstado"><option value="activa">Activa</option><option value="inactiva">Inactiva</option></select>
+        </div>
+        <div class="form-field form-full"><label>Descripción</label>
+          <textarea id="escDescripcion" placeholder="Objetivos, nivel, observaciones..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="saved-msg" id="savedEscuela">✔ Guardado</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalEscuela')">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveEscuela()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL GRUPO ══ -->
+<div class="modal-overlay" id="modalGrupo" onclick="if(event.target===this)closeModal('modalGrupo')">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:var(--navy-claro)"></div>
+      <div class="modal-head-title" id="modalGrupoTitle">Nuevo grupo</div>
+      <button class="modal-close" onclick="closeModal('modalGrupo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field form-full"><label>Nombre del grupo</label>
+          <input id="grpNombre" type="text" placeholder="Ej. Grupo Benjamín A" /></div>
+        <div class="form-field"><label>Categoría</label>
+          <input id="grpCategoria" type="text" placeholder="Ej. Benjamín, Alevín..." /></div>
+        <div class="form-field"><label>Entrenador / Monitor</label>
+          <input id="grpEntrenador" type="text" placeholder="Nombre del entrenador" /></div>
+        <div class="form-field"><label>Edad mínima</label>
+          <input id="grpEdadMin" type="number" min="3" max="18" placeholder="Ej. 8" /></div>
+        <div class="form-field"><label>Edad máxima</label>
+          <input id="grpEdadMax" type="number" min="3" max="18" placeholder="Ej. 10" /></div>
+        <div class="form-field"><label>Máx. alumnos</label>
+          <input id="grpMaxAlumnos" type="number" min="1" placeholder="Ej. 20" /></div>
+        <div class="form-field form-full"><label>Horario de entrenamiento</label>
+          <input id="grpHorario" type="text" placeholder="Ej. Lunes y Miércoles 17:00 - 18:30" /></div>
+        <div class="form-field form-full"><label>Instalación / Campo</label>
+          <input id="grpInstalacion" type="text" placeholder="Ej. Ciudad Deportiva Municipal" /></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="saved-msg" id="savedGrupo">✔ Guardado</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalGrupo')">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveGrupo()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ALUMNO ══ -->
+<div class="modal-overlay" id="modalAlumno" onclick="if(event.target===this)closeModal('modalAlumno')">
+  <div class="modal-box" style="max-width:580px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:var(--navy-claro)"></div>
+      <div class="modal-head-title" id="modalAlumnoTitle">Nuevo alumno</div>
+      <button class="modal-close" onclick="closeModal('modalAlumno')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Datos personales -->
+      <div class="ficha-seccion">
+        <div class="ficha-seccion-title">👤 Datos personales</div>
+        <div class="form-grid">
+          <div class="form-field"><label>Nombre</label><input id="aluNombre" type="text" placeholder="Nombre" /></div>
+          <div class="form-field"><label>Apellidos</label><input id="aluApellidos" type="text" placeholder="Apellidos" /></div>
+          <div class="form-field"><label>Fecha de nacimiento</label><input id="aluFechaNac" type="date" /></div>
+          <div class="form-field"><label>DNI / NIE</label><input id="aluDni" type="text" placeholder="00000000X" /></div>
+          <div class="form-field"><label>Teléfono</label><input id="aluTelefono" type="tel" placeholder="000 000 000" /></div>
+          <div class="form-field"><label>Email</label><input id="aluEmail" type="email" placeholder="alumno@email.com" /></div>
+        </div>
+      </div>
+      <!-- Tutor -->
+      <div class="ficha-seccion">
+        <div class="ficha-seccion-title">👨‍👩‍👧 Tutor / Familiar responsable</div>
+        <div class="form-grid">
+          <div class="form-field"><label>Nombre del tutor</label><input id="aluTutorNombre" type="text" placeholder="Nombre y apellidos" /></div>
+          <div class="form-field"><label>Parentesco</label>
+            <select id="aluTutorParentesco">
+              <option>Padre</option><option>Madre</option><option>Tutor legal</option><option>Otro</option>
+            </select>
+          </div>
+          <div class="form-field"><label>Teléfono tutor</label><input id="aluTutorTel" type="tel" placeholder="000 000 000" /></div>
+          <div class="form-field"><label>Email tutor</label><input id="aluTutorEmail" type="email" placeholder="tutor@email.com" /></div>
+        </div>
+      </div>
+      <!-- Datos médicos -->
+      <div class="ficha-seccion">
+        <div class="ficha-seccion-title">⚕️ Datos médicos</div>
+        <div class="form-grid">
+          <div class="form-field form-full"><label>Alergias</label>
+            <input id="aluAlergias" type="text" placeholder="Ej. Polen, frutos secos... o Ninguna" /></div>
+          <div class="form-field form-full"><label>Medicación habitual</label>
+            <input id="aluMedicacion" type="text" placeholder="Ej. Ventolín, Epipen... o Ninguna" /></div>
+          <div class="form-field form-full"><label>Observaciones médicas</label>
+            <textarea id="aluObsMedicas" placeholder="Lesiones previas, condiciones especiales, indicaciones del médico..."></textarea>
+          </div>
+          <div class="form-field form-full">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+              <input type="checkbox" id="aluAutImagen" style="width:18px;height:18px;" />
+              Autoriza el uso de imágenes y vídeos del alumno
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="saved-msg" id="savedAlumno">✔ Guardado</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalAlumno')">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveAlumno()">Guardar alumno</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ASISTENCIA ══ -->
+<div class="modal-overlay" id="modalAsistencia" onclick="if(event.target===this)closeModal('modalAsistencia')">
+  <div class="modal-box" style="max-width:540px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:var(--verde)"></div>
+      <div class="modal-head-title">📋 Parte de asistencia</div>
+      <button class="modal-close" onclick="closeModal('modalAsistencia')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="margin-bottom:16px;">
+        <div class="form-field"><label>Fecha</label><input id="asisFecha" type="date" /></div>
+        <div class="form-field"><label>Tipo de sesión</label>
+          <select id="asisTipo">
+            <option>Entrenamiento</option><option>Partido</option>
+            <option>Concentración</option><option>Evento</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="form-field form-full"><label>Descripción / Contenido de la sesión</label>
+          <input id!="asisDesc" id="asisDesc" type="text" placeholder="Ej. Trabajo de pase y posicionamiento" /></div>
+      </div>
+
+      <div class="asistencia-header">
+        <div class="asistencia-header-title">Lista de alumnos</div>
+        <div style="font-size:12px;opacity:.7;">
+          <span id="asisContPresentes">0</span> presentes ·
+          <span id="asisContAusentes">0</span> ausentes
+        </div>
+      </div>
+      <div class="asistencia-lista" id="asisListaAlumnos"></div>
+
+      <div class="form-field" style="margin-top:14px;">
+        <label>Observaciones generales</label>
+        <textarea id="asisObservaciones" placeholder="Incidencias, notas de la sesión..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span class="saved-msg" id="savedAsistencia">✔ Parte guardado</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalAsistencia')">Cancelar</button>
+        <button class="btn btn-verde btn-sm" onclick="guardarAsistencia()">💾 Guardar parte</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL FICHA ALUMNO ══ -->
+<div class="modal-overlay" id="modalFichaAlumno" onclick="if(event.target===this)closeModal('modalFichaAlumno')">
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:var(--navy-claro)"></div>
+      <div class="modal-head-title" id="fichaAlumnoNombre">Ficha del alumno</div>
+      <button class="modal-close" onclick="closeModal('modalFichaAlumno')">✕</button>
+    </div>
+    <div class="modal-body" id="fichaAlumnoBody"></div>
+    <div class="modal-foot">
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalFichaAlumno')">Cerrar</button>
+        <button class="btn btn-primary btn-sm" id="btnEditarAlumno" onclick="">✏️ Editar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body></html>`;
 
     const win = window.open('', '_blank');
     win.document.write(pdfHTML);
@@ -3684,6 +4117,571 @@ async function saveGoleador(){
   renderAll = function() {
     _origRenderAllEval();
     loadEvals();
+  };
+
+
+  // ══════════════════════════════════════════════════════════════
+  //  MÓDULO ESCUELAS DEPORTIVAS
+  // ══════════════════════════════════════════════════════════════
+
+  let escuelaActual = null;
+  let grupoActual   = null;
+  let editingEscuelaId = null;
+  let editingGrupoId   = null;
+  let editingAlumnoId  = null;
+  let asistenciaEstados = {}; // alumnoId -> true/false
+
+  const DEPORTE_EMOJI = {
+    'Futbol':'⚽','Futbol Sala':'🥅','Baloncesto':'🏀','Voleibol':'🏐',
+    'Tenis':'🎾','Natacion':'🏊','Atletismo':'🏃','Hockey':'🏑','Otro':'🏅'
+  };
+
+  // ── APPLY ROLE UI ──────────────────────────────────────────
+  function applyEscuelasRoleUI() {
+    const canEdit = userRole === 'admin' || userRole === 'delegado';
+    const isAdmin = userRole === 'admin';
+    const navEl   = document.getElementById('navEscuelas');
+    if (navEl) navEl.style.display = canEdit ? 'inline-flex' : 'none';
+    const adminActs = document.getElementById('adminActionsEscuelas');
+    if (adminActs) adminActs.style.display = isAdmin ? 'flex' : 'none';
+  }
+
+  // ── VISTA ESCUELAS ─────────────────────────────────────────
+  function renderEscuelas() {
+    const grid = document.getElementById('escuelasGrid');
+    if (!grid) return;
+    const lista = db.escuelas || [];
+    if (!lista.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">🏫</div>
+        <div class="empty-title">Sin escuelas</div>
+        <div class="empty-desc">Crea la primera escuela deportiva del club.</div>
+      </div>`;
+      return;
+    }
+    grid.innerHTML = lista.map(e => {
+      const grupos  = (db.grupos||[]).filter(g => g.escuelaId === e.id);
+      const alumnos = (db.alumnos||[]).filter(a => a.escuelaId === e.id);
+      const emoji   = DEPORTE_EMOJI[e.deporte] || '🏅';
+      return `<div class="escuela-card" onclick="abrirEscuela('${e.id}')">
+        <div class="escuela-stripe"></div>
+        <div class="escuela-body">
+          <div class="escuela-deporte">${emoji} ${e.deporte} · ${e.temporada||''}</div>
+          <div class="escuela-nombre">${e.nombre}</div>
+          <div class="escuela-meta">${e.descripcion||''}</div>
+          <div class="escuela-footer">
+            <div class="escuela-stats">
+              <div>👥 Grupos: <span>${grupos.length}</span></div>
+              <div>🧒 Alumnos: <span>${alumnos.length}</span></div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <span class="badge ${e.estado==='activa'?'badge-activa':'badge-finalizada'}">${e.estado||'activa'}</span>
+              ${userRole==='admin'?`
+              <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editEscuela('${e.id}')">✏️</button>
+              <button class="btn btn-rojo btn-sm" onclick="event.stopPropagation();deleteEscuela('${e.id}')">🗑</button>`:''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function abrirEscuela(id) {
+    escuelaActual = (db.escuelas||[]).find(e => e.id === id);
+    if (!escuelaActual) return;
+    document.getElementById('vistaEscuelas').style.display = 'none';
+    document.getElementById('vistaGrupos').style.display   = 'block';
+    document.getElementById('escuelaActualTitle').textContent = escuelaActual.nombre;
+    if (document.getElementById('btnNuevoGrupo'))
+      document.getElementById('btnNuevoGrupo').style.display = userRole==='admin'?'inline-flex':'none';
+    renderGrupos();
+    renderEscuelaStats();
+  }
+
+  function volverEscuelas() {
+    escuelaActual = null;
+    document.getElementById('vistaGrupos').style.display   = 'none';
+    document.getElementById('vistaEscuelas').style.display = 'block';
+  }
+
+  function renderEscuelaStats() {
+    if (!escuelaActual) return;
+    const grupos  = (db.grupos||[]).filter(g => g.escuelaId === escuelaActual.id);
+    const alumnos = (db.alumnos||[]).filter(a => a.escuelaId === escuelaActual.id);
+    const cont = document.getElementById('escuelaStatsBar');
+    if (!cont) return;
+    cont.innerHTML = `
+      <div class="escuela-stat-card"><div class="escuela-stat-val">${grupos.length}</div><div class="escuela-stat-lbl">Grupos</div></div>
+      <div class="escuela-stat-card"><div class="escuela-stat-val">${alumnos.length}</div><div class="escuela-stat-lbl">Alumnos</div></div>
+      <div class="escuela-stat-card"><div class="escuela-stat-val">${alumnos.filter(a=>a.estado==='activo').length}</div><div class="escuela-stat-lbl">Activos</div></div>
+    `;
+  }
+
+  // ── VISTA GRUPOS ───────────────────────────────────────────
+  function renderGrupos() {
+    if (!escuelaActual) return;
+    const cont   = document.getElementById('gruposLista');
+    const grupos = (db.grupos||[]).filter(g => g.escuelaId === escuelaActual.id);
+    if (!grupos.length) {
+      cont.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <div class="empty-title">Sin grupos</div>
+        <div class="empty-desc">Crea el primer grupo de entrenamiento.</div>
+      </div>`;
+      return;
+    }
+    cont.innerHTML = grupos.map(g => {
+      const alumnos = (db.alumnos||[]).filter(a => a.grupoId === g.id);
+      const pct = g.maxAlumnos ? Math.round(alumnos.length/parseInt(g.maxAlumnos)*100) : 0;
+      return `<div class="grupo-card" onclick="abrirGrupo('${g.id}')">
+        <div class="grupo-icon">${DEPORTE_EMOJI[escuelaActual?.deporte]||'🏅'}</div>
+        <div class="grupo-info">
+          <div class="grupo-nombre">${g.nombre}</div>
+          <div class="grupo-meta">
+            👤 ${g.entrenador||'Sin entrenador'} · 
+            🕐 ${g.horario||'Sin horario'} ·
+            📍 ${g.instalacion||'Sin instalación'}
+          </div>
+          <div class="grupo-meta" style="margin-top:4px;">
+            ${g.edadMin&&g.edadMax?`${g.edadMin}-${g.edadMax} años · `:''}
+            ${alumnos.length} alumnos${g.maxAlumnos?' / '+g.maxAlumnos:''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          <span class="grupo-badge">${g.categoria||''}</span>
+          ${userRole==='admin'?`
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editGrupo('${g.id}')">✏️</button>
+          <button class="btn btn-rojo btn-sm" onclick="event.stopPropagation();deleteGrupo('${g.id}')">🗑</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function abrirGrupo(id) {
+    grupoActual = (db.grupos||[]).find(g => g.id === id);
+    if (!grupoActual) return;
+    document.getElementById('vistaGrupos').style.display  = 'none';
+    document.getElementById('vistaAlumnos').style.display = 'block';
+    document.getElementById('grupoActualTitle').textContent = grupoActual.nombre;
+    const canEdit = userRole==='admin'||userRole==='delegado';
+    if (document.getElementById('btnNuevoAlumno'))
+      document.getElementById('btnNuevoAlumno').style.display = canEdit?'inline-flex':'none';
+    if (document.getElementById('btnTomarAsistencia'))
+      document.getElementById('btnTomarAsistencia').style.display = canEdit?'inline-flex':'none';
+    if (document.getElementById('btnNuevaAsistencia'))
+      document.getElementById('btnNuevaAsistencia').style.display = canEdit?'inline-flex':'none';
+    switchSubTab('alumnos', document.getElementById('subTabAlumnos'));
+    renderAlumnos();
+    renderAsistenciaHistorial();
+  }
+
+  function volverGrupos() {
+    grupoActual = null;
+    document.getElementById('vistaAlumnos').style.display = 'none';
+    document.getElementById('vistaGrupos').style.display  = 'block';
+  }
+
+  function switchSubTab(tab, btn) {
+    document.getElementById('subPanelAlumnos').style.display    = tab==='alumnos'?'block':'none';
+    document.getElementById('subPanelAsistencia').style.display = tab==='asistencia'?'block':'none';
+    document.querySelectorAll('#vistaAlumnos .nav-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+  }
+
+  // ── ALUMNOS ────────────────────────────────────────────────
+  function renderAlumnos() {
+    if (!grupoActual) return;
+    const cont    = document.getElementById('alumnosLista');
+    const alumnos = (db.alumnos||[]).filter(a => a.grupoId === grupoActual.id);
+    if (!alumnos.length) {
+      cont.innerHTML = '<div style="text-align:center;padding:24px;opacity:.4;">Sin alumnos en este grupo. Pulsa "+ Añadir alumno".</div>';
+      return;
+    }
+    const sorted = [...alumnos].sort((a,b) => a.apellidos.localeCompare(b.apellidos,'es'));
+    cont.innerHTML = sorted.map(a => {
+      const ini = ((a.nombre||'')[0]+(a.apellidos||'')[0]).toUpperCase();
+      const edad = a.fechaNacimiento ? calcularEdad(a.fechaNacimiento) : '—';
+      const tieneAlerta = a.alergias && a.alergias.toLowerCase() !== 'ninguna' && a.alergias !== '';
+      return `<div class="alumno-row">
+        <div class="alumno-avatar">${ini}</div>
+        <div class="alumno-info">
+          <div class="alumno-nombre">${a.apellidos}, ${a.nombre} ${tieneAlerta?'⚠️':''}</div>
+          <div class="alumno-meta">${edad} años · ${a.tutorNombre||''} ${a.tutorTelefono?'· '+a.tutorTelefono:''}</div>
+        </div>
+        <div class="alumno-actions">
+          <button class="btn btn-outline btn-sm" onclick="verFichaAlumno('${a.id}')">👁</button>
+          ${(userRole==='admin'||userRole==='delegado')?`
+          <button class="btn btn-outline btn-sm" onclick="editAlumno('${a.id}')">✏️</button>`:''}
+          ${userRole==='admin'?`
+          <button class="btn btn-rojo btn-sm" onclick="deleteAlumno('${a.id}')">🗑</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function calcularEdad(fechaNac) {
+    const hoy  = new Date();
+    const nac  = new Date(fechaNac);
+    let edad   = hoy.getFullYear() - nac.getFullYear();
+    const m    = hoy.getMonth() - nac.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+    return isNaN(edad) ? '—' : edad;
+  }
+
+  function verFichaAlumno(id) {
+    const a = (db.alumnos||[]).find(x => x.id === id);
+    if (!a) return;
+    document.getElementById('fichaAlumnoNombre').textContent = a.apellidos + ', ' + a.nombre;
+    document.getElementById('btnEditarAlumno').onclick = () => { closeModal('modalFichaAlumno'); editAlumno(id); };
+    const tieneAlerta = (a.alergias && a.alergias.toLowerCase()!=='ninguna'&&a.alergias!=='') ||
+                        (a.medicacion && a.medicacion.toLowerCase()!=='ninguna'&&a.medicacion!=='');
+    document.getElementById('fichaAlumnoBody').innerHTML = `
+      ${tieneAlerta?`<div class="alerta-medica">
+        <strong>⚠️ Alerta médica</strong>
+        ${a.alergias&&a.alergias.toLowerCase()!=='ninguna'?'Alergias: '+a.alergias+'<br>':''}
+        ${a.medicacion&&a.medicacion.toLowerCase()!=='ninguna'?'Medicación: '+a.medicacion:''}
+      </div>`:''}
+      <div class="ficha-seccion">
+        <div class="ficha-seccion-title">👤 Datos personales</div>
+        <div class="ficha-row">
+          <div class="ficha-field"><div class="ficha-label">Fecha nacimiento</div><div class="ficha-value">${a.fechaNacimiento||'—'} (${calcularEdad(a.fechaNacimiento)} años)</div></div>
+          <div class="ficha-field"><div class="ficha-label">DNI / NIE</div><div class="ficha-value">${a.dni||'—'}</div></div>
+        </div>
+        <div class="ficha-row">
+          <div class="ficha-field"><div class="ficha-label">Teléfono</div><div class="ficha-value">${a.telefono||'—'}</div></div>
+          <div class="ficha-field"><div class="ficha-label">Email</div><div class="ficha-value">${a.email||'—'}</div></div>
+        </div>
+      </div>
+      <div class="ficha-seccion">
+        <div class="ficha-seccion-title">👨‍👩‍👧 Tutor responsable</div>
+        <div class="ficha-row">
+          <div class="ficha-field"><div class="ficha-label">Nombre</div><div class="ficha-value">${a.tutorNombre||'—'} (${a.tutorParentesco||''})</div></div>
+        </div>
+        <div class="ficha-row">
+          <div class="ficha-field"><div class="ficha-label">Teléfono</div><div class="ficha-value">${a.tutorTelefono||'—'}</div></div>
+          <div class="ficha-field"><div class="ficha-label">Email</div><div class="ficha-value">${a.tutorEmail||'—'}</div></div>
+        </div>
+      </div>
+      <div class="ficha-seccion">
+        <div class="ficha-seccion-title">⚕️ Datos médicos</div>
+        <div class="ficha-row">
+          <div class="ficha-field"><div class="ficha-label">Alergias</div><div class="ficha-value">${a.alergias||'Ninguna'}</div></div>
+          <div class="ficha-field"><div class="ficha-label">Medicación</div><div class="ficha-value">${a.medicacion||'Ninguna'}</div></div>
+        </div>
+        ${a.observacionesMedicas?`<div class="ficha-row"><div class="ficha-field" style="min-width:100%"><div class="ficha-label">Observaciones</div><div class="ficha-value">${a.observacionesMedicas}</div></div></div>`:''}
+        <div class="ficha-row">
+          <div class="ficha-field"><div class="ficha-label">Autorización imagen</div><div class="ficha-value">${a.autorizacionImagen==='true'?'✅ Sí':'❌ No'}</div></div>
+          <div class="ficha-field"><div class="ficha-label">Fecha inscripción</div><div class="ficha-value">${a.fechaInscripcion||'—'}</div></div>
+        </div>
+      </div>
+    `;
+    openModal('modalFichaAlumno');
+  }
+
+  // ── ASISTENCIA ─────────────────────────────────────────────
+  function abrirAsistencia() {
+    if (!grupoActual) return;
+    const alumnos = (db.alumnos||[]).filter(a => a.grupoId === grupoActual.id);
+    document.getElementById('asisFecha').value = new Date().toISOString().split('T')[0];
+    document.getElementById('asisTipo').value  = 'Entrenamiento';
+    document.getElementById('asisDesc').value  = '';
+    document.getElementById('asisObservaciones').value = '';
+
+    // Init estados — todos presentes por defecto
+    asistenciaEstados = {};
+    alumnos.forEach(a => asistenciaEstados[a.id] = true);
+
+    renderListaAsistencia(alumnos);
+    openModal('modalAsistencia');
+  }
+
+  function renderListaAsistencia(alumnos) {
+    const cont = document.getElementById('asisListaAlumnos');
+    if (!cont) return;
+    const sorted = [...alumnos].sort((a,b) => a.apellidos.localeCompare(b.apellidos,'es'));
+    cont.innerHTML = sorted.map(a => `
+      <div class="asistencia-alumno">
+        <div class="asistencia-nombre">${a.apellidos}, ${a.nombre}</div>
+        <button class="toggle-asistencia ${asistenciaEstados[a.id]!==false?'presente':'ausente'}"
+          onclick="toggleAsistencia('${a.id}', this)"></button>
+      </div>`).join('');
+    actualizarContadores();
+  }
+
+  function toggleAsistencia(alumnoId, btn) {
+    asistenciaEstados[alumnoId] = !asistenciaEstados[alumnoId];
+    btn.classList.toggle('presente', asistenciaEstados[alumnoId]);
+    btn.classList.toggle('ausente',  !asistenciaEstados[alumnoId]);
+    actualizarContadores();
+  }
+
+  function actualizarContadores() {
+    const vals = Object.values(asistenciaEstados);
+    const pres = vals.filter(Boolean).length;
+    const ause = vals.length - pres;
+    const elP  = document.getElementById('asisContPresentes');
+    const elA  = document.getElementById('asisContAusentes');
+    if (elP) elP.textContent = pres;
+    if (elA) elA.textContent = ause;
+  }
+
+  async function guardarAsistencia() {
+    if (!grupoActual) return;
+    const presentes = Object.entries(asistenciaEstados).filter(([,v])=>v).map(([k])=>k);
+    const ausentes  = Object.entries(asistenciaEstados).filter(([,v])=>!v).map(([k])=>k);
+    const rec = {
+      id:           'asis_'+Date.now(),
+      grupoId:      grupoActual.id,
+      grupoNombre:  grupoActual.nombre,
+      escuelaId:    escuelaActual?.id||'',
+      fecha:        document.getElementById('asisFecha').value,
+      tipo:         document.getElementById('asisTipo').value,
+      descripcion:  document.getElementById('asisDesc').value,
+      presentes:    JSON.stringify(presentes),
+      ausentes:     JSON.stringify(ausentes),
+      observaciones:document.getElementById('asisObservaciones').value,
+      modificadoPor:MONITOR_ID
+    };
+    if (!db.asistencia) db.asistencia = [];
+    db.asistencia.push(rec);
+    saveLocal();
+    await apiCall('saveAsistencia', rec);
+    const msg = document.getElementById('savedAsistencia');
+    msg.classList.add('show');
+    setTimeout(() => { msg.classList.remove('show'); closeModal('modalAsistencia'); renderAsistenciaHistorial(); }, 1200);
+  }
+
+  function renderAsistenciaHistorial() {
+    if (!grupoActual) return;
+    const cont = document.getElementById('asistenciaHistorial');
+    if (!cont) return;
+    const partes = (db.asistencia||[])
+      .filter(a => a.grupoId === grupoActual.id)
+      .sort((a,b) => b.fecha.localeCompare(a.fecha));
+
+    if (!partes.length) {
+      cont.innerHTML = '<div style="text-align:center;padding:24px;opacity:.4;">Sin partes de asistencia registrados.</div>';
+      return;
+    }
+
+    cont.innerHTML = partes.map(p => {
+      const pres  = safeParseJSON(p.presentes,[]).length;
+      const ause  = safeParseJSON(p.ausentes,[]).length;
+      const total = pres + ause;
+      const pct   = total > 0 ? Math.round(pres/total*100) : 0;
+      return `<div class="asis-hist-item">
+        <div class="asis-fecha">${p.fecha?.split('-').reverse().slice(0,2).join('/')}</div>
+        <div class="asis-info">
+          <div class="asis-tipo">${p.tipo||'Entrenamiento'} ${p.descripcion?'· '+p.descripcion:''}</div>
+          <div class="asis-meta">${pres} presentes · ${ause} ausentes</div>
+          ${p.observaciones?`<div class="asis-meta">${p.observaciones}</div>`:''}
+        </div>
+        <div class="asis-pct">${pct}%</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── CRUD ESCUELAS ──────────────────────────────────────────
+  function openModalEscuela() {
+    editingEscuelaId = null;
+    document.getElementById('modalEscuelaTitle').textContent = 'Nueva escuela deportiva';
+    ['escNombre','escTemporada','escDescripcion'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('escDeporte').value = 'Fútbol';
+    document.getElementById('escEstado').value  = 'activa';
+    openModal('modalEscuela');
+  }
+
+  function editEscuela(id) {
+    const e = (db.escuelas||[]).find(x=>x.id===id); if(!e) return;
+    editingEscuelaId = id;
+    document.getElementById('modalEscuelaTitle').textContent = 'Editar escuela';
+    document.getElementById('escNombre').value      = e.nombre||'';
+    document.getElementById('escDeporte').value     = e.deporte||'Fútbol';
+    document.getElementById('escTemporada').value   = e.temporada||'';
+    document.getElementById('escEstado').value      = e.estado||'activa';
+    document.getElementById('escDescripcion').value = e.descripcion||'';
+    openModal('modalEscuela');
+  }
+
+  async function saveEscuela() {
+    const rec = {
+      id:          editingEscuelaId || ('esc_'+Date.now()),
+      nombre:      document.getElementById('escNombre').value,
+      deporte:     document.getElementById('escDeporte').value,
+      temporada:   document.getElementById('escTemporada').value,
+      estado:      document.getElementById('escEstado').value,
+      descripcion: document.getElementById('escDescripcion').value,
+      modificadoPor: MONITOR_ID
+    };
+    if (!rec.nombre) { alert('El nombre es obligatorio'); return; }
+    if (!db.escuelas) db.escuelas = [];
+    const idx = db.escuelas.findIndex(x=>x.id===editingEscuelaId);
+    if (idx>=0) db.escuelas[idx]=rec; else db.escuelas.push(rec);
+    saveLocal();
+    await apiCall('saveEscuela', rec);
+    showSaved('savedEscuela');
+    setTimeout(()=>{ closeModal('modalEscuela'); renderEscuelas(); }, 1200);
+  }
+
+  async function deleteEscuela(id) {
+    if (!confirm('Eliminar esta escuela y todos sus grupos y alumnos?')) return;
+    db.escuelas  = (db.escuelas||[]).filter(e=>e.id!==id);
+    db.grupos    = (db.grupos||[]).filter(g=>g.escuelaId!==id);
+    db.alumnos   = (db.alumnos||[]).filter(a=>a.escuelaId!==id);
+    saveLocal(); await apiCall('deleteEscuela',{id}); renderEscuelas();
+  }
+
+  // ── CRUD GRUPOS ────────────────────────────────────────────
+  function openModalGrupo() {
+    editingGrupoId = null;
+    document.getElementById('modalGrupoTitle').textContent = 'Nuevo grupo';
+    ['grpNombre','grpCategoria','grpEntrenador','grpEdadMin','grpEdadMax','grpMaxAlumnos','grpHorario','grpInstalacion']
+      .forEach(id => document.getElementById(id).value='');
+    openModal('modalGrupo');
+  }
+
+  function editGrupo(id) {
+    const g = (db.grupos||[]).find(x=>x.id===id); if(!g) return;
+    editingGrupoId = id;
+    document.getElementById('modalGrupoTitle').textContent = 'Editar grupo';
+    document.getElementById('grpNombre').value      = g.nombre||'';
+    document.getElementById('grpCategoria').value   = g.categoria||'';
+    document.getElementById('grpEntrenador').value  = g.entrenador||'';
+    document.getElementById('grpEdadMin').value     = g.edadMin||'';
+    document.getElementById('grpEdadMax').value     = g.edadMax||'';
+    document.getElementById('grpMaxAlumnos').value  = g.maxAlumnos||'';
+    document.getElementById('grpHorario').value     = g.horario||'';
+    document.getElementById('grpInstalacion').value = g.instalacion||'';
+    openModal('modalGrupo');
+  }
+
+  async function saveGrupo() {
+    if (!escuelaActual) return;
+    const rec = {
+      id:           editingGrupoId || ('grp_'+Date.now()),
+      escuelaId:    escuelaActual.id,
+      escuelaNombre:escuelaActual.nombre,
+      nombre:       document.getElementById('grpNombre').value,
+      categoria:    document.getElementById('grpCategoria').value,
+      entrenador:   document.getElementById('grpEntrenador').value,
+      edadMin:      document.getElementById('grpEdadMin').value,
+      edadMax:      document.getElementById('grpEdadMax').value,
+      maxAlumnos:   document.getElementById('grpMaxAlumnos').value,
+      horario:      document.getElementById('grpHorario').value,
+      instalacion:  document.getElementById('grpInstalacion').value,
+      estado:       'activo',
+      modificadoPor:MONITOR_ID
+    };
+    if (!rec.nombre) { alert('El nombre es obligatorio'); return; }
+    if (!db.grupos) db.grupos = [];
+    const idx = db.grupos.findIndex(x=>x.id===editingGrupoId);
+    if (idx>=0) db.grupos[idx]=rec; else db.grupos.push(rec);
+    saveLocal();
+    await apiCall('saveGrupo', rec);
+    showSaved('savedGrupo');
+    setTimeout(()=>{ closeModal('modalGrupo'); renderGrupos(); renderEscuelaStats(); }, 1200);
+  }
+
+  async function deleteGrupo(id) {
+    if (!confirm('Eliminar este grupo y todos sus alumnos?')) return;
+    db.grupos  = (db.grupos||[]).filter(g=>g.id!==id);
+    db.alumnos = (db.alumnos||[]).filter(a=>a.grupoId!==id);
+    saveLocal(); await apiCall('deleteGrupo',{id}); renderGrupos(); renderEscuelaStats();
+  }
+
+  // ── CRUD ALUMNOS ───────────────────────────────────────────
+  function openModalAlumno() {
+    editingAlumnoId = null;
+    document.getElementById('modalAlumnoTitle').textContent = 'Nuevo alumno';
+    ['aluNombre','aluApellidos','aluDni','aluTelefono','aluEmail',
+     'aluTutorNombre','aluTutorTel','aluTutorEmail','aluAlergias','aluMedicacion','aluObsMedicas']
+      .forEach(id => document.getElementById(id).value='');
+    document.getElementById('aluFechaNac').value = '';
+    document.getElementById('aluTutorParentesco').value = 'Padre';
+    document.getElementById('aluAutImagen').checked = false;
+    openModal('modalAlumno');
+  }
+
+  function editAlumno(id) {
+    const a = (db.alumnos||[]).find(x=>x.id===id); if(!a) return;
+    editingAlumnoId = id;
+    document.getElementById('modalAlumnoTitle').textContent = 'Editar alumno';
+    document.getElementById('aluNombre').value          = a.nombre||'';
+    document.getElementById('aluApellidos').value       = a.apellidos||'';
+    document.getElementById('aluFechaNac').value        = a.fechaNacimiento||'';
+    document.getElementById('aluDni').value             = a.dni||'';
+    document.getElementById('aluTelefono').value        = a.telefono||'';
+    document.getElementById('aluEmail').value           = a.email||'';
+    document.getElementById('aluTutorNombre').value     = a.tutorNombre||'';
+    document.getElementById('aluTutorParentesco').value = a.tutorParentesco||'Padre';
+    document.getElementById('aluTutorTel').value        = a.tutorTelefono||'';
+    document.getElementById('aluTutorEmail').value      = a.tutorEmail||'';
+    document.getElementById('aluAlergias').value        = a.alergias||'';
+    document.getElementById('aluMedicacion').value      = a.medicacion||'';
+    document.getElementById('aluObsMedicas').value      = a.observacionesMedicas||'';
+    document.getElementById('aluAutImagen').checked     = a.autorizacionImagen==='true';
+    openModal('modalAlumno');
+  }
+
+  async function saveAlumno() {
+    if (!grupoActual) return;
+    const rec = {
+      id:                   editingAlumnoId || ('alu_'+Date.now()),
+      grupoId:              grupoActual.id,
+      grupoNombre:          grupoActual.nombre,
+      escuelaId:            escuelaActual?.id||'',
+      escuelaNombre:        escuelaActual?.nombre||'',
+      nombre:               document.getElementById('aluNombre').value,
+      apellidos:            document.getElementById('aluApellidos').value,
+      fechaNacimiento:      document.getElementById('aluFechaNac').value,
+      dni:                  document.getElementById('aluDni').value,
+      telefono:             document.getElementById('aluTelefono').value,
+      email:                document.getElementById('aluEmail').value,
+      tutorNombre:          document.getElementById('aluTutorNombre').value,
+      tutorParentesco:      document.getElementById('aluTutorParentesco').value,
+      tutorTelefono:        document.getElementById('aluTutorTel').value,
+      tutorEmail:           document.getElementById('aluTutorEmail').value,
+      alergias:             document.getElementById('aluAlergias').value,
+      medicacion:           document.getElementById('aluMedicacion').value,
+      observacionesMedicas: document.getElementById('aluObsMedicas').value,
+      autorizacionImagen:   String(document.getElementById('aluAutImagen').checked),
+      fechaInscripcion:     new Date().toLocaleDateString('es-ES'),
+      estado:               'activo',
+      modificadoPor:        MONITOR_ID
+    };
+    if (!rec.nombre||!rec.apellidos) { alert('Nombre y apellidos son obligatorios'); return; }
+    if (!db.alumnos) db.alumnos = [];
+    const idx = db.alumnos.findIndex(x=>x.id===editingAlumnoId);
+    if (idx>=0) db.alumnos[idx]=rec; else db.alumnos.push(rec);
+    saveLocal();
+    await apiCall('saveAlumno', rec);
+    showSaved('savedAlumno');
+    setTimeout(()=>{ closeModal('modalAlumno'); renderAlumnos(); renderEscuelaStats(); }, 1200);
+  }
+
+  async function deleteAlumno(id) {
+    if (!confirm('Eliminar este alumno?')) return;
+    db.alumnos = (db.alumnos||[]).filter(a=>a.id!==id);
+    saveLocal(); await apiCall('deleteAlumno',{id}); renderAlumnos(); renderEscuelaStats();
+  }
+
+  // ── PATCH RENDER ALL ───────────────────────────────────────
+  const _baseRenderAllEsc = renderAll;
+  renderAll = function() {
+    _baseRenderAllEsc();
+    if (!db.escuelas)   db.escuelas   = [];
+    if (!db.grupos)     db.grupos     = [];
+    if (!db.alumnos)    db.alumnos    = [];
+    if (!db.asistencia) db.asistencia = [];
+    renderEscuelas();
+    applyEscuelasRoleUI();
+  };
+
+  // ── PATCH APPLY ROLE UI ────────────────────────────────────
+  const _baseRoleUIEsc = applyRoleUI;
+  applyRoleUI = function() {
+    _baseRoleUIEsc();
+    applyEscuelasRoleUI();
   };
 
 </script>
