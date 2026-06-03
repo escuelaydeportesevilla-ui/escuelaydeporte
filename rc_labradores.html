@@ -1558,7 +1558,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
   <button class="nav-btn" id="navPatrocinadores" style="display:none" onclick="showTab('patrocinadores',this)">🤝 Patrocinadores</button>
   <button class="nav-btn" id="navNoticias" style="display:none" onclick="showTab('noticias',this)">📰 Noticias</button>
   <button class="nav-btn" id="navSugerencias" style="display:none" onclick="showTab('sugerencias',this)">📬 Sugerencias <span class="notif-badge" id="sugBadge" style="display:none">0</span></button>
-  <button class="nav-btn" id="navDeportistas" style="display:none" onclick="showTab('deportistas',this)">🧑‍🤝‍🧑 Deportistas</button>
+  <button class="nav-btn" id="navDeportistas" onclick="showTab('deportistas',this)">🧑‍🤝‍🧑 Deportistas</button>
   <button class="nav-btn" id="navEscuelas" style="display:none" onclick="showTab('escuelas',this)">🏫 Escuelas</button>
   <button class="nav-btn" id="navEval" style="display:none" onclick="showTab('evaluaciones',this)">📝 Evaluaciones</button>
   <button class="nav-btn" id="navArbitro" style="display:none" onclick="showTab('mispartidos',this)">🔴 Mis Partidos</button>
@@ -1798,7 +1798,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
     <input class="dep-search-input" type="text" id="depBuscar"
       placeholder="🔍 Buscar por nombre, apellidos, equipo..."
       oninput="renderDeportistas()" />
-    <button class="btn btn-primary" id="btnNuevoDeportista" style="display:none" onclick="openModalDeportista()">+ Nuevo deportista</button>
+    <button class="btn btn-primary" id="btnNuevoDeportista" onclick="openModalDeportista()">+ Nuevo deportista</button>
   </div>
 
   <div class="dep-filtros" id="depFiltros">
@@ -5652,19 +5652,31 @@ async function saveGoleador(){
     const grSel = document.getElementById('depGruposSelect');
     if (!eqSel || !grSel) return;
 
-    eqSel.innerHTML = (db.equipos||[]).map(e => {
-      const comp = (db.competiciones||[]).find(c=>c.id===e.competicionId);
-      return `<option value="${e.id}">${e.nombre}${comp?' · '+comp.nombre:''}`;
-    }).join('');
+    const equipos = db.equipos || [];
+    const grupos  = db.grupos  || [];
 
-    grSel.innerHTML = (db.grupos||[]).map(g => {
-      const esc = (db.escuelas||[]).find(e=>e.id===g.escuelaId);
-      return `<option value="${g.id}">${g.nombre}${esc?' · '+esc.nombre:''}`;
-    }).join('');
+    if (!equipos.length) {
+      eqSel.innerHTML = '<option value="" disabled>Sin equipos registrados aún</option>';
+    } else {
+      eqSel.innerHTML = equipos.map(e => {
+        const comp = (db.competiciones||[]).find(c=>c.id===e.competicionId);
+        return '<option value="' + e.id + '">' + e.nombre + (comp?' · '+comp.nombre:'') + '</option>';
+      }).join('');
+    }
+
+    if (!grupos.length) {
+      grSel.innerHTML = '<option value="" disabled>Sin grupos registrados aún</option>';
+    } else {
+      grSel.innerHTML = grupos.map(g => {
+        const esc = (db.escuelas||[]).find(e=>e.id===g.escuelaId);
+        return '<option value="' + g.id + '">' + g.nombre + (esc?' · '+esc.nombre:'') + '</option>';
+      }).join('');
+    }
   }
 
   // ── CRUD DEPORTISTAS ──────────────────────────────────────────
   function openModalDeportista() {
+    try {
     editingDepId = null; depFotoB64 = null;
     document.getElementById('modalDepTitle').textContent = 'Nuevo deportista';
     ['depNombre','depApellidos','depDni','depLicencia','depTelefono','depEmail',
@@ -5681,6 +5693,7 @@ async function saveGoleador(){
     if (txt) { txt.style.display='flex'; txt.textContent='?'; }
     populateDepSelects();
     openModal('modalDeportista');
+    } catch(e) { console.error('openModalDeportista error:', e); alert('Error al abrir el formulario: ' + e.message); }
   }
 
   function editDeportista(id) {
