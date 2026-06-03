@@ -2369,148 +2369,19 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
   <div class="modal-box" style="max-width:500px;">
     <div class="modal-head">
       <div class="modal-head-stripe" style="background:var(--navy-claro)"></div>
-
-
-<!-- ══ MODAL DEPORTISTA (NUEVA FICHA) ══ -->
-<div class="modal-overlay" id="modalDeportista" onclick="if(event.target===this)closeModal('modalDeportista')">
-  <div class="modal-box" style="max-width:600px;">
-    <div class="modal-head">
-      <div class="modal-head-stripe" style="background:#117A65"></div>
-      <div class="modal-head-title" id="modalDepTitle">Nuevo deportista</div>
-      <button class="modal-close" onclick="closeModal('modalDeportista')">✕</button>
+      <div class="modal-head-title" id="fichaAlumnoNombre">Ficha del alumno</div>
+      <button class="modal-close" onclick="closeModal('modalFichaAlumno')">✕</button>
     </div>
-    <div class="modal-body">
-
-      <!-- Avatar + foto -->
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
-        <div class="dep-ficha-avatar" style="width:64px;height:64px;font-size:1.3rem;" onclick="document.getElementById('depFotoInput').click()">
-          <span id="depAvatarPreviewText">?</span>
-          <img id="depAvatarPreviewImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;" />
-          <div class="foto-overlay">📷</div>
-        </div>
-        <div>
-          <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px;">Foto del deportista</div>
-          <div style="font-size:11px;color:var(--gris-suave);">Haz clic en el avatar para subir una foto</div>
-          <input type="file" id="depFotoInput" accept="image/*" onchange="previewDepFoto(this)" />
-        </div>
-      </div>
-
-      <!-- Datos personales -->
-      <div class="dep-seccion">
-        <div class="dep-seccion-title">👤 Datos personales</div>
-        <div class="form-grid">
-          <div class="form-field"><label>Nombre</label><input id="depNombre" type="text" placeholder="Nombre" oninput="updateDepAvatar()" /></div>
-          <div class="form-field"><label>Apellidos</label><input id="depApellidos" type="text" placeholder="Apellidos" oninput="updateDepAvatar()" /></div>
-          <div class="form-field"><label>Fecha de nacimiento</label><input id="depFechaNac" type="date" /></div>
-          <div class="form-field"><label>DNI / NIE</label><input id="depDni" type="text" placeholder="00000000X" /></div>
-          <div class="form-field"><label>Nº Licencia federativa</label><input id="depLicencia" type="text" placeholder="Opcional" /></div>
-          <div class="form-field"><label>Teléfono</label><input id="depTelefono" type="tel" placeholder="000 000 000" /></div>
-          <div class="form-field form-full"><label>Email</label><input id="depEmail" type="email" placeholder="deportista@email.com" /></div>
-        </div>
-      </div>
-
-      <!-- Datos deportivos -->
-      <div class="dep-seccion">
-        <div class="dep-seccion-title">⚽ Datos deportivos</div>
-        <div class="form-grid">
-          <div class="form-field"><label>Posición / Especialidad</label>
-            <input id="depPosicion" type="text" placeholder="Ej. Portero, Alero..." /></div>
-          <div class="form-field"><label>Pie / Mano dominante</label>
-            <select id="depPieDominante">
-              <option value="">— Sin especificar —</option>
-              <option>Derecho</option><option>Izquierdo</option><option>Ambidiestro</option>
-            </select>
-          </div>
-          <div class="form-field"><label>Altura (cm)</label><input id="depAltura" type="number" placeholder="Ej. 165" /></div>
-          <div class="form-field"><label>Peso (kg)</label><input id="depPeso" type="number" placeholder="Ej. 58" /></div>
-        </div>
-      </div>
-
-      <!-- Vínculos -->
-      <div class="dep-seccion">
-        <div class="dep-seccion-title">🔗 Vínculos</div>
-        <div class="form-grid">
-          <div class="form-field form-full"><label>Equipos (selecciona uno o varios)</label>
-            <select id="depEquiposSelect" multiple style="min-height:80px;font-size:13px;"></select>
-          </div>
-          <div class="form-field form-full"><label>Grupos / Escuelas deportivas (selecciona uno o varios)</label>
-            <select id="depGruposSelect" multiple style="min-height:80px;font-size:13px;"></select>
-          </div>
-        </div>
-        <div style="font-size:11px;color:var(--gris-suave);margin-top:4px;">Mantén Ctrl para seleccionar varios</div>
-      </div>
-
-      <!-- Tutor -->
-      <div class="dep-seccion">
-        <div class="dep-seccion-title">👨‍👩‍👧 Tutor / Familiar responsable</div>
-        <div class="form-grid">
-          <div class="form-field"><label>Nombre del tutor</label><input id="depTutorNombre" type="text" placeholder="Nombre y apellidos" /></div>
-          <div class="form-field"><label>Parentesco</label>
-            <select id="depTutorParentesco">
-              <option>Padre</option><option>Madre</option><option>Tutor legal</option><option>Otro</option>
-            </select>
-          </div>
-          <div class="form-field"><label>Teléfono tutor</label><input id="depTutorTel" type="tel" placeholder="000 000 000" /></div>
-          <div class="form-field"><label>Email tutor</label><input id="depTutorEmail" type="email" placeholder="tutor@email.com" /></div>
-        </div>
-      </div>
-
-      <!-- Médico -->
-      <div class="dep-seccion">
-        <div class="dep-seccion-title">⚕️ Datos médicos</div>
-        <div class="form-grid">
-          <div class="form-field form-full"><label>Alergias</label>
-            <input id="depAlergias" type="text" placeholder="Ej. Polen, frutos secos... o Ninguna" /></div>
-          <div class="form-field form-full"><label>Medicación habitual</label>
-            <input id="depMedicacion" type="text" placeholder="Ej. Ventolín... o Ninguna" /></div>
-          <div class="form-field form-full"><label>Observaciones médicas</label>
-            <textarea id="depObsMedicas" placeholder="Lesiones previas, condiciones especiales..."></textarea>
-          </div>
-          <div class="form-field form-full">
-            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
-              <input type="checkbox" id="depAutImagen" style="width:18px;height:18px;" />
-              Autoriza el uso de imágenes y vídeos del deportista
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Notas -->
-      <div class="dep-seccion">
-        <div class="dep-seccion-title">📝 Notas internas</div>
-        <textarea id="depNotas" placeholder="Observaciones del club, historial de lesiones, objetivos..."></textarea>
-      </div>
-
-    </div>
+    <div class="modal-body" id="fichaAlumnoBody"></div>
     <div class="modal-foot">
-      <span class="saved-msg" id="savedDep">✔ Deportista guardado</span>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline btn-sm" onclick="closeModal('modalDeportista')">Cancelar</button>
-        <button class="btn btn-primary btn-sm" onclick="saveDeportista()">Guardar deportista</button>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalFichaAlumno')">Cerrar</button>
+        <button class="btn btn-primary btn-sm" id="btnEditarAlumno">✏️ Editar</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ MODAL FICHA DEPORTISTA ══ -->
-<div class="modal-overlay" id="modalFichaDeportista" onclick="if(event.target===this)closeModal('modalFichaDeportista')">
-  <div class="modal-box" style="max-width:580px;">
-    <div class="modal-head">
-      <div class="modal-head-stripe" style="background:#117A65"></div>
-      <div class="modal-head-title">Ficha del deportista</div>
-      <button class="modal-close" onclick="closeModal('modalFichaDeportista')">✕</button>
-    </div>
-    <div class="modal-body" id="fichaDepBody">
-    </div>
-    <div class="modal-foot">
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline btn-sm" onclick="closeModal('modalFichaDeportista')">Cerrar</button>
-        <button class="btn btn-primary btn-sm" id="btnEditarDep">✏️ Editar</button>
-        <button class="btn btn-rojo btn-sm" id="btnEliminarDep" style="display:none">🗑 Eliminar</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 
@@ -2859,6 +2730,146 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 </div>
 
 
+<!-- ══ MODAL DEPORTISTA (NUEVA FICHA) ══ -->
+<div class="modal-overlay" id="modalDeportista" onclick="if(event.target===this)closeModal('modalDeportista')">
+  <div class="modal-box" style="max-width:600px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:#117A65"></div>
+      <div class="modal-head-title" id="modalDepTitle">Nuevo deportista</div>
+      <button class="modal-close" onclick="closeModal('modalDeportista')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Avatar + foto -->
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+        <div class="dep-ficha-avatar" style="width:64px;height:64px;font-size:1.3rem;" onclick="document.getElementById('depFotoInput').click()">
+          <span id="depAvatarPreviewText">?</span>
+          <img id="depAvatarPreviewImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+          <div class="foto-overlay">📷</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px;">Foto del deportista</div>
+          <div style="font-size:11px;color:var(--gris-suave);">Haz clic en el avatar para subir una foto</div>
+          <input type="file" id="depFotoInput" accept="image/*" onchange="previewDepFoto(this)" />
+        </div>
+      </div>
+
+      <!-- Datos personales -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">👤 Datos personales</div>
+        <div class="form-grid">
+          <div class="form-field"><label>Nombre</label><input id="depNombre" type="text" placeholder="Nombre" oninput="updateDepAvatar()" /></div>
+          <div class="form-field"><label>Apellidos</label><input id="depApellidos" type="text" placeholder="Apellidos" oninput="updateDepAvatar()" /></div>
+          <div class="form-field"><label>Fecha de nacimiento</label><input id="depFechaNac" type="date" /></div>
+          <div class="form-field"><label>DNI / NIE</label><input id="depDni" type="text" placeholder="00000000X" /></div>
+          <div class="form-field"><label>Nº Licencia federativa</label><input id="depLicencia" type="text" placeholder="Opcional" /></div>
+          <div class="form-field"><label>Teléfono</label><input id="depTelefono" type="tel" placeholder="000 000 000" /></div>
+          <div class="form-field form-full"><label>Email</label><input id="depEmail" type="email" placeholder="deportista@email.com" /></div>
+        </div>
+      </div>
+
+      <!-- Datos deportivos -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">⚽ Datos deportivos</div>
+        <div class="form-grid">
+          <div class="form-field"><label>Posición / Especialidad</label>
+            <input id="depPosicion" type="text" placeholder="Ej. Portero, Alero..." /></div>
+          <div class="form-field"><label>Pie / Mano dominante</label>
+            <select id="depPieDominante">
+              <option value="">— Sin especificar —</option>
+              <option>Derecho</option><option>Izquierdo</option><option>Ambidiestro</option>
+            </select>
+          </div>
+          <div class="form-field"><label>Altura (cm)</label><input id="depAltura" type="number" placeholder="Ej. 165" /></div>
+          <div class="form-field"><label>Peso (kg)</label><input id="depPeso" type="number" placeholder="Ej. 58" /></div>
+        </div>
+      </div>
+
+      <!-- Vínculos -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">🔗 Vínculos</div>
+        <div class="form-grid">
+          <div class="form-field form-full"><label>Equipos (selecciona uno o varios)</label>
+            <select id="depEquiposSelect" multiple style="min-height:80px;font-size:13px;"></select>
+          </div>
+          <div class="form-field form-full"><label>Grupos / Escuelas deportivas (selecciona uno o varios)</label>
+            <select id="depGruposSelect" multiple style="min-height:80px;font-size:13px;"></select>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--gris-suave);margin-top:4px;">Mantén Ctrl para seleccionar varios</div>
+      </div>
+
+      <!-- Tutor -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">👨‍👩‍👧 Tutor / Familiar responsable</div>
+        <div class="form-grid">
+          <div class="form-field"><label>Nombre del tutor</label><input id="depTutorNombre" type="text" placeholder="Nombre y apellidos" /></div>
+          <div class="form-field"><label>Parentesco</label>
+            <select id="depTutorParentesco">
+              <option>Padre</option><option>Madre</option><option>Tutor legal</option><option>Otro</option>
+            </select>
+          </div>
+          <div class="form-field"><label>Teléfono tutor</label><input id="depTutorTel" type="tel" placeholder="000 000 000" /></div>
+          <div class="form-field"><label>Email tutor</label><input id="depTutorEmail" type="email" placeholder="tutor@email.com" /></div>
+        </div>
+      </div>
+
+      <!-- Médico -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">⚕️ Datos médicos</div>
+        <div class="form-grid">
+          <div class="form-field form-full"><label>Alergias</label>
+            <input id="depAlergias" type="text" placeholder="Ej. Polen, frutos secos... o Ninguna" /></div>
+          <div class="form-field form-full"><label>Medicación habitual</label>
+            <input id="depMedicacion" type="text" placeholder="Ej. Ventolín... o Ninguna" /></div>
+          <div class="form-field form-full"><label>Observaciones médicas</label>
+            <textarea id="depObsMedicas" placeholder="Lesiones previas, condiciones especiales..."></textarea>
+          </div>
+          <div class="form-field form-full">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+              <input type="checkbox" id="depAutImagen" style="width:18px;height:18px;" />
+              Autoriza el uso de imágenes y vídeos del deportista
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notas -->
+      <div class="dep-seccion">
+        <div class="dep-seccion-title">📝 Notas internas</div>
+        <textarea id="depNotas" placeholder="Observaciones del club, historial de lesiones, objetivos..."></textarea>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <span class="saved-msg" id="savedDep">✔ Deportista guardado</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalDeportista')">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveDeportista()">Guardar deportista</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL FICHA DEPORTISTA ══ -->
+<div class="modal-overlay" id="modalFichaDeportista" onclick="if(event.target===this)closeModal('modalFichaDeportista')">
+  <div class="modal-box" style="max-width:580px;">
+    <div class="modal-head">
+      <div class="modal-head-stripe" style="background:#117A65"></div>
+      <div class="modal-head-title">Ficha del deportista</div>
+      <button class="modal-close" onclick="closeModal('modalFichaDeportista')">✕</button>
+    </div>
+    <div class="modal-body" id="fichaDepBody">
+    </div>
+    <div class="modal-foot">
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('modalFichaDeportista')">Cerrar</button>
+        <button class="btn btn-primary btn-sm" id="btnEditarDep">✏️ Editar</button>
+        <button class="btn btn-rojo btn-sm" id="btnEliminarDep" style="display:none">🗑 Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
 // ══════════════════════════════════════════════════════════════
 //  CONFIGURACIÓN
