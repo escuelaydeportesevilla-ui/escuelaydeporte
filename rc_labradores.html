@@ -6450,7 +6450,7 @@ async function saveGoleador(){
       'dmCardDeportistas': canEdit,
       'dmCardEscuelas':    canEdit,
       'dmCardEval':        canEdit,
-      'dmCardActas':       isArbitro,
+      'dmCardActas':       canEdit || isArbitro,
       'dmCardNoticias':    isAdmin,
       'dmCardSugerencias': isAdmin,
       'dmCardPat':         isAdmin,
