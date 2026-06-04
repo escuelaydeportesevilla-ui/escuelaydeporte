@@ -1630,6 +1630,12 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
       <div class="dash-module-count" id="dmComp">—</div>
     </div>
 
+    <div class="dash-module-card dm-equipos" onclick="navToTab('equipos')" id="dmCardEquipos">
+      <div class="dash-module-icon">👥</div>
+      <div class="dash-module-name">Equipos</div>
+      <div class="dash-module-count" id="dmEq">—</div>
+    </div>
+
     <div class="dash-module-card dm-deportistas" onclick="navToTab('deportistas')" id="dmCardDeportistas">
       <div class="dash-module-icon">🧑‍🤝‍🧑</div>
       <div class="dash-module-name">Deportistas</div>
@@ -1668,7 +1674,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
     <div class="dash-module-card dm-actas" onclick="navToTab('mispartidos')" id="dmCardActas">
       <div class="dash-module-icon">📋</div>
-      <div class="dash-module-name">Mis actas</div>
+      <div class="dash-module-name">Actas</div>
       <div class="dash-module-count">Árbitro</div>
     </div>
 
@@ -1676,6 +1682,12 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
       <div class="dash-module-icon">📰</div>
       <div class="dash-module-name">Noticias</div>
       <div class="dash-module-count" id="dmNot">—</div>
+    </div>
+
+    <div class="dash-module-card" style="background:linear-gradient(135deg,#1A5276,#2980B9);" onclick="navToTab('sugerencias')" id="dmCardSugerencias">
+      <div class="dash-module-icon">💬</div>
+      <div class="dash-module-name">Sugerencias</div>
+      <div class="dash-module-count" id="dmSug">—</div>
     </div>
 
     <div class="dash-module-card dm-patrocinadores" onclick="navToTab('patrocinadores')" id="dmCardPat">
@@ -6274,6 +6286,8 @@ async function saveGoleador(){
 
     // Module counts
     if(el('dmComp'))  el('dmComp').textContent  = (db.competiciones||[]).length + ' activas';
+    if(el('dmEq'))    el('dmEq').textContent    = (db.equipos||[]).length + ' equipos';
+    if(el('dmSug'))   el('dmSug').textContent   = (db.sugerencias||[]).filter(s=>!s.leida||s.leida==='false').length + ' nuevas';
     if(el('dmDep'))   el('dmDep').textContent   = deps + ' registrados';
     if(el('dmEsc'))   el('dmEsc').textContent   = (db.escuelas||[]).length + ' escuelas';
     if(el('dmCal'))   el('dmCal').textContent   = (db.partidos||[]).filter(p=>p.estado==='pendiente').length + ' pendientes';
@@ -6431,17 +6445,20 @@ async function saveGoleador(){
     // Admin y delegado ven todo
     // Arbitro ve sus módulos + clasificación + calendario
     // Familias ven clasificación, calendario, goleadores, noticias
-    const allCards = ['dmCardDeportistas','dmCardEscuelas','dmCardEval',
-                      'dmCardActas','dmCardNoticias','dmCardPat'];
-    allCards.forEach(id => {
+    // Mostrar/ocultar tarjetas según perfil
+    const cardRules = {
+      'dmCardDeportistas': canEdit,
+      'dmCardEscuelas':    canEdit,
+      'dmCardEval':        canEdit,
+      'dmCardActas':       isArbitro,
+      'dmCardNoticias':    isAdmin,
+      'dmCardSugerencias': isAdmin,
+      'dmCardPat':         isAdmin,
+      'dmCardEquipos':     canEdit || isAdmin,
+    };
+    Object.entries(cardRules).forEach(([id, show]) => {
       const el = document.getElementById(id);
-      if (!el) return;
-      if (id === 'dmCardActas')       el.style.display = isArbitro ? 'flex' : 'none';
-      else if (id === 'dmCardDeportistas' || id === 'dmCardEscuelas' || id === 'dmCardEval')
-                                      el.style.display = canEdit ? 'flex' : 'none';
-      else if (id === 'dmCardNoticias' || id === 'dmCardPat')
-                                      el.style.display = isAdmin ? 'flex' : 'none';
-      else                            el.style.display = 'flex';
+      if (el) el.style.display = show ? 'flex' : 'none';
     });
 
     // Arbitro default tab
