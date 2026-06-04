@@ -35,7 +35,7 @@ body{font-family:'Barlow',sans-serif;background:var(--crema);color:var(--gris-te
 .hstat .lbl{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:.45;margin-top:2px;}
 
 /* ── NAV ── */
-.nav-bar{background:var(--blanco);border-bottom:2px solid var(--gris-linea);display:flex;align-items:center;padding:0 48px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(13,27,42,.08);overflow-x:auto;}
+.nav-bar{background:var(--blanco);border-bottom:2px solid var(--gris-linea);display:flex;align-items:center;padding:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(13,27,42,.08);overflow-x:auto;scrollbar-width:none;white-space:nowrap;}
 .nav-btn{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gris-suave);background:none;border:none;padding:15px 18px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;}
 .nav-btn:hover{color:var(--navy);}
 .nav-btn.active{color:var(--navy-claro);border-bottom-color:var(--acento);}
@@ -204,18 +204,23 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
   .login-logo{ width:180px; }
 
   /* ── NAV — iconos grandes y tocables ── */
-  .nav-bar{
-    padding:0;
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-  }
-  .nav-bar::-webkit-scrollbar{ display:none; }
-  .nav-btn{
-    padding:16px 16px;
+  /* En móvil la navegación es por tarjetas del dashboard */
+  .nav-bar{ display:none !important; }
+
+  /* Botón volver visible en móvil */
+  .btn-volver-mobile{
+    display:inline-flex !important;
+    align-items:center;
+    gap:8px;
+    padding:10px 16px;
     font-size:13px;
-    letter-spacing:0.5px;
-    min-height:52px;
+    font-weight:700;
+    background:var(--blanco);
+    border:1.5px solid var(--gris-linea);
+    border-radius:10px;
+    cursor:pointer;
+    margin-bottom:16px;
+    color:var(--navy);
   }
 
   /* ── MAIN ── */
@@ -1521,6 +1526,32 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
     .dash-quick-stats { grid-template-columns: repeat(2,1fr); }
   }
 
+
+.nav-bar::-webkit-scrollbar { display: none; }
+
+  /* Botón volver al inicio — solo móvil */
+  .btn-volver-inicio {
+    display: none;
+  }
+  @media(max-width:700px) {
+    .btn-volver-inicio {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      background: var(--blanco);
+      border: 1.5px solid var(--gris-linea);
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 16px;
+      color: var(--navy);
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -1670,6 +1701,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 </div>
 
 <div id="tab-competiciones" class="tab-panel">
+  <button class="btn-volver-inicio" onclick="navToTab('inicio')">← Volver al inicio</button>
   <div class="section-header"><h2>🏆 Competiciones activas</h2><div class="section-line"></div></div>
 
   <div class="actions-row" id="adminActionsComp" style="display:none">
@@ -1687,6 +1719,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- ══ TAB EQUIPOS ══ -->
 <div id="tab-equipos" class="tab-panel">
+  <button class="btn-volver-inicio" onclick="navToTab('inicio')">← Volver al inicio</button>
   <div class="section-header"><h2>👥 Equipos</h2><div class="section-line"></div></div>
 
   <div class="actions-row">
@@ -1710,6 +1743,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- ══ TAB CALENDARIO ══ -->
 <div id="tab-calendario" class="tab-panel">
+  <button class="btn-volver-inicio" onclick="navToTab('inicio')">← Volver al inicio</button>
   <div class="section-header"><h2>📅 Calendario de partidos</h2><div class="section-line"></div></div>
 
   <div class="actions-row">
@@ -1725,6 +1759,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- ══ TAB CLASIFICACIÓN ══ -->
 <div id="tab-clasificacion" class="tab-panel">
+  <button class="btn-volver-inicio" onclick="navToTab('inicio')">← Volver al inicio</button>
   <div class="section-header"><h2>📊 Clasificación</h2><div class="section-line"></div></div>
 
   <div class="actions-row">
@@ -1749,6 +1784,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- ══ TAB GOLEADORES ══ -->
 <div id="tab-goleadores" class="tab-panel">
+  <button class="btn-volver-inicio" onclick="navToTab('inicio')">← Volver al inicio</button>
   <div class="section-header"><h2>⚽ Goleadores</h2><div class="section-line"></div></div>
 
   <div class="actions-row">
@@ -1768,6 +1804,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- ══ TAB PATROCINADORES (ADMIN) ══ -->
 <div id="tab-patrocinadores" class="tab-panel">
+  <button class="btn-volver-inicio" onclick="navToTab('inicio')">← Volver al inicio</button>
   <div class="section-header"><h2>🤝 Patrocinadores</h2><div class="section-line"></div></div>
   <div class="info-box">
     📌 Añade los logotipos de tus patrocinadores. Aparecerán en la <strong>barra inferior</strong> visible para todos los perfiles, incluidas las familias. Los administradores pueden subir la imagen, añadir el nombre y el enlace web del patrocinador.
@@ -1780,6 +1817,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- ══ TAB NOTICIAS (ADMIN) ══ -->
 <div id="tab-noticias" class="tab-panel">
+  <button class="btn-volver-inicio" onclick="navToTab('inicio')">← Volver al inicio</button>
   <div class="section-header"><h2>📰 Noticias y comunicados</h2><div class="section-line"></div></div>
   <div class="actions-row">
     <button class="btn btn-acento" onclick="openModalNoticia()">+ Nueva noticia</button>
@@ -1789,6 +1827,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- ══ TAB SUGERENCIAS (ADMIN) ══ -->
 <div id="tab-sugerencias" class="tab-panel">
+  <button class="btn-volver-inicio" onclick="navToTab('inicio')">← Volver al inicio</button>
   <div class="section-header"><h2>📬 Sugerencias de familias</h2><div class="section-line"></div></div>
   <div id="adminSugerenciasList"></div>
 </div>
@@ -1798,6 +1837,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- ══ TAB DEPORTISTAS ══ -->
 <div id="tab-deportistas" class="tab-panel">
+  <button class="btn-volver-inicio" onclick="navToTab('inicio')">← Volver al inicio</button>
   <div class="section-header"><h2>🧑‍🤝‍🧑 Deportistas</h2><div class="section-line"></div></div>
 
   <div class="dep-search-bar">
@@ -1819,6 +1859,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- ══ TAB ESCUELAS DEPORTIVAS ══ -->
 <div id="tab-escuelas" class="tab-panel">
+  <button class="btn-volver-inicio" onclick="navToTab('inicio')">← Volver al inicio</button>
   <div class="section-header"><h2>🏫 Escuelas deportivas</h2><div class="section-line"></div></div>
 
   <!-- Vista 1: Lista de escuelas -->
@@ -1872,6 +1913,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- ══ TAB EVALUACIONES ══ -->
 <div id="tab-evaluaciones" class="tab-panel">
+  <button class="btn-volver-inicio" onclick="navToTab('inicio')">← Volver al inicio</button>
   <div class="section-header"><h2>📝 Evaluación continua</h2><div class="section-line"></div></div>
 
   <!-- Filtros -->
@@ -1888,6 +1930,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- ══ TAB MIS PARTIDOS (ÁRBITRO) ══ -->
 <div id="tab-mispartidos" class="tab-panel">
+  <button class="btn-volver-inicio" onclick="navToTab('inicio')">← Volver al inicio</button>
   <div class="section-header"><h2>🔴 Mis partidos · Árbitro</h2><div class="section-line"></div></div>
   <div class="info-box">
     📌 Selecciona un partido para abrir el formulario de acta. Una vez <strong>firmada</strong>, el resultado quedará registrado automáticamente en el sistema.
@@ -6215,15 +6258,7 @@ async function saveGoleador(){
   // ══════════════════════════════════════════════════════════════
 
   function navToTab(id) {
-    // Find the nav button for this tab and click it
-    const btns = document.querySelectorAll('.nav-btn');
-    let found = false;
-    btns.forEach(b => {
-      if (b.onclick && b.onclick.toString().includes("'" + id + "'")) {
-        b.click(); found = true;
-      }
-    });
-    if (!found) showTab(id, null);
+    showTab(id, null);
   }
 
   function renderDashboard() {
