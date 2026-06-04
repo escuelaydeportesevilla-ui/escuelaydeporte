@@ -3426,16 +3426,39 @@ function openModalEquipo() {
       sel.innerHTML += '<option value="'+c.id+'">'+c.nombre+' · '+c.temporada+'</option>';
     });
     openModal('modalEquipo');
-  };
-  if(!rec.nombre){alert('El nombre es obligatorio');return;}
-  if(editingId){const i=db.equipos.findIndex(x=>x.id===editingId);if(i>=0)db.equipos[i]=rec;}
-  else db.equipos.push(rec);
-  saveLocal();
-  await apiCall('saveEquipo',rec);
-  showSaved('savedEquipo');
-  setTimeout(()=>closeModal('modalEquipo'),1200);
-  renderEquipos(); updateStats();
-}
+  }
+
+  async function saveEquipo() {
+    const nombre = document.getElementById('eqNombre').value.trim();
+    if (!nombre) { alert('El nombre del equipo es obligatorio'); return; }
+    const logoB64 = document.getElementById('eqLogoB64').value;
+    const emoji   = document.getElementById('eqEmoji').value || '⚽';
+    const compId  = document.getElementById('eqCompeticion').value;
+    const comp    = compId ? (db.competiciones||[]).find(c=>c.id===compId) : null;
+    const rec = {
+      id:              editingId || ('eq_'+Date.now()),
+      nombre,
+      competicionId:   compId || '',
+      competicionNombre: comp ? comp.nombre : '',
+      categoria:       document.getElementById('eqCategoria').value,
+      delegado:        document.getElementById('eqDelegado').value,
+      telefono:        document.getElementById('eqTelefono').value,
+      email:           document.getElementById('eqEmail').value,
+      logo:            logoB64 || '',
+      emoji:           emoji,
+      color:           document.getElementById('eqColor').value,
+      estado:          document.getElementById('eqEstado').value,
+      modificadoPor:   MONITOR_ID,
+      fechaModif:      new Date().toLocaleString('es-ES')
+    };
+    if (!db.equipos) db.equipos = [];
+    const idx = db.equipos.findIndex(e => e.id === editingId);
+    if (idx >= 0) db.equipos[idx] = rec; else db.equipos.push(rec);
+    saveLocal();
+    await apiCall('saveEquipo', rec);
+    showSaved('savedEquipo');
+    setTimeout(() => { closeModal('modalEquipo'); renderEquipos(); populateFiltros(); }, 1200);
+  }
 async function deleteEquipo(id){
   if(!confirm('¿Eliminar este equipo?'))return;
   db.equipos=db.equipos.filter(e=>e.id!==id);
