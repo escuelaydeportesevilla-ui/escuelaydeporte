@@ -1511,6 +1511,8 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
   .dash-module-icon { font-size: 1.8rem; }
   .dash-module-name { font-size: 10px; }
   .dash-module-count { font-size: 10px; }
+  /* Evitar filas incompletas — última tarjeta visible ocupa el espacio */
+  .dash-module-card[style*="none"] { display: none !important; }
     .dash-module-card { padding: 16px 10px; min-height: 110px; border-radius: 14px; }
     .dash-module-icon { font-size: 2rem; }
     .dash-module-name { font-size: 11px; }
@@ -2908,14 +2910,21 @@ let activeComp = null;
 // ══════════════════════════════════════════════════════════════
 function doLogin() {
   const pwd = document.getElementById('loginPwd').value.trim();
-  if (pwd === PWD_ADMIN)    { userRole='admin';    userPwd=pwd; }
-  else if (pwd === PWD_DELEGADO){ userRole='delegado'; userPwd=pwd; }
+  if      (pwd === PWD_ADMIN)    { userRole='admin';    userPwd=pwd; }
+  else if (pwd === PWD_DELEGADO) { userRole='delegado'; userPwd=pwd; }
+  else if (pwd === PWD_ARBITRO)  { userRole='arbitro';  userPwd=pwd; }
+  else if (pwd === PWD_PADRES)   { userRole='padres';   userPwd=pwd; }
   else {
     document.getElementById('loginError').style.display='block';
     return;
   }
-  document.getElementById('loginRole').textContent =
-    userRole === 'admin' ? '✔ Acceso como Administrador' : '✔ Acceso como Delegado';
+  const roles = {
+    admin:'✔ Acceso como Administrador',
+    delegado:'✔ Acceso como Delegado',
+    arbitro:'✔ Acceso como Árbitro',
+    padres:'✔ Acceso como Familia'
+  };
+  document.getElementById('loginRole').textContent = roles[userRole];
   document.getElementById('loginRole').style.display = 'block';
   setTimeout(() => {
     document.getElementById('loginOverlay').style.display = 'none';
@@ -6383,18 +6392,21 @@ async function saveGoleador(){
       if (el) el.style.display = show ? 'inline-flex' : 'none';
     });
 
-    // Dashboard module cards
-    const cardMap = {
-      'dmCardDeportistas': canEdit,
-      'dmCardEscuelas':    canEdit,
-      'dmCardEval':        canEdit,
-      'dmCardActas':       isArbitro,
-      'dmCardNoticias':    isAdmin,
-      'dmCardPat':         isAdmin,
-    };
-    Object.entries(cardMap).forEach(([id, show]) => {
+    // Dashboard module cards — siempre visibles según perfil base
+    // Admin y delegado ven todo
+    // Arbitro ve sus módulos + clasificación + calendario
+    // Familias ven clasificación, calendario, goleadores, noticias
+    const allCards = ['dmCardDeportistas','dmCardEscuelas','dmCardEval',
+                      'dmCardActas','dmCardNoticias','dmCardPat'];
+    allCards.forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.style.display = show ? 'flex' : 'none';
+      if (!el) return;
+      if (id === 'dmCardActas')       el.style.display = isArbitro ? 'flex' : 'none';
+      else if (id === 'dmCardDeportistas' || id === 'dmCardEscuelas' || id === 'dmCardEval')
+                                      el.style.display = canEdit ? 'flex' : 'none';
+      else if (id === 'dmCardNoticias' || id === 'dmCardPat')
+                                      el.style.display = isAdmin ? 'flex' : 'none';
+      else                            el.style.display = 'flex';
     });
 
     // Arbitro default tab
