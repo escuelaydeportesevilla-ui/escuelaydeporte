@@ -2197,20 +2197,59 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
 <!-- ══ MODAL GOLEADOR ══ -->
 <div class="modal-overlay" id="modalGoleador" onclick="handleOverlay(event,'modalGoleador')">
-  <div class="modal-box" style="max-width:420px;">
+  <div class="modal-box" style="max-width:480px;">
     <div class="modal-head">
       <div class="modal-head-stripe" style="background:var(--verde)"></div>
-      <div class="modal-head-title">Goleador / Estadísticas</div>
+      <div class="modal-head-title" id="modalGoleadorTitle">Añadir jugador</div>
       <button class="modal-close" onclick="closeModal('modalGoleador')">✕</button>
     </div>
     <div class="modal-body">
+
+      <!-- Buscador de deportistas registrados -->
+      <div id="gBuscadorWrap" style="margin-bottom:14px;">
+        <label style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--navy-claro);display:block;margin-bottom:6px;">
+          🔍 Buscar deportista registrado
+        </label>
+        <input id="gBuscador" type="text" placeholder="Escribe nombre o apellidos..."
+          style="width:100%;padding:10px 14px;border:1.5px solid var(--gris-linea);border-radius:10px;font-size:14px;font-family:'Barlow',sans-serif;outline:none;box-sizing:border-box;"
+          oninput="buscarDeportistaGoleador()" />
+        <div id="gBuscadorResultados" style="display:none;max-height:200px;overflow-y:auto;border:1.5px solid var(--gris-linea);border-top:none;border-radius:0 0 10px 10px;background:white;"></div>
+      </div>
+
+      <!-- Alerta médica del jugador seleccionado -->
+      <div id="gAlertaMedica" style="display:none;background:#FDEDEC;border:1.5px solid var(--rojo);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--rojo);">
+        <strong>⚠️ Alerta médica</strong>
+        <div id="gAlertaMedicaTexto"></div>
+      </div>
+
+      <!-- Info del deportista seleccionado -->
+      <div id="gDeportistaSeleccionado" style="display:none;background:var(--crema);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">
+        <div id="gDepAvatar" style="width:42px;height:42px;border-radius:50%;background:var(--navy);color:white;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1rem;flex-shrink:0;"></div>
+        <div style="flex:1;">
+          <div id="gDepNombre" style="font-weight:700;font-size:14px;color:var(--navy);"></div>
+          <div id="gDepMeta" style="font-size:11px;color:var(--gris-suave);margin-top:2px;"></div>
+        </div>
+        <button onclick="limpiarDeportistaGoleador()" style="background:none;border:none;color:var(--gris-suave);cursor:pointer;font-size:18px;">✕</button>
+      </div>
+
+      <!-- Nombre manual (si no está en deportistas) -->
+      <div class="form-field form-full" id="gJugadorWrap">
+        <label>Nombre del jugador <span style="font-size:10px;opacity:.5;">(o selecciona arriba)</span></label>
+        <input id="gJugador" type="text" placeholder="Apellidos, Nombre" />
+      </div>
+
       <div class="form-grid">
-        <div class="form-field form-full"><label>Nombre del jugador</label><input id="gJugador" type="text" placeholder="Apellidos, Nombre" /></div>
         <div class="form-field form-full"><label>Equipo</label>
-          <select id="gEquipo"><option value="">— Selecciona —</option></select></div>
-        <div class="form-field"><label>Goles</label><input id="gGoles" type="number" min="0" value="0" /></div>
-        <div class="form-field"><label>Tarjetas amarillas</label><input id="gAmarillas" type="number" min="0" value="0" /></div>
-        <div class="form-field"><label>Tarjetas rojas</label><input id="gRojas" type="number" min="0" value="0" /></div>
+          <select id="gEquipo"><option value="">— Selecciona —</option></select>
+        </div>
+        <div class="form-field"><label>⚽ Goles</label>
+          <input id="gGoles" type="number" min="0" value="0" /></div>
+        <div class="form-field"><label>🟡 Amarillas</label>
+          <input id="gAmarillas" type="number" min="0" value="0" /></div>
+        <div class="form-field"><label>🔴 Rojas</label>
+          <input id="gRojas" type="number" min="0" value="0" /></div>
+        <div class="form-field"><label>🅰️ Asistencias</label>
+          <input id="gAsistencias" type="number" min="0" value="0" /></div>
       </div>
     </div>
     <div class="modal-foot">
@@ -6514,6 +6553,195 @@ async function saveGoleador(){
       sel.innerHTML += '<option value="'+c.id+'"'+(c.id===eq.competicionId?' selected':'')+'>'+c.nombre+' · '+c.temporada+'</option>';
     });
     openModal('modalEquipo');
+  }
+
+
+  // ══════════════════════════════════════════════════════════════
+  //  GOLEADORES — VINCULACIÓN CON DEPORTISTAS
+  // ══════════════════════════════════════════════════════════════
+
+  let gDeportistaId = null; // ID del deportista vinculado
+
+  function buscarDeportistaGoleador() {
+    const q = (document.getElementById('gBuscador').value || '').toLowerCase().trim();
+    const res = document.getElementById('gBuscadorResultados');
+    if (!q || q.length < 2) { res.style.display = 'none'; return; }
+
+    const lista = (db.deportistas || []).filter(d =>
+      (d.nombre + ' ' + d.apellidos).toLowerCase().includes(q) ||
+      (d.apellidos + ' ' + d.nombre).toLowerCase().includes(q)
+    ).slice(0, 8);
+
+    if (!lista.length) {
+      res.innerHTML = '<div style="padding:10px 14px;font-size:13px;color:var(--gris-suave);">Sin resultados — puedes escribir el nombre manualmente abajo</div>';
+      res.style.display = 'block';
+      return;
+    }
+
+    res.innerHTML = lista.map(d => {
+      const ini = ((d.nombre||'')[0] + (d.apellidos||'')[0]).toUpperCase();
+      const edad = d.fechaNacimiento ? calcularEdad(d.fechaNacimiento) + ' años' : '';
+      const alerta = (d.alergias && d.alergias.toLowerCase() !== 'ninguna' && d.alergias !== '') ||
+                     (d.medicacion && d.medicacion.toLowerCase() !== 'ninguna' && d.medicacion !== '');
+      return `<div onclick="seleccionarDeportistaGoleador('${d.id}')"
+        style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--gris-linea);"
+        onmouseover="this.style.background='var(--crema)'" onmouseout="this.style.background='white'">
+        <div style="width:34px;height:34px;border-radius:50%;background:var(--navy);color:white;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;flex-shrink:0;">${ini}</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:13px;">${d.apellidos}, ${d.nombre} ${alerta ? '⚠️' : ''}</div>
+          <div style="font-size:11px;color:var(--gris-suave);">${d.posicion || d.rol || ''} ${edad ? '· ' + edad : ''}</div>
+        </div>
+      </div>`;
+    }).join('');
+    res.style.display = 'block';
+  }
+
+  function seleccionarDeportistaGoleador(depId) {
+    const d = (db.deportistas || []).find(x => x.id === depId);
+    if (!d) return;
+    gDeportistaId = depId;
+
+    // Hide search, show selected
+    document.getElementById('gBuscador').value = '';
+    document.getElementById('gBuscadorResultados').style.display = 'none';
+
+    // Show selected card
+    const card = document.getElementById('gDeportistaSeleccionado');
+    const ini  = ((d.nombre||'')[0] + (d.apellidos||'')[0]).toUpperCase();
+    document.getElementById('gDepAvatar').textContent = ini;
+    document.getElementById('gDepNombre').textContent = d.apellidos + ', ' + d.nombre;
+    document.getElementById('gDepMeta').textContent   =
+      [d.posicion, d.rol, d.licencia ? 'Lic. ' + d.licencia : ''].filter(Boolean).join(' · ');
+    card.style.display = 'flex';
+
+    // Fill name field
+    document.getElementById('gJugador').value = d.apellidos + ', ' + d.nombre;
+    document.getElementById('gJugadorWrap').style.opacity = '0.5';
+
+    // Auto-select equipo if deportista has one
+    const equiposIds = safeParseJSON(d.equipos, []);
+    if (equiposIds.length === 1) {
+      const sel = document.getElementById('gEquipo');
+      if (sel) {
+        Array.from(sel.options).forEach(o => {
+          if (equiposIds.includes(o.value)) o.selected = true;
+        });
+      }
+    }
+
+    // Show medical alert if needed
+    const tieneAlerta = (d.alergias && d.alergias.toLowerCase() !== 'ninguna' && d.alergias !== '') ||
+                        (d.medicacion && d.medicacion.toLowerCase() !== 'ninguna' && d.medicacion !== '');
+    if (tieneAlerta) {
+      const alertaDiv = document.getElementById('gAlertaMedica');
+      const alertaTxt = document.getElementById('gAlertaMedicaTexto');
+      let txt = '';
+      if (d.alergias && d.alergias.toLowerCase() !== 'ninguna') txt += 'Alergias: ' + d.alergias + ' ';
+      if (d.medicacion && d.medicacion.toLowerCase() !== 'ninguna') txt += '· Medicación: ' + d.medicacion;
+      alertaTxt.textContent = txt;
+      alertaDiv.style.display = 'block';
+    }
+  }
+
+  function limpiarDeportistaGoleador() {
+    gDeportistaId = null;
+    document.getElementById('gDeportistaSeleccionado').style.display = 'none';
+    document.getElementById('gAlertaMedica').style.display = 'none';
+    document.getElementById('gJugador').value = '';
+    document.getElementById('gJugadorWrap').style.opacity = '1';
+  }
+
+  function openModalGoleador() {
+    editingId = null;
+    gDeportistaId = null;
+    const compId = document.getElementById('filtroCompGol').value;
+    document.getElementById('gModalGoleadorTitle') && (document.getElementById('gModalGoleadorTitle').textContent = 'Añadir jugador');
+    document.getElementById('gBuscador').value = '';
+    document.getElementById('gBuscadorResultados').style.display = 'none';
+    document.getElementById('gDeportistaSeleccionado').style.display = 'none';
+    document.getElementById('gAlertaMedica').style.display = 'none';
+    document.getElementById('gJugadorWrap').style.opacity = '1';
+    ['gJugador'].forEach(id => document.getElementById(id).value = '');
+    ['gGoles','gAmarillas','gRojas','gAsistencias'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '0';
+    });
+    populateEquiposSelects(compId);
+    openModal('modalGoleador');
+  }
+
+  function editGoleador(id) {
+    const g = db.goleadores.find(x => x.id === id); if (!g) return;
+    editingId = id;
+    gDeportistaId = g.deportistaId || null;
+    document.getElementById('modalGoleadorTitle').textContent = 'Editar jugador';
+    document.getElementById('gBuscador').value = '';
+    document.getElementById('gBuscadorResultados').style.display = 'none';
+    document.getElementById('gAlertaMedica').style.display = 'none';
+
+    // If linked to deportista, show card
+    if (gDeportistaId) {
+      const d = (db.deportistas||[]).find(x=>x.id===gDeportistaId);
+      if (d) seleccionarDeportistaGoleador(gDeportistaId);
+    } else {
+      document.getElementById('gDeportistaSeleccionado').style.display = 'none';
+    }
+
+    populateEquiposSelects(g.competicionId);
+    document.getElementById('gJugador').value    = g.jugador    || '';
+    document.getElementById('gEquipo').value     = g.equipoId   || '';
+    document.getElementById('gGoles').value      = g.goles      || '0';
+    document.getElementById('gAmarillas').value  = g.amarillas  || '0';
+    document.getElementById('gRojas').value      = g.rojas      || '0';
+    const asEl = document.getElementById('gAsistencias');
+    if (asEl) asEl.value = g.asistencias || '0';
+    openModal('modalGoleador');
+  }
+
+  function saveGoleador() {
+    const jugador = document.getElementById('gJugador').value.trim();
+    if (!jugador) { alert('Introduce el nombre del jugador'); return; }
+    const equipoId = document.getElementById('gEquipo').value;
+    const eq = (db.equipos||[]).find(e=>e.id===equipoId);
+    const compId = document.getElementById('filtroCompGol').value;
+
+    const rec = {
+      id:            editingId || ('gol_'+Date.now()),
+      competicionId: compId,
+      equipoId:      equipoId,
+      equipoNombre:  eq?.nombre || '',
+      jugador,
+      deportistaId:  gDeportistaId || '',
+      goles:         document.getElementById('gGoles').value      || '0',
+      amarillas:     document.getElementById('gAmarillas').value  || '0',
+      rojas:         document.getElementById('gRojas').value      || '0',
+      asistencias:   document.getElementById('gAsistencias')?.value || '0',
+      modificadoPor: MONITOR_ID,
+      fechaModif:    new Date().toLocaleString('es-ES')
+    };
+
+    if (!db.goleadores) db.goleadores = [];
+    const idx = db.goleadores.findIndex(g => g.id === editingId);
+    if (idx >= 0) db.goleadores[idx] = rec; else db.goleadores.push(rec);
+    saveLocal();
+    apiCall('saveGoleador', rec);
+
+    // Also update deportista stats if linked
+    if (gDeportistaId) {
+      const dep = (db.deportistas||[]).find(d=>d.id===gDeportistaId);
+      if (dep) {
+        // Recalculate totals from all goleador entries
+        const allGols = (db.goleadores||[]).filter(g=>g.deportistaId===gDeportistaId);
+        dep.totalGoles     = allGols.reduce((s,g)=>s+(parseInt(g.goles)||0), 0);
+        dep.totalAmarillas = allGols.reduce((s,g)=>s+(parseInt(g.amarillas)||0), 0);
+        dep.totalRojas     = allGols.reduce((s,g)=>s+(parseInt(g.rojas)||0), 0);
+        saveLocal();
+        apiCall('saveDeportista', dep);
+      }
+    }
+
+    showSaved('savedGoleador');
+    setTimeout(() => { closeModal('modalGoleador'); renderGoleadores(); }, 1200);
   }
 
 </script>
