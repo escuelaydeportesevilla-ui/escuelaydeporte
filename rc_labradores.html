@@ -3274,53 +3274,125 @@ function renderEquipos() {
   const compId  = document.getElementById('filtroCompEquipos').value;
   const canEdit = userRole === 'admin' || userRole === 'delegado';
   document.getElementById('btnAddEquipo').style.display = canEdit ? 'inline-flex' : 'none';
-  const tbody = document.getElementById('tbodyEquipos');
+  const cont = document.getElementById('tbodyEquipos');
 
   let lista = db.equipos || [];
   if (compId) lista = lista.filter(e => e.competicionId === compId);
-  lista = lista.sort((a,b) => a.nombre.localeCompare(b.nombre, 'es'));
+  lista = lista.sort((a,b) => (a.nombre||'').localeCompare(b.nombre||'', 'es'));
 
   if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;opacity:.4;">' +
+    cont.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;opacity:.4;">' +
       (compId ? 'Sin equipos en esta competición' : 'Sin equipos registrados aún') + '</td></tr>';
     return;
   }
 
-  tbody.innerHTML = lista.map(e => {
-    const comp  = (db.competiciones||[]).find(c=>c.id===e.competicionId);
-    const logo  = e.logo
-      ? '<img src="'+e.logo+'" style="width:32px;height:32px;object-fit:cover;border-radius:6px;">'
-      : '<span style="font-size:1.4rem;">'+(e.emoji||e.escudo||'⚽')+'</span>';
-    const jugadores = (db.deportistas||[]).filter(d => {
-      const ids = safeParseJSON(d.equipos,[]);
-      return ids.includes(e.id);
+  // Build using DOM manipulation to avoid quote issues
+  cont.innerHTML = '';
+  lista.forEach(function(e) {
+    const comp      = (db.competiciones||[]).find(function(c){ return c.id===e.competicionId; });
+    const jugadores = (db.deportistas||[]).filter(function(d) {
+      return safeParseJSON(d.equipos,[]).includes(e.id);
     });
-    const countBadge = jugadores.length
-      ? '<span style="background:var(--navy);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px;">'+jugadores.length+'</span>'
-      : '';
 
-    return '<tr><td colspan="7" style="padding:4px 0;">' +
-      '<div class="equipo-row-wrap">' +
-        '<div class="equipo-row-header" onclick="toggleEquipoPanel(\\'' + e.id + '\\')" id="hdr_' + e.id + '">' +
-          '<div>'+logo+'</div>' +
-          '<div style="flex:1;">' +
-            '<div style="font-weight:700;font-size:14px;">'+e.nombre+countBadge+'</div>' +
-            '<div style="font-size:11px;color:var(--gris-suave);margin-top:2px;">'+(comp?.nombre||'Sin competición')+(e.categoria?' · '+e.categoria:'')+'</div>' +
-          '</div>' +
-          '<div style="font-size:12px;color:var(--gris-suave);">'+(e.delegado||'')+'</div>' +
-          '<div style="font-size:12px;color:var(--gris-suave);margin-left:8px;">'+(e.telefono||'')+'</div>' +
-          (canEdit ?
-            '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editEquipo(''+e.id+'')" style="margin-left:8px;">✏️</button>' : '') +
-          (userRole==='admin' ?
-            '<button class="btn btn-rojo btn-sm" onclick="event.stopPropagation();deleteEquipo(''+e.id+'')" style="margin-left:4px;">🗑</button>' : '') +
-          '<div class="equipo-row-toggle">▼</div>' +
-        '</div>' +
-        '<div class="equipo-jugadores-panel" id="panel_'+e.id+'">' +
-          renderJugadoresEquipo(e, jugadores, canEdit) +
-        '</div>' +
-      '</div>' +
-    '</td></tr>';
-  }).join('');
+    // Outer row
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 7;
+    td.style.padding = '4px 0';
+
+    // Wrapper
+    const wrap = document.createElement('div');
+    wrap.className = 'equipo-row-wrap';
+
+    // Header
+    const hdr = document.createElement('div');
+    hdr.className = 'equipo-row-header';
+    hdr.id = 'hdr_' + e.id;
+    hdr.addEventListener('click', function(){ toggleEquipoPanel(e.id); });
+
+    // Logo
+    const logoDiv = document.createElement('div');
+    if (e.logo) {
+      const img = document.createElement('img');
+      img.src = e.logo;
+      img.style.cssText = 'width:32px;height:32px;object-fit:cover;border-radius:6px;';
+      logoDiv.appendChild(img);
+    } else {
+      logoDiv.textContent = e.emoji || e.escudo || '⚽';
+      logoDiv.style.fontSize = '1.4rem';
+    }
+    hdr.appendChild(logoDiv);
+
+    // Info
+    const info = document.createElement('div');
+    info.style.flex = '1';
+    const nameDiv = document.createElement('div');
+    nameDiv.style.cssText = 'font-weight:700;font-size:14px;';
+    nameDiv.textContent = e.nombre;
+    if (jugadores.length) {
+      const badge = document.createElement('span');
+      badge.style.cssText = 'background:var(--navy);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px;';
+      badge.textContent = jugadores.length;
+      nameDiv.appendChild(badge);
+    }
+    const metaDiv = document.createElement('div');
+    metaDiv.style.cssText = 'font-size:11px;color:var(--gris-suave);margin-top:2px;';
+    metaDiv.textContent = (comp ? comp.nombre : 'Sin competición') + (e.categoria ? ' · ' + e.categoria : '');
+    info.appendChild(nameDiv);
+    info.appendChild(metaDiv);
+    hdr.appendChild(info);
+
+    // Delegado
+    const delDiv = document.createElement('div');
+    delDiv.style.cssText = 'font-size:12px;color:var(--gris-suave);';
+    delDiv.textContent = e.delegado || '';
+    hdr.appendChild(delDiv);
+
+    // Telefono
+    const telDiv = document.createElement('div');
+    telDiv.style.cssText = 'font-size:12px;color:var(--gris-suave);margin-left:8px;';
+    telDiv.textContent = e.telefono || '';
+    hdr.appendChild(telDiv);
+
+    // Edit button
+    if (canEdit) {
+      const editBtn = document.createElement('button');
+      editBtn.className = 'btn btn-outline btn-sm';
+      editBtn.textContent = '✏️';
+      editBtn.style.marginLeft = '8px';
+      editBtn.addEventListener('click', function(ev){ ev.stopPropagation(); editEquipo(e.id); });
+      hdr.appendChild(editBtn);
+    }
+
+    // Delete button
+    if (userRole === 'admin') {
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn btn-rojo btn-sm';
+      delBtn.textContent = '🗑';
+      delBtn.style.marginLeft = '4px';
+      delBtn.addEventListener('click', function(ev){ ev.stopPropagation(); deleteEquipo(e.id); });
+      hdr.appendChild(delBtn);
+    }
+
+    // Toggle arrow
+    const toggle = document.createElement('div');
+    toggle.className = 'equipo-row-toggle';
+    toggle.textContent = '▼';
+    hdr.appendChild(toggle);
+
+    wrap.appendChild(hdr);
+
+    // Players panel
+    const panel = document.createElement('div');
+    panel.className = 'equipo-jugadores-panel';
+    panel.id = 'panel_' + e.id;
+    panel.innerHTML = renderJugadoresEquipo(e, jugadores, canEdit);
+    wrap.appendChild(panel);
+
+    td.appendChild(wrap);
+    tr.appendChild(td);
+    cont.appendChild(tr);
+  });
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -6890,7 +6962,7 @@ async function saveGoleador(){
           '<div class="jugador-equipo-pos">'+(j.posicion||j.rol||'')+'</div>' +
         '</div>' +
         (canEdit ?
-          '<select class="estado-select estado-'+estado+'" onchange="cambiarEstadoJugador(''+j.id+'',''+equipo.id+'',this)">' +
+          '<select class="estado-select estado-'+estado+'" onchange="cambiarEstadoJugador(&quot;+j.id+&quot;,&quot;+equipo.id+&quot;,this)">' +
             '<option value="activo"'+(estado==='activo'?' selected':'')+'>Activo</option>' +
             '<option value="pendiente"'+(estado==='pendiente'?' selected':'')+'>Pendiente</option>' +
             '<option value="inactivo"'+(estado==='inactivo'?' selected':'')+'>No activo</option>' +
