@@ -6935,10 +6935,10 @@ async function saveGoleador(){
   function renderJugadoresEquipo(equipo, jugadores, canEdit) {
     const activos   = jugadores.filter(j => (j.estadoEquipo||{})[equipo.id] !== 'inactivo' && (j.estadoEquipo||{})[equipo.id] !== 'pendiente').length;
     let html = '<div class="equipo-panel-header">' +
-      '<div class="equipo-panel-title">👥 Jugadores (' + jugadores.length + ')</div>' +
+      '<div class="equipo-panel-title">👥 Jugadores (&quot;+jugadores.length+&quot;)</div>' +
       '<div class="equipo-panel-actions">' +
-        '<span style="font-size:11px;opacity:.7;">' + activos + ' activos</span>' +
-        '<button onclick="imprimirPlantilla('' + equipo.id + '')" style="background:rgba(255,255,255,.15);border:none;color:white;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;">🖨️ Imprimir</button>' +
+        '<span style="font-size:11px;opacity:.7;">&quot;+activos+&quot; activos</span>' +
+        '<button onclick="imprimirPlantilla(&quot; + equipo.id + &quot;)" style="background:rgba(255,255,255,.15);border:none;color:white;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;">🖨️ Imprimir</button>' +
       '</div>' +
     '</div>';
 
@@ -6953,21 +6953,21 @@ async function saveGoleador(){
       const estados = j.estadoEquipo ? (typeof j.estadoEquipo === 'string' ? JSON.parse(j.estadoEquipo||'{}') : j.estadoEquipo) : {};
       const estado  = estados[equipo.id] || 'activo';
       const fotoHtml = j.foto
-        ? '<img src="'+j.foto+'" alt="'+ini+'">'
+        ? '<img src="&quot;+j.foto+&quot;" alt="&quot;+ini+&quot;">'
         : ini;
       return '<div class="jugador-equipo-row">' +
-        '<div class="jugador-equipo-avatar">'+fotoHtml+'</div>' +
+        '<div class="jugador-equipo-avatar">&quot;+fotoHtml+&quot;</div>' +
         '<div style="flex:1;">' +
-          '<div class="jugador-equipo-nombre">'+j.apellidos+', '+j.nombre+'</div>' +
+          '<div class="jugador-equipo-nombre">'+j.apellidos+', &quot;+j.nombre+&quot;</div>' +
           '<div class="jugador-equipo-pos">'+(j.posicion||j.rol||'')+'</div>' +
         '</div>' +
         (canEdit ?
-          '<select class="estado-select estado-'+estado+'" onchange="cambiarEstadoJugador(&quot;+j.id+&quot;,&quot;+equipo.id+&quot;,this)">' +
+          '<select class="estado-select estado-&quot;+estado+&quot;" onchange="cambiarEstadoJugador(&quot;+j.id+&quot;,&quot;+equipo.id+&quot;,this)">' +
             '<option value="activo"'+(estado==='activo'?' selected':'')+'>Activo</option>' +
             '<option value="pendiente"'+(estado==='pendiente'?' selected':'')+'>Pendiente</option>' +
             '<option value="inactivo"'+(estado==='inactivo'?' selected':'')+'>No activo</option>' +
           '</select>'
-          : '<span class="estado-select estado-'+estado+'">'+estado.charAt(0).toUpperCase()+estado.slice(1)+'</span>'
+          : '<span class="estado-select estado-&quot;+estado+&quot;">'+estado.charAt(0).toUpperCase()+estado.slice(1)+'</span>'
         ) +
       '</div>';
     }).join('');
