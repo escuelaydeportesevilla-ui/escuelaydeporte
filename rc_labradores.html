@@ -1552,6 +1552,85 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
     }
   }
 
+
+  /* ═══ FICHA EQUIPO EXPANDIBLE ══════════════════════════════ */
+  .equipo-row-wrap { margin-bottom: 8px; }
+
+  .equipo-row-header {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--blanco); border: 1.5px solid var(--gris-linea);
+    border-radius: 10px; padding: 10px 14px; cursor: pointer;
+    transition: all .2s;
+  }
+  .equipo-row-header:hover { border-color: var(--navy-claro); background: var(--crema); }
+  .equipo-row-header.open { border-radius: 10px 10px 0 0; border-color: var(--navy-claro); }
+
+  .equipo-row-toggle {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--crema-oscuro); display: flex;
+    align-items: center; justify-content: center;
+    font-size: 11px; transition: transform .2s; flex-shrink: 0;
+  }
+  .equipo-row-header.open .equipo-row-toggle { transform: rotate(180deg); }
+
+  .equipo-jugadores-panel {
+    display: none; background: var(--blanco);
+    border: 1.5px solid var(--navy-claro); border-top: none;
+    border-radius: 0 0 10px 10px; overflow: hidden;
+  }
+  .equipo-jugadores-panel.open { display: block; }
+
+  .equipo-panel-header {
+    background: var(--navy); color: white;
+    padding: 10px 16px; display: flex;
+    align-items: center; justify-content: space-between;
+  }
+  .equipo-panel-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .equipo-panel-actions { display: flex; gap: 8px; align-items: center; }
+
+  .jugador-equipo-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; border-bottom: 1px solid var(--gris-linea);
+    transition: background .1s;
+  }
+  .jugador-equipo-row:last-child { border-bottom: none; }
+  .jugador-equipo-row:hover { background: var(--crema); }
+
+  .jugador-equipo-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--navy-claro); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 12px; flex-shrink: 0; overflow: hidden;
+  }
+  .jugador-equipo-avatar img { width:100%; height:100%; object-fit:cover; }
+  .jugador-equipo-nombre { flex: 1; font-size: 13px; font-weight: 600; color: var(--navy); }
+  .jugador-equipo-pos { font-size: 11px; color: var(--gris-suave); }
+
+  .estado-select {
+    font-size: 11px; font-weight: 700; padding: 4px 8px;
+    border-radius: 20px; border: 1.5px solid;
+    cursor: pointer; outline: none; font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .estado-activo    { background: #D5F5E3; color: #1E8449; border-color: #A9DFBF; }
+  .estado-inactivo  { background: #FDEDEC; color: #C0392B; border-color: #F1948A; }
+  .estado-pendiente { background: #FEF9E7; color: #D4AC0D; border-color: #F9E79F; }
+
+  .equipo-empty-jugadores {
+    padding: 20px; text-align: center;
+    font-size: 13px; color: var(--gris-suave); opacity: .6;
+  }
+
+  @media(max-width:700px){
+    .jugador-equipo-row { flex-wrap: wrap; gap: 8px; }
+    .jugador-equipo-nombre { font-size: 14px; }
+    .estado-select { font-size: 12px; min-height: 36px; }
+  }
+
 </style>
 </head>
 <body>
@@ -2986,7 +3065,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 // ══════════════════════════════════════════════════════════════
 //  CONFIGURACIÓN
 // ══════════════════════════════════════════════════════════════
-const SCRIPT_URL        = 'https://script.google.com/macros/s/AKfycbwqhYxbzp1wfoc-pqFyoU9J26EbziGju8XnHNOw7KEkE43jE43ITMc8DpOcv9SfvwPB/exec';
+const SCRIPT_URL        = 'https://script.google.com/macros/s/AKfycby2SjBuUaP6l8ij6Y76mzSdbD5H-i4KzqsoHgtWcqwmrl7uH3iQ5CvN-K0tjDu2l0OM/exec';
 const PWD_ADMIN         = 'admin_rclabradores_VJ0R';
 const PWD_DELEGADO      = 'del_rclabradores_RFCV';
 const MONITOR_ID        = 'Admin RC Labradores'; // ← Cambia por nombre del usuario
@@ -3186,38 +3265,55 @@ function selectComp(id) {
 //  EQUIPOS
 // ══════════════════════════════════════════════════════════════
 function renderEquipos() {
-  const compId = document.getElementById('filtroCompEquipos').value;
+  const compId  = document.getElementById('filtroCompEquipos').value;
   const canEdit = userRole === 'admin' || userRole === 'delegado';
   document.getElementById('btnAddEquipo').style.display = canEdit ? 'inline-flex' : 'none';
   const tbody = document.getElementById('tbodyEquipos');
 
-  // Show all teams, filter by competition if selected
   let lista = db.equipos || [];
   if (compId) lista = lista.filter(e => e.competicionId === compId);
   lista = lista.sort((a,b) => a.nombre.localeCompare(b.nombre, 'es'));
 
   if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;opacity:.4;">' +
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;opacity:.4;">' +
       (compId ? 'Sin equipos en esta competición' : 'Sin equipos registrados aún') + '</td></tr>';
     return;
   }
+
   tbody.innerHTML = lista.map(e => {
-    const comp = (db.competiciones||[]).find(c=>c.id===e.competicionId);
-    const logo = e.logo
-      ? `<img src="${e.logo}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;">`
-      : `<span style="font-size:1.4rem;">${e.emoji || e.escudo || '⚽'}</span>`;
-    return `<tr>
-      <td style="padding:10px 12px;">${logo}</td>
-      <td style="padding:10px 12px;font-weight:600;">${e.nombre}</td>
-      <td style="padding:10px 12px;font-size:12px;color:var(--gris-suave);">${comp?.nombre || '—'} ${e.categoria ? '· '+e.categoria : ''}</td>
-      <td style="padding:10px 12px;font-size:12px;">${e.categoria || '—'}</td>
-      <td style="padding:10px 12px;font-size:12px;">${e.delegado || '—'}</td>
-      <td style="padding:10px 12px;font-size:12px;">${e.telefono || '—'}</td>
-      <td style="padding:10px 12px;">
-        ${canEdit ? `<button class="btn btn-outline btn-sm" onclick="editEquipo('${e.id}')">✏️</button>` : ''}
-        ${userRole==='admin' ? `<button class="btn btn-rojo btn-sm" onclick="deleteEquipo('${e.id}')">🗑</button>` : ''}
-      </td>
-    </tr>`;
+    const comp  = (db.competiciones||[]).find(c=>c.id===e.competicionId);
+    const logo  = e.logo
+      ? '<img src="'+e.logo+'" style="width:32px;height:32px;object-fit:cover;border-radius:6px;">'
+      : '<span style="font-size:1.4rem;">'+(e.emoji||e.escudo||'⚽')+'</span>';
+    const jugadores = (db.deportistas||[]).filter(d => {
+      const ids = safeParseJSON(d.equipos,[]);
+      return ids.includes(e.id);
+    });
+    const countBadge = jugadores.length
+      ? '<span style="background:var(--navy);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px;">'+jugadores.length+'</span>'
+      : '';
+
+    return '<tr><td colspan="7" style="padding:4px 0;">' +
+      '<div class="equipo-row-wrap">' +
+        '<div class="equipo-row-header" onclick="toggleEquipoPanel(''+e.id+'')" id="hdr_'+e.id+'">' +
+          '<div>'+logo+'</div>' +
+          '<div style="flex:1;">' +
+            '<div style="font-weight:700;font-size:14px;">'+e.nombre+countBadge+'</div>' +
+            '<div style="font-size:11px;color:var(--gris-suave);margin-top:2px;">'+(comp?.nombre||'Sin competición')+(e.categoria?' · '+e.categoria:'')+'</div>' +
+          '</div>' +
+          '<div style="font-size:12px;color:var(--gris-suave);">'+(e.delegado||'')+'</div>' +
+          '<div style="font-size:12px;color:var(--gris-suave);margin-left:8px;">'+(e.telefono||'')+'</div>' +
+          (canEdit ?
+            '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editEquipo(''+e.id+'')" style="margin-left:8px;">✏️</button>' : '') +
+          (userRole==='admin' ?
+            '<button class="btn btn-rojo btn-sm" onclick="event.stopPropagation();deleteEquipo(''+e.id+'')" style="margin-left:4px;">🗑</button>' : '') +
+          '<div class="equipo-row-toggle">▼</div>' +
+        '</div>' +
+        '<div class="equipo-jugadores-panel" id="panel_'+e.id+'">' +
+          renderJugadoresEquipo(e, jugadores, canEdit) +
+        '</div>' +
+      '</div>' +
+    '</td></tr>';
   }).join('');
 }
 
@@ -6751,6 +6847,171 @@ async function saveGoleador(){
       sel.innerHTML += '<option value="'+c.id+'">'+c.nombre+' · '+c.temporada+'</option>';
     });
     openModal('modalEquipo');
+  }
+
+
+  // ══════════════════════════════════════════════════════════════
+  //  FICHA EQUIPO — JUGADORES Y ESTADOS
+  // ══════════════════════════════════════════════════════════════
+
+  function renderJugadoresEquipo(equipo, jugadores, canEdit) {
+    const activos   = jugadores.filter(j => (j.estadoEquipo||{})[equipo.id] !== 'inactivo' && (j.estadoEquipo||{})[equipo.id] !== 'pendiente').length;
+    let html = '<div class="equipo-panel-header">' +
+      '<div class="equipo-panel-title">👥 Jugadores (' + jugadores.length + ')</div>' +
+      '<div class="equipo-panel-actions">' +
+        '<span style="font-size:11px;opacity:.7;">' + activos + ' activos</span>' +
+        '<button onclick="imprimirPlantilla('' + equipo.id + '')" style="background:rgba(255,255,255,.15);border:none;color:white;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;">🖨️ Imprimir</button>' +
+      '</div>' +
+    '</div>';
+
+    if (!jugadores.length) {
+      html += '<div class="equipo-empty-jugadores">Sin jugadores asignados — vincula deportistas desde su ficha</div>';
+      return html;
+    }
+
+    const sorted = [...jugadores].sort((a,b) => a.apellidos.localeCompare(b.apellidos,'es'));
+    html += sorted.map(j => {
+      const ini     = ((j.nombre||'')[0]+(j.apellidos||'')[0]).toUpperCase();
+      const estados = j.estadoEquipo ? (typeof j.estadoEquipo === 'string' ? JSON.parse(j.estadoEquipo||'{}') : j.estadoEquipo) : {};
+      const estado  = estados[equipo.id] || 'activo';
+      const fotoHtml = j.foto
+        ? '<img src="'+j.foto+'" alt="'+ini+'">'
+        : ini;
+      return '<div class="jugador-equipo-row">' +
+        '<div class="jugador-equipo-avatar">'+fotoHtml+'</div>' +
+        '<div style="flex:1;">' +
+          '<div class="jugador-equipo-nombre">'+j.apellidos+', '+j.nombre+'</div>' +
+          '<div class="jugador-equipo-pos">'+(j.posicion||j.rol||'')+'</div>' +
+        '</div>' +
+        (canEdit ?
+          '<select class="estado-select estado-'+estado+'" onchange="cambiarEstadoJugador(''+j.id+'',''+equipo.id+'',this)">' +
+            '<option value="activo"'+(estado==='activo'?' selected':'')+'>Activo</option>' +
+            '<option value="pendiente"'+(estado==='pendiente'?' selected':'')+'>Pendiente</option>' +
+            '<option value="inactivo"'+(estado==='inactivo'?' selected':'')+'>No activo</option>' +
+          '</select>'
+          : '<span class="estado-select estado-'+estado+'">'+estado.charAt(0).toUpperCase()+estado.slice(1)+'</span>'
+        ) +
+      '</div>';
+    }).join('');
+
+    return html;
+  }
+
+  function toggleEquipoPanel(equipoId) {
+    const hdr   = document.getElementById('hdr_'   + equipoId);
+    const panel = document.getElementById('panel_' + equipoId);
+    if (!hdr || !panel) return;
+    const isOpen = hdr.classList.contains('open');
+    // Close all panels first
+    document.querySelectorAll('.equipo-row-header.open').forEach(h => h.classList.remove('open'));
+    document.querySelectorAll('.equipo-jugadores-panel.open').forEach(p => p.classList.remove('open'));
+    // Open this one if it was closed
+    if (!isOpen) {
+      hdr.classList.add('open');
+      panel.classList.add('open');
+    }
+  }
+
+  async function cambiarEstadoJugador(depId, equipoId, selectEl) {
+    const nuevoEstado = selectEl.value;
+    // Update CSS class
+    selectEl.className = 'estado-select estado-' + nuevoEstado;
+    // Update in db
+    const dep = (db.deportistas||[]).find(d=>d.id===depId);
+    if (!dep) return;
+    let estados = {};
+    try { estados = typeof dep.estadoEquipo === 'string' ? JSON.parse(dep.estadoEquipo||'{}') : (dep.estadoEquipo||{}); } catch(e) {}
+    estados[equipoId] = nuevoEstado;
+    dep.estadoEquipo = JSON.stringify(estados);
+    saveLocal();
+    await apiCall('saveDeportista', dep);
+  }
+
+  function imprimirPlantilla(equipoId) {
+    const eq = (db.equipos||[]).find(e=>e.id===equipoId);
+    if (!eq) return;
+    const comp = (db.competiciones||[]).find(c=>c.id===eq.competicionId);
+    const jugadores = (db.deportistas||[]).filter(d => {
+      const ids = safeParseJSON(d.equipos,[]);
+      return ids.includes(equipoId);
+    }).sort((a,b) => a.apellidos.localeCompare(b.apellidos,'es'));
+
+    const getEstado = (dep) => {
+      try {
+        const estados = typeof dep.estadoEquipo === 'string'
+          ? JSON.parse(dep.estadoEquipo||'{}')
+          : (dep.estadoEquipo||{});
+        return estados[equipoId] || 'activo';
+      } catch(e) { return 'activo'; }
+    };
+
+    const estadoColor = { activo:'#1E8449', pendiente:'#D4AC0D', inactivo:'#C0392B' };
+
+    const filas = jugadores.map((j, i) => {
+      const estado = getEstado(j);
+      return '<tr style="background:'+(i%2===0?'white':'#f9f9f7')+'">' +
+        '<td style="padding:8px 12px;text-align:center;font-weight:700;">'+(i+1)+'</td>' +
+        '<td style="padding:8px 12px;font-weight:600;">'+j.apellidos+', '+j.nombre+'</td>' +
+        '<td style="padding:8px 12px;font-size:12px;">'+(j.posicion||j.rol||'—')+'</td>' +
+        '<td style="padding:8px 12px;">' +
+          '<span style="background:'+estadoColor[estado]+'20;color:'+estadoColor[estado]+';font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;">'+estado.toUpperCase()+'</span>' +
+        '</td>' +
+        '<td style="padding:8px 12px;font-size:12px;">'+(j.fechaNacimiento||'—')+'</td>' +
+        '<td style="padding:8px 12px;font-size:12px;">'+(j.tutorTelefono||j.telefono||'—')+'</td>' +
+      '</tr>';
+    }).join('');
+
+    const activos   = jugadores.filter(j=>getEstado(j)==='activo').length;
+    const pendientes= jugadores.filter(j=>getEstado(j)==='pendiente').length;
+    const inactivos = jugadores.filter(j=>getEstado(j)==='inactivo').length;
+
+    const pdfHTML = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' +
+      '<title>Plantilla - '+eq.nombre+'</title>' +
+      '<style>body{font-family:Arial,sans-serif;margin:0;padding:24px;color:#222;}' +
+      '.header{background:#0D1B2A;color:white;padding:20px 24px;border-radius:8px;margin-bottom:20px;display:flex;align-items:center;gap:16px;}' +
+      '.header h1{margin:0;font-size:22px;}.header p{margin:4px 0;opacity:.6;font-size:13px;}' +
+      '.stats{display:flex;gap:16px;margin-bottom:20px;}' +
+      '.stat{background:#f5f5f0;border-radius:8px;padding:12px 16px;text-align:center;flex:1;}' +
+      '.stat-val{font-size:1.8rem;font-weight:900;color:#0D1B2A;}' +
+      '.stat-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:.5;}' +
+      'table{width:100%;border-collapse:collapse;}' +
+      'thead tr{background:#0D1B2A;color:white;}' +
+      'thead th{padding:10px 12px;text-align:left;font-size:12px;}' +
+      '.firma{margin-top:40px;display:flex;justify-content:space-between;}' +
+      '.firma-linea{width:200px;border-top:1px solid #999;padding-top:6px;font-size:11px;opacity:.6;text-align:center;}' +
+      '@media print{body{padding:0;}}' +
+      '</style></head><body>' +
+      '<div class="header">' +
+        '<div>' +
+          '<h1>'+eq.nombre+'</h1>' +
+          '<p>'+(comp?comp.nombre+' · ':''+(eq.categoria||''))+'</p>' +
+          '<p>Delegado: '+(eq.delegado||'—')+' · '+(eq.telefono||'')+'</p>' +
+        '</div>' +
+      '</div>' +
+      '<div class="stats">' +
+        '<div class="stat"><div class="stat-val">'+jugadores.length+'</div><div class="stat-lbl">Total</div></div>' +
+        '<div class="stat"><div class="stat-val" style="color:#1E8449">'+activos+'</div><div class="stat-lbl">Activos</div></div>' +
+        '<div class="stat"><div class="stat-val" style="color:#D4AC0D">'+pendientes+'</div><div class="stat-lbl">Pendientes</div></div>' +
+        '<div class="stat"><div class="stat-val" style="color:#C0392B">'+inactivos+'</div><div class="stat-lbl">No activos</div></div>' +
+      '</div>' +
+      '<table><thead><tr>' +
+        '<th style="width:40px;">#</th>' +
+        '<th>Nombre y apellidos</th>' +
+        '<th>Posición</th>' +
+        '<th>Estado</th>' +
+        '<th>Fecha nac.</th>' +
+        '<th>Teléfono tutor</th>' +
+      '</tr></thead><tbody>'+filas+'</tbody></table>' +
+      '<div class="firma">' +
+        '<div class="firma-linea">Firma del delegado</div>' +
+        '<div class="firma-linea">Escuela & Deporte · clubos.app</div>' +
+      '</div>' +
+      '</body></html>';
+
+    const win = window.open('', '_blank');
+    win.document.write(pdfHTML);
+    win.document.close();
+    setTimeout(() => win.print(), 500);
   }
 
 </script>
