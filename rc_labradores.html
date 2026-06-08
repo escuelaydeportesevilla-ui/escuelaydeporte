@@ -1719,7 +1719,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
   <div class="actions-row" id="adminActionsComp" style="display:none">
     <button class="btn btn-primary" onclick="openModalComp()">+ Nueva competición</button>
     <select id="filtroEstado" class="btn btn-outline" style="font-family:'Barlow Condensed',sans-serif;font-size:13px;" onchange="renderCompeticiones()">
-      <option value="">Todas</option>
+      <option value="">— Todos los equipos —</option>
       <option value="activa">Activas</option>
       <option value="finalizada">Finalizadas</option>
       <option value="pausada">Pausadas</option>
@@ -1736,6 +1736,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 
   <div class="actions-row">
     <select id="filtroCompEquipos" class="btn btn-outline" style="font-family:'Barlow Condensed',sans-serif;font-size:13px;min-width:220px;" onchange="renderEquipos()">
+      <option value="">— Todos los equipos —</option>
       <option value="">— Selecciona una competición —</option>
     </select>
     <button class="btn btn-primary" id="btnAddEquipo" style="display:none" onclick="openModalEquipo()">+ Añadir equipo</button>
@@ -2985,7 +2986,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
 // ══════════════════════════════════════════════════════════════
 //  CONFIGURACIÓN
 // ══════════════════════════════════════════════════════════════
-const SCRIPT_URL        = 'https://script.google.com/macros/s/AKfycbymyot3_JEVp4Xs5DqYhH_vTJZOhtb3WsBSwb21k1ked2cbwC2sTT00mSvugrIG4B6B/exec';
+const SCRIPT_URL        = 'https://script.google.com/macros/s/AKfycbwqhYxbzp1wfoc-pqFyoU9J26EbziGju8XnHNOw7KEkE43jE43ITMc8DpOcv9SfvwPB/exec';
 const PWD_ADMIN         = 'admin_rclabradores_VJ0R';
 const PWD_DELEGADO      = 'del_rclabradores_RFCV';
 const MONITOR_ID        = 'Admin RC Labradores'; // ← Cambia por nombre del usuario
@@ -3186,21 +3187,36 @@ function selectComp(id) {
 // ══════════════════════════════════════════════════════════════
 function renderEquipos() {
   const compId = document.getElementById('filtroCompEquipos').value;
-  document.getElementById('btnAddEquipo').style.display = (compId && userRole==='admin') ? 'inline-flex' : 'none';
+  const canEdit = userRole === 'admin' || userRole === 'delegado';
+  document.getElementById('btnAddEquipo').style.display = canEdit ? 'inline-flex' : 'none';
   const tbody = document.getElementById('tbodyEquipos');
-  if (!compId) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;opacity:.4;">Selecciona una competición</td></tr>'; return; }
-  const lista = db.equipos.filter(e => e.competicionId === compId);
-  if (!lista.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;opacity:.4;">Sin equipos — añade el primero</td></tr>'; return; }
-  tbody.innerHTML = lista.map(e => `<tr>
-    <td><span class="color-dot" style="background:${e.color||'#1B3A5C'}"></span><strong>${e.escudo||'⚽'} ${e.nombre}</strong></td>
-    <td>${e.delegado||'—'}</td>
-    <td>${e.telefono||'—'}</td>
-    <td>${e.email||'—'}</td>
-    <td class="center">
-      ${userRole==='admin'?`<button class="btn btn-outline btn-sm" onclick="editEquipo('${e.id}')">✏️</button>
-      <button class="btn btn-rojo btn-sm" onclick="deleteEquipo('${e.id}')">🗑</button>`:'<span style="font-size:11px;opacity:.4;">Solo admin</span>'}
-    </td>
-  </tr>`).join('');
+
+  // Show all teams, filter by competition if selected
+  let lista = db.equipos || [];
+  if (compId) lista = lista.filter(e => e.competicionId === compId);
+  lista = lista.sort((a,b) => a.nombre.localeCompare(b.nombre, 'es'));
+
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;opacity:.4;">' +
+      (compId ? 'Sin equipos en esta competición' : 'Sin equipos registrados aún') + '</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map(e => {
+    const comp = (db.competiciones||[]).find(c=>c.id===e.competicionId);
+    const logo = e.logo
+      ? `<img src="${e.logo}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;">`
+      : `<span style="font-size:1.4rem;">${e.emoji || e.escudo || '⚽'}</span>`;
+    return `<tr>
+      <td style="padding:10px 12px;">${logo}</td>
+      <td style="padding:10px 12px;font-weight:600;">${e.nombre}</td>
+      <td style="padding:10px 12px;font-size:12px;color:var(--gris-suave);">${comp?.nombre || '— Sin competición —'}</td>
+      <td style="padding:10px 12px;font-size:12px;">${e.delegado || '—'}</td>
+      <td style="padding:10px 12px;">
+        ${canEdit ? `<button class="btn btn-outline btn-sm" onclick="editEquipo('${e.id}')">✏️</button>` : ''}
+        ${userRole==='admin' ? `<button class="btn btn-rojo btn-sm" onclick="deleteEquipo('${e.id}')">🗑</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -6313,60 +6329,46 @@ async function saveGoleador(){
   }
 
   function renderDashboard() {
-    // Stats
-    const deps  = (db.deportistas||[]).length;
-    const comps = (db.competiciones||[]).filter(c=>c.estado==='activa').length || (db.competiciones||[]).length;
-    const parts = (db.partidos||[]).length;
-
     const el = (id) => document.getElementById(id);
-    if(el('dashStatDep'))  el('dashStatDep').textContent  = deps  || '0';
-    if(el('dashStatComp')) el('dashStatComp').textContent = comps || '0';
-    if(el('dashStatPart')) el('dashStatPart').textContent = parts || '0';
+
+    // Stats header
+    const deps  = (db.deportistas||[]).length;
+    const comps = (db.competiciones||[]).length;
+    const parts = (db.partidos||[]).length;
+    const equips= (db.equipos||[]).length;
+    if(el('dashStatDep'))  el('dashStatDep').textContent  = deps;
+    if(el('dashStatComp')) el('dashStatComp').textContent = comps;
+    if(el('dashStatPart')) el('dashStatPart').textContent = parts;
 
     // Module counts
-    if(el('dmComp'))  el('dmComp').textContent  = (db.competiciones||[]).length + ' activas';
-    if(el('dmEq'))    el('dmEq').textContent    = (db.equipos||[]).length + ' equipos';
-    if(el('dmSug'))   el('dmSug').textContent   = (db.sugerencias||[]).filter(s=>!s.leida||s.leida==='false').length + ' nuevas';
-    if(el('dmDep'))   el('dmDep').textContent   = deps + ' registrados';
-    if(el('dmEsc'))   el('dmEsc').textContent   = (db.escuelas||[]).length + ' escuelas';
-    if(el('dmCal'))   el('dmCal').textContent   = (db.partidos||[]).filter(p=>p.estado==='pendiente').length + ' pendientes';
-    if(el('dmClasif'))el('dmClasif').textContent= (db.equipos||[]).length + ' equipos';
-    if(el('dmGol'))   el('dmGol').textContent   = (db.goleadores||[]).length + ' jugadores';
-    if(el('dmNot'))   el('dmNot').textContent   = (db.noticias||[]).filter(n=>n.publicada==='true').length + ' publicadas';
-    if(el('dmPat'))   el('dmPat').textContent   = (db.patrocinadores||[]).length + ' patrocinadores';
-
-    // Show/hide modules based on role
-    const isAdmin   = userRole === 'admin';
-    const isDelegado= userRole === 'delegado';
-    const isArbitro = userRole === 'arbitro';
-    const canEdit   = isAdmin || isDelegado;
-
-    if(el('dmCardDeportistas')) el('dmCardDeportistas').style.display = canEdit ? 'flex' : 'none';
-    if(el('dmCardEscuelas'))    el('dmCardEscuelas').style.display    = canEdit ? 'flex' : 'none';
-    if(el('dmCardEval'))        el('dmCardEval').style.display        = canEdit ? 'flex' : 'none';
-    if(el('dmCardActas'))       el('dmCardActas').style.display       = isArbitro ? 'flex' : 'none';
-    if(el('dmCardNoticias'))    el('dmCardNoticias').style.display    = isAdmin ? 'flex' : 'none';
-    if(el('dmCardPat'))         el('dmCardPat').style.display         = isAdmin ? 'flex' : 'none';
+    if(el('dmComp'))   el('dmComp').textContent   = comps + (comps===1?' competición':' competiciones');
+    if(el('dmEq'))     el('dmEq').textContent      = equips + (equips===1?' equipo':' equipos');
+    if(el('dmDep'))    el('dmDep').textContent     = deps + (deps===1?' registrado':' registrados');
+    if(el('dmEsc'))    el('dmEsc').textContent     = (db.escuelas||[]).length + (((db.escuelas||[]).length)===1?' escuela':' escuelas');
+    if(el('dmCal'))    el('dmCal').textContent     = (db.partidos||[]).filter(p=>p.estado==='pendiente').length + ' pendientes';
+    if(el('dmClasif')) el('dmClasif').textContent  = equips + (equips===1?' equipo':' equipos');
+    if(el('dmGol'))    el('dmGol').textContent     = (db.goleadores||[]).length + ' jugadores';
+    if(el('dmNot'))    el('dmNot').textContent     = (db.noticias||[]).filter(n=>n.publicada==='true').length + ' publicadas';
+    if(el('dmSug'))    el('dmSug').textContent     = (db.sugerencias||[]).filter(s=>!s.leida||s.leida==='false').length + ' nuevas';
+    if(el('dmPat'))    el('dmPat').textContent     = (db.patrocinadores||[]).length + ' patrocinadores';
 
     // Proximos partidos
     const proximos = (db.partidos||[])
-      .filter(p => p.estado === 'pendiente' && p.fecha)
+      .filter(p => p.estado==='pendiente' && p.fecha)
       .sort((a,b) => a.fecha.localeCompare(b.fecha))
       .slice(0,3);
-
     const proxEl = el('dashProximosList');
     if (proxEl) {
       if (!proximos.length) {
         proxEl.innerHTML = '<div style="text-align:center;padding:16px;opacity:.4;font-size:13px;">Sin partidos programados</div>';
       } else {
         proxEl.innerHTML = proximos.map(p => {
-          const parts = (p.fecha||'').split('-');
-          const fechaStr = parts.length === 3 ? parts[2]+'/'+parts[1] : p.fecha;
+          const fd = (p.fecha||'').split('-');
+          const fs = fd.length===3 ? fd[2]+'/'+fd[1] : p.fecha;
           return `<div class="dash-partido-item">
-            <div class="dash-partido-fecha">${fechaStr}</div>
-            <div class="dash-partido-info">
-              ${p.equipoLocalNombre||'—'} vs ${p.equipoVisitanteNombre||'—'}
-              <div class="dash-partido-meta">Jornada ${p.jornada||'—'} · ${p.campo||'Sin campo'}</div>
+            <div class="dash-partido-fecha">${fs}</div>
+            <div class="dash-partido-info">${p.equipoLocalNombre||'—'} vs ${p.equipoVisitanteNombre||'—'}
+              <div class="dash-partido-meta">J${p.jornada||'—'} · ${p.campo||'Sin campo'}</div>
             </div>
             <div class="dash-partido-hora">${p.hora||'—'}</div>
           </div>`;
@@ -6376,23 +6378,21 @@ async function saveGoleador(){
 
     // Ultimos resultados
     const resultados = (db.partidos||[])
-      .filter(p => p.estado === 'jugado')
+      .filter(p => p.estado==='jugado')
       .sort((a,b) => b.fecha.localeCompare(a.fecha))
       .slice(0,3);
-
     const resEl = el('dashResultadosList');
     if (resEl) {
       if (!resultados.length) {
         resEl.innerHTML = '<div style="text-align:center;padding:16px;opacity:.4;font-size:13px;">Sin resultados aún</div>';
       } else {
         resEl.innerHTML = resultados.map(p => {
-          const parts = (p.fecha||'').split('-');
-          const fechaStr = parts.length === 3 ? parts[2]+'/'+parts[1] : p.fecha;
+          const fd = (p.fecha||'').split('-');
+          const fs = fd.length===3 ? fd[2]+'/'+fd[1] : p.fecha;
           return `<div class="dash-partido-item">
-            <div class="dash-partido-fecha">${fechaStr}</div>
-            <div class="dash-partido-info">
-              ${p.equipoLocalNombre||'—'} vs ${p.equipoVisitanteNombre||'—'}
-              <div class="dash-partido-meta">Jornada ${p.jornada||'—'}</div>
+            <div class="dash-partido-fecha">${fs}</div>
+            <div class="dash-partido-info">${p.equipoLocalNombre||'—'} vs ${p.equipoVisitanteNombre||'—'}
+              <div class="dash-partido-meta">J${p.jornada||'—'}</div>
             </div>
             <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:900;color:var(--navy);">${p.golesLocal} - ${p.golesVisitante}</div>
           </div>`;
