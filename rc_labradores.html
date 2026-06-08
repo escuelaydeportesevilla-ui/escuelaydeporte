@@ -6510,7 +6510,9 @@ async function saveGoleador(){
     const eq = (db.equipos||[]).find(e => e.id === id);
     if (!eq) return;
     editingId = id;
-    document.getElementById('modalEquipoTitle').textContent = 'Editar equipo';
+    const titleEl = document.getElementById('modalEquipoTitle');
+    if (!titleEl) { console.error('modalEquipoTitle not found'); openModalEquipo(); return; }
+    titleEl.textContent = 'Editar equipo';
     document.getElementById('eqNombre').value    = eq.nombre || '';
     document.getElementById('eqCategoria').value = eq.categoria || '';
     document.getElementById('eqDelegado').value  = eq.delegado || '';
@@ -6726,7 +6728,9 @@ async function saveGoleador(){
 
   function openModalEquipo() {
     editingId = null;
-    document.getElementById('modalEquipoTitle').textContent = 'Nuevo equipo';
+    const titleEl = document.getElementById('modalEquipoTitle');
+    if (!titleEl) { console.error('modalEquipoTitle not found'); return; }
+    titleEl.textContent = 'Nuevo equipo';
     document.getElementById('eqNombre').value    = '';
     document.getElementById('eqCategoria').value = '';
     document.getElementById('eqDelegado').value  = '';
