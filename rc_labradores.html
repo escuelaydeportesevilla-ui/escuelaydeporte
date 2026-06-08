@@ -3525,27 +3525,6 @@ async function deleteComp(id) {
 }
 
 // ── Equipo ──
-function openModalEquipo() {
-    editingId = null;
-    document.getElementById('modalEquipoTitle').textContent = 'Nuevo equipo';
-    document.getElementById('eqNombre').value    = '';
-    document.getElementById('eqCategoria').value = '';
-    document.getElementById('eqDelegado').value  = '';
-    document.getElementById('eqTelefono').value  = '';
-    document.getElementById('eqEmail').value     = '';
-    document.getElementById('eqEmoji').value     = '⚽';
-    document.getElementById('eqColor').value     = '#1B3A5C';
-    document.getElementById('eqEstado').value    = 'activo';
-    document.getElementById('eqLogoB64').value   = '';
-    document.getElementById('eqLogoPreview').innerHTML = '⚽';
-    // Populate competiciones
-    const sel = document.getElementById('eqCompeticion');
-    sel.innerHTML = '<option value="">— Sin competición asignada —</option>';
-    (db.competiciones||[]).forEach(c => {
-      sel.innerHTML += '<option value="'+c.id+'">'+c.nombre+' · '+c.temporada+'</option>';
-    });
-    openModal('modalEquipo');
-  }
 
   async function saveEquipo() {
     const nombre = document.getElementById('eqNombre').value.trim();
@@ -6742,6 +6721,28 @@ async function saveGoleador(){
 
     showSaved('savedGoleador');
     setTimeout(() => { closeModal('modalGoleador'); renderGoleadores(); }, 1200);
+  }
+
+
+  function openModalEquipo() {
+    editingId = null;
+    document.getElementById('modalEquipoTitle').textContent = 'Nuevo equipo';
+    document.getElementById('eqNombre').value    = '';
+    document.getElementById('eqCategoria').value = '';
+    document.getElementById('eqDelegado').value  = '';
+    document.getElementById('eqTelefono').value  = '';
+    document.getElementById('eqEmail').value     = '';
+    document.getElementById('eqEmoji').value     = '⚽';
+    document.getElementById('eqColor').value     = '#1B3A5C';
+    document.getElementById('eqEstado').value    = 'activo';
+    document.getElementById('eqLogoB64').value   = '';
+    document.getElementById('eqLogoPreview').innerHTML = '⚽';
+    const sel = document.getElementById('eqCompeticion');
+    sel.innerHTML = '<option value="">— Sin competición asignada —</option>';
+    (db.competiciones||[]).forEach(c => {
+      sel.innerHTML += '<option value="'+c.id+'">'+c.nombre+' · '+c.temporada+'</option>';
+    });
+    openModal('modalEquipo');
   }
 
 </script>
