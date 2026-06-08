@@ -6140,7 +6140,9 @@ async function saveGoleador(){
     } else {
       eqSel.innerHTML = equipos.map(e => {
         const comp = (db.competiciones||[]).find(c=>c.id===e.competicionId);
-        return '<option value="' + e.id + '">' + e.nombre + (comp?' · '+comp.nombre:'') + '</option>';
+        const categoria = e.categoria ? ' · ' + e.categoria : '';
+        const competicion = comp ? ' · ' + comp.nombre : '';
+        return '<option value="' + e.id + '">' + e.nombre + categoria + competicion + '</option>';
       }).join('');
     }
 
