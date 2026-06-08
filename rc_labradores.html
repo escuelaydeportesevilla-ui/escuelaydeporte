@@ -3301,7 +3301,7 @@ function renderEquipos() {
 
     return '<tr><td colspan="7" style="padding:4px 0;">' +
       '<div class="equipo-row-wrap">' +
-        '<div class="equipo-row-header" onclick="toggleEquipoPanel(''+e.id+'')" id="hdr_'+e.id+'">' +
+        '<div class="equipo-row-header" onclick="toggleEquipoPanel(\\'' + e.id + '\\')" id="hdr_' + e.id + '">' +
           '<div>'+logo+'</div>' +
           '<div style="flex:1;">' +
             '<div style="font-weight:700;font-size:14px;">'+e.nombre+countBadge+'</div>' +
