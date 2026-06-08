@@ -1746,7 +1746,7 @@ footer strong{display:block;font-family:'Barlow Condensed',sans-serif;font-size:
     <div class="tabla-wrap">
       <table id="tablaEquipos">
         <thead><tr>
-          <th>Equipo</th><th>Delegado</th><th>Teléfono</th><th>Email</th><th class="center">Acciones</th>
+          <th>Logo</th><th>Equipo</th><th>Competición</th><th>Categoría</th><th>Delegado</th><th>Teléfono</th><th class="center">Acciones</th>
         </tr></thead>
         <tbody id="tbodyEquipos"></tbody>
       </table>
@@ -3209,8 +3209,10 @@ function renderEquipos() {
     return `<tr>
       <td style="padding:10px 12px;">${logo}</td>
       <td style="padding:10px 12px;font-weight:600;">${e.nombre}</td>
-      <td style="padding:10px 12px;font-size:12px;color:var(--gris-suave);">${comp?.nombre || '— Sin competición —'}</td>
+      <td style="padding:10px 12px;font-size:12px;color:var(--gris-suave);">${comp?.nombre || '—'} ${e.categoria ? '· '+e.categoria : ''}</td>
+      <td style="padding:10px 12px;font-size:12px;">${e.categoria || '—'}</td>
       <td style="padding:10px 12px;font-size:12px;">${e.delegado || '—'}</td>
+      <td style="padding:10px 12px;font-size:12px;">${e.telefono || '—'}</td>
       <td style="padding:10px 12px;">
         ${canEdit ? `<button class="btn btn-outline btn-sm" onclick="editEquipo('${e.id}')">✏️</button>` : ''}
         ${userRole==='admin' ? `<button class="btn btn-rojo btn-sm" onclick="deleteEquipo('${e.id}')">🗑</button>` : ''}
