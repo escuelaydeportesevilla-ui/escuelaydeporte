@@ -857,6 +857,7 @@ const CRED = {
 let sesion = null;
 let DB = JSON.parse(localStorage.getItem('clubos_sfc') || JSON.stringify({
   competicion: null,
+  competiciones: [],
   equipos: [],
   partidos: [],
   goleadores: [],
@@ -1006,104 +1007,96 @@ function renderTab(tab) {
 //  COMPETICIÓN
 // ══════════════════════════════════════════════════════
 function renderCompeticion() {
-  const el = document.getElementById('compContent');
-  const btnNueva = document.getElementById('btnNuevaComp');
-  const isAdmin = sesion.rol === 'admin';
-  if (btnNueva) btnNueva.style.display = isAdmin ? '' : 'none';
-  const btnEditar  = document.getElementById('btnEditarComp');
-  const btnEliminar= document.getElementById('btnEliminarComp');
-  const btnGenCal  = document.getElementById('btnGenerarCalendario');
-  if (btnEditar)   btnEditar.style.display   = (isAdmin && DB.competicion) ? '' : 'none';
-  if (btnEliminar) btnEliminar.style.display  = (isAdmin && DB.competicion) ? '' : 'none';
-  if (btnGenCal)   btnGenCal.style.display    = (isAdmin && DB.competicion && DB.equipos.length>=2) ? '' : 'none';
+  const el       = document.getElementById('compContent');
+  const isAdmin  = sesion.rol === 'admin';
+  if (!DB.competiciones) DB.competiciones = DB.competicion ? [DB.competicion] : [];
 
-  if (!DB.competicion) {
-    el.innerHTML = `<div class="empty-state"><div class="ei">🏆</div><p>${sesion.rol==='admin' ? 'Crea la primera competición usando el botón de arriba.' : 'El administrador aún no ha creado la competición. Vuelve pronto.'}</p></div>`;
+  const btnNueva   = document.getElementById('btnNuevaComp');
+  const btnGenCal  = document.getElementById('btnGenerarCalendario');
+  if (btnNueva)  btnNueva.style.display  = isAdmin ? '' : 'none';
+  if (btnGenCal) btnGenCal.style.display = (isAdmin && DB.competiciones.length>0 && DB.equipos.length>=2) ? '' : 'none';
+
+  if (!DB.competiciones.length) {
+    el.innerHTML = `<div class="empty-state"><div class="ei">🏆</div><p>${isAdmin ? 'Crea la primera competición usando el botón de arriba.' : 'El administrador aún no ha creado la competición.'}</p></div>`;
     return;
   }
-  const c = DB.competicion;
-  const nEq = DB.equipos.length;
-  const nP  = DB.partidos.length;
-  const nJug = DB.partidos.filter(p=>p.estado==='jugado').length;
-  el.innerHTML = `
-    <div class="comp-banner">
+
+  el.innerHTML = DB.competiciones.map(c => {
+    const nEq  = DB.equipos.filter(e=>e.competicionId===c.id).length;
+    const nP   = DB.partidos.filter(p=>p.competicionId===c.id).length;
+    const nJug = DB.partidos.filter(p=>p.competicionId===c.id && p.estado==='jugado').length;
+    return `<div class="comp-banner" style="margin-bottom:16px;">
       <div>
         <div class="comp-banner-title">${c.nombre}</div>
-        <div class="comp-banner-meta">${c.categoria ? c.categoria + ' · ' : ''} ${c.temporada || ''} · ${c.formato}</div>
-        ${c.fechaInicio ? `<div class="comp-banner-meta" style="margin-top:4px">📅 ${c.fechaInicio}${c.fechaFin?' → '+c.fechaFin:''}</div>` : ''}
+        <div class="comp-banner-meta">${c.categoria?c.categoria+' · ':''}${c.temporada||''} · ${c.formato}</div>
+        ${c.fechaInicio?`<div class="comp-banner-meta" style="margin-top:4px">📅 ${c.fechaInicio}${c.fechaFin?' → '+c.fechaFin:''}</div>`:''}
       </div>
       <div class="comp-banner-badges">
         <span class="badge badge-activa">✅ Activa</span>
-        ${sesion.rol==='admin' ? `<button class="btn btn-outline btn-sm" onclick="editarComp()" style="border-color:rgba(255,255,255,.3);color:white">✏️ Editar</button>` : ''}
+        ${isAdmin ? `
+          <button class="btn btn-outline btn-sm" onclick="editarCompeticion('${c.id}')" style="border-color:rgba(255,255,255,.3);color:white">✏️</button>
+          <button class="btn btn-sm" style="background:rgba(200,16,46,.7);color:white;border:none;" onclick="eliminarCompeticion('${c.id}')">🗑</button>
+        ` : ''}
       </div>
     </div>
-    <div class="stats-row">
+    <div class="stats-row" style="margin-bottom:24px;">
       <div class="stat-card"><div class="sv">${nEq}</div><div class="sl">Equipos</div></div>
       <div class="stat-card"><div class="sv">${nP}</div><div class="sl">Partidos</div></div>
       <div class="stat-card"><div class="sv">${nJug}</div><div class="sl">Jugados</div></div>
       <div class="stat-card"><div class="sv">${nP-nJug}</div><div class="sl">Pendientes</div></div>
     </div>`;
+  }).join('');
 }
 
 function nuevaCompeticion() {
-  if (DB.competicion) {
-    if (!confirm('Ya existe una competición. ¿Crear una nueva? Se eliminará la competición actual y todos sus partidos.')) return;
-    DB.competicion = null;
-    DB.partidos    = [];
-    DB.goleadores  = [];
-    DB.save();
-  }
-  // Clear form for new competition
-  ['compNombre','compTemporada','compCategoria'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.value='';
-  });
-  document.getElementById('compFormato').value = 'liga';
-  document.getElementById('compFechaInicio').value = '';
-  document.getElementById('compFechaFin').value = '';
-  const title = document.getElementById('compModalTitle');
-  if (title) title.textContent = 'Nueva competición';
+  window._editCompId = null;
+  ['compNombre','compTemporada','compCategoria'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('compFormato').value='liga';
+  document.getElementById('compFechaInicio').value='';
+  document.getElementById('compFechaFin').value='';
+  const t=document.getElementById('compModalTitle');if(t)t.textContent='Nueva competición';
   abrirModal('modalComp');
 }
-
-function abrirModalComp(editar) {
-  const c = DB.competicion;
-  if (c) {
-    document.getElementById('compNombre').value     = c.nombre     || '';
-    document.getElementById('compTemporada').value  = c.temporada  || '';
-    document.getElementById('compFormato').value    = c.formato    || 'liga';
-    document.getElementById('compFechaInicio').value= c.fechaInicio|| '';
-    document.getElementById('compFechaFin').value   = c.fechaFin   || '';
-    document.getElementById('compCategoria').value  = c.categoria  || '';
-  }
-  const title = document.getElementById('compModalTitle');
-  if (title) title.textContent = editar ? 'Editar competición' : 'Nueva competición';
+function editarCompeticion(id) {
+  if (!DB.competiciones) return;
+  const c = DB.competiciones.find(x=>x.id===id);
+  if (!c) return;
+  window._editCompId = id;
+  document.getElementById('compNombre').value     = c.nombre     ||'';
+  document.getElementById('compTemporada').value  = c.temporada  ||'';
+  document.getElementById('compFormato').value    = c.formato    ||'liga';
+  document.getElementById('compFechaInicio').value= c.fechaInicio||'';
+  document.getElementById('compFechaFin').value   = c.fechaFin   ||'';
+  document.getElementById('compCategoria').value  = c.categoria  ||'';
+  const t=document.getElementById('compModalTitle');if(t)t.textContent='Editar competición';
   abrirModal('modalComp');
 }
-
-function editarComp() { abrirModalComp(true); }
-
-function eliminarCompeticion() {
-  if (!confirm('¿Eliminar la competición y todos sus partidos? Esta acción no se puede deshacer.')) return;
-  DB.competicion = null;
-  DB.partidos    = [];
-  DB.goleadores  = [];
-  DB.save();
-  renderCompeticion();
-  renderCalendario();
-  renderClasificacion();
-  renderGoleadores();
+function editarComp() { if(DB.competiciones?.length===1) editarCompeticion(DB.competiciones[0].id); }
+function eliminarCompeticion(id) {
+  if (!confirm('¿Eliminar esta competición y sus partidos?')) return;
+  DB.competiciones = (DB.competiciones||[]).filter(c=>c.id!==id);
+  DB.partidos      = DB.partidos.filter(p=>p.competicionId!==id);
+  DB.goleadores    = DB.goleadores.filter(g=>g.competicionId!==id);
+  save(); renderAll();
 }
 
 function guardarComp() {
-  DB.competicion = {
-    nombre:      document.getElementById('compNombre').value.trim() || 'Liga Interna SFC Academy 26/27',
+  if (!DB.competiciones) DB.competiciones = [];
+  const nombre = document.getElementById('compNombre').value.trim();
+  if (!nombre) { alert('El nombre es obligatorio'); return; }
+  const rec = {
+    id:          window._editCompId || ('comp_'+Date.now()),
+    nombre,
     temporada:   document.getElementById('compTemporada').value.trim(),
     formato:     document.getElementById('compFormato').value,
     fechaInicio: document.getElementById('compFechaInicio').value,
     fechaFin:    document.getElementById('compFechaFin').value,
     categoria:   document.getElementById('compCategoria').value.trim(),
   };
-  save(); cerrarModal('modalComp'); toast('Competición guardada'); renderAll();
+  const idx = DB.competiciones.findIndex(c=>c.id===rec.id);
+  if (idx>=0) DB.competiciones[idx] = rec; else DB.competiciones.push(rec);
+  window._editCompId = null;
+  save(); cerrarModal('modalComp'); renderAll();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1861,7 +1854,7 @@ console.log('Familias: acceso directo (sin contraseña)');
   }
 
   function initGenerador() {
-    const comp = DB.competicion;
+    const comp = (DB.competiciones||[])[0] || DB.competicion;
     // Set default values
     document.getElementById('genFormato').value    = comp.formato || 'liga1';
     document.getElementById('genDiaSemana').value  = '5'; // Viernes
