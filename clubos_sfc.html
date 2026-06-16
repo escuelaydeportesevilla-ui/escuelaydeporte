@@ -2071,6 +2071,17 @@ console.log('Familias: acceso directo (sin contraseña)');
       '<p style="margin:4px 0;opacity:.7;">'+comp.temporada+' · '+comp.categoria+'</p></div>' +
       tablas +
       '
+</body></html>';
+
+    const win = window.open('','_blank');
+    win.document.write(pdfHTML);
+    win.document.close();
+    setTimeout(()=>win.print(),500);
+  }
+
+</script>
+<div id="syncStatusBar" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:6px;text-align:center;font-size:12px;font-weight:700;color:white;z-index:9999;"></div>
+
 <!-- ══ MODAL GENERADOR CALENDARIO ══ -->
 <div class="modal" id="modalGeneradorCalendario">
   <div class="modal-box" style="max-width:560px;">
@@ -2144,15 +2155,5 @@ console.log('Familias: acceso directo (sin contraseña)');
   </div>
 </div>
 
-</body></html>';
-
-    const win = window.open('','_blank');
-    win.document.write(pdfHTML);
-    win.document.close();
-    setTimeout(()=>win.print(),500);
-  }
-
-</script>
-<div id="syncStatusBar" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:6px;text-align:center;font-size:12px;font-weight:700;color:white;z-index:9999;"></div>
 </body>
 </html>
