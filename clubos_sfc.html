@@ -570,7 +570,10 @@ tbody td.center{text-align:center;}
     <div class="tab-panel" id="panel-competicion">
       <div class="section-header">
         <h2>⚙️ Competición</h2><div class="section-line"></div>
-        <button class="btn btn-rojo" id="btnNuevaComp" onclick="abrirModalComp()" style="display:none">+ Nueva competición</button>
+        <button class="btn btn-primary" id="btnNuevaComp" onclick="nuevaCompeticion()" style="display:none">+ Nueva competición</button>
+        <button class="btn btn-outline" id="btnEditarComp" onclick="abrirModalComp(true)" style="display:none">✏️ Editar</button>
+        <button class="btn btn-rojo" id="btnEliminarComp" onclick="eliminarCompeticion()" style="display:none">🗑 Eliminar</button>
+        <button class="btn" style="background:#117A65;color:white;display:none;" id="btnGenerarCalendario" onclick="abrirGeneradorCalendario()">📅 Generar calendario</button>
       </div>
       <div id="compContent">
         <div class="empty-state"><div class="ei">🏆</div><p>No hay ninguna competición creada aún.</p></div>
@@ -658,7 +661,7 @@ tbody td.center{text-align:center;}
 <div class="modal" id="modalComp">
   <div class="modal-box">
     <div class="modal-header">
-      <h3>Nueva competición</h3>
+      <h3 id="compModalTitle">Nueva competición</h3>
       <button class="modal-close" onclick="cerrarModal('modalComp')">✕</button>
     </div>
     <div class="form-grid">
@@ -1005,7 +1008,14 @@ function renderTab(tab) {
 function renderCompeticion() {
   const el = document.getElementById('compContent');
   const btnNueva = document.getElementById('btnNuevaComp');
-  if (btnNueva) btnNueva.style.display = (sesion.rol === 'admin' && !DB.competicion) ? '' : 'none';
+  const isAdmin = sesion.rol === 'admin';
+  if (btnNueva) btnNueva.style.display = isAdmin ? '' : 'none';
+  const btnEditar  = document.getElementById('btnEditarComp');
+  const btnEliminar= document.getElementById('btnEliminarComp');
+  const btnGenCal  = document.getElementById('btnGenerarCalendario');
+  if (btnEditar)   btnEditar.style.display   = (isAdmin && DB.competicion) ? '' : 'none';
+  if (btnEliminar) btnEliminar.style.display  = (isAdmin && DB.competicion) ? '' : 'none';
+  if (btnGenCal)   btnGenCal.style.display    = (isAdmin && DB.competicion && DB.equipos.length>=2) ? '' : 'none';
 
   if (!DB.competicion) {
     el.innerHTML = `<div class="empty-state"><div class="ei">🏆</div><p>${sesion.rol==='admin' ? 'Crea la primera competición usando el botón de arriba.' : 'El administrador aún no ha creado la competición. Vuelve pronto.'}</p></div>`;
@@ -1035,19 +1045,54 @@ function renderCompeticion() {
     </div>`;
 }
 
+function nuevaCompeticion() {
+  if (DB.competicion) {
+    if (!confirm('Ya existe una competición. ¿Crear una nueva? Se eliminará la competición actual y todos sus partidos.')) return;
+    DB.competicion = null;
+    DB.partidos    = [];
+    DB.goleadores  = [];
+    DB.save();
+  }
+  // Clear form for new competition
+  ['compNombre','compTemporada','compCategoria'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('compFormato').value = 'liga';
+  document.getElementById('compFechaInicio').value = '';
+  document.getElementById('compFechaFin').value = '';
+  const title = document.getElementById('compModalTitle');
+  if (title) title.textContent = 'Nueva competición';
+  abrirModal('modalComp');
+}
+
 function abrirModalComp(editar) {
   const c = DB.competicion;
   if (c) {
-    document.getElementById('compNombre').value    = c.nombre || '';
-    document.getElementById('compTemporada').value  = c.temporada || '';
-    document.getElementById('compFormato').value    = c.formato || 'liga';
-    document.getElementById('compFechaInicio').value= c.fechaInicio || '';
-    document.getElementById('compFechaFin').value   = c.fechaFin || '';
-    document.getElementById('compCategoria').value  = c.categoria || '';
+    document.getElementById('compNombre').value     = c.nombre     || '';
+    document.getElementById('compTemporada').value  = c.temporada  || '';
+    document.getElementById('compFormato').value    = c.formato    || 'liga';
+    document.getElementById('compFechaInicio').value= c.fechaInicio|| '';
+    document.getElementById('compFechaFin').value   = c.fechaFin   || '';
+    document.getElementById('compCategoria').value  = c.categoria  || '';
   }
+  const title = document.getElementById('compModalTitle');
+  if (title) title.textContent = editar ? 'Editar competición' : 'Nueva competición';
   abrirModal('modalComp');
 }
+
 function editarComp() { abrirModalComp(true); }
+
+function eliminarCompeticion() {
+  if (!confirm('¿Eliminar la competición y todos sus partidos? Esta acción no se puede deshacer.')) return;
+  DB.competicion = null;
+  DB.partidos    = [];
+  DB.goleadores  = [];
+  DB.save();
+  renderCompeticion();
+  renderCalendario();
+  renderClasificacion();
+  renderGoleadores();
+}
 
 function guardarComp() {
   DB.competicion = {
