@@ -672,7 +672,15 @@ tbody td.center{text-align:center;}
       <div class="form-field"><label>Fecha fin</label><input type="date" id="compFechaFin"></div>
       <div class="form-field"><label>Categoría</label><input id="compCategoria" placeholder="Alevín, Benjamín…"></div>
     </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <div class="form-field form-full" style="margin-top:8px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:600;">
+          <input type="checkbox" id="compActiva" checked style="width:18px;height:18px;cursor:pointer;">
+          Competición activa
+        </label>
+        <div style="font-size:11px;color:var(--gris-suave);margin-top:4px;">Solo los admins pueden desactivar una competición. Los demás perfiles solo ven las activas.</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
       <button class="btn btn-outline" onclick="cerrarModal('modalComp')">Cancelar</button>
       <button class="btn btn-rojo" onclick="guardarComp()">Guardar competición</button>
     </div>
@@ -680,25 +688,90 @@ tbody td.center{text-align:center;}
 </div>
 
 <div class="modal" id="modalEquipo">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:560px;">
     <div class="modal-header">
       <h3 id="modalEquipoTitle">Nuevo equipo</h3>
       <button class="modal-close" onclick="cerrarModal('modalEquipo')">✕</button>
     </div>
     <div class="form-grid">
-      <div class="form-field form-full"><label>Nombre del equipo</label><input id="eqNombre" placeholder="Ej: SFC Alevín A"></div>
-      <div class="form-field"><label>Categoría</label><input id="eqCategoria" placeholder="Alevín, Benjamín…"></div>
-      <div class="form-field"><label>Delegado / Entrenador</label><input id="eqDelegado" placeholder="Nombre y apellidos"></div>
-      <div class="form-field"><label>Teléfono</label><input id="eqTelefono" placeholder="600 000 000"></div>
-      <div class="form-field"><label>Email</label><input type="email" id="eqEmail" placeholder="email@club.com"></div>
-      <div class="form-field"><label>Color equipación</label><input id="eqColor" placeholder="Rojo/Blanco"></div>
+      <div class="form-field form-full">
+        <label>Nombre del equipo</label>
+        <input id="eqNombre" placeholder="NOMBRE DEL EQUIPO" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div class="form-field form-full">
+        <label>Inscribir en competición</label>
+        <select id="eqCompeticion">
+          <option value="">— Sin competición —</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Categoría</label><input id="eqCategoria" placeholder="Alevín, Benjamín..."></div>
+      <div class="form-field"><label>Delegado</label><input id="eqDelegado" placeholder="Nombre delegado"></div>
     </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
+
+    <!-- PRIMERA EQUIPACIÓN -->
+    <div style="margin-top:16px;padding:14px;background:#f9f9f7;border-radius:10px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:12px;">🎽 Primera equipación</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:12px;display:block;margin-bottom:6px;">Color camiseta</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="eq1CamisetaColor" oninput="actualizarPreviewEquipo()" value="#C8102E" style="width:40px;height:40px;border-radius:8px;border:2px solid #ddd;cursor:pointer;padding:2px;">
+            <span id="eq1CamisetaHex" style="font-size:12px;color:#666;">#C8102E</span>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px;display:block;margin-bottom:6px;">Color pantalón</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="eq1PantaloonColor" oninput="actualizarPreviewEquipo()" value="#111111" style="width:40px;height:40px;border-radius:8px;border:2px solid #ddd;cursor:pointer;padding:2px;">
+            <span id="eq1PantaloonHex" style="font-size:12px;color:#666;">#111111</span>
+          </div>
+        </div>
+      </div>
+      <!-- Preview primera -->
+      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
+        <div id="preview1" style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div id="prev1Camiseta" style="width:32px;height:28px;border-radius:4px 4px 0 0;background:#C8102E;border:1px solid rgba(0,0,0,.1);"></div>
+          <div id="prev1Pantalon" style="width:28px;height:16px;border-radius:0 0 4px 4px;background:#111111;border:1px solid rgba(0,0,0,.1);"></div>
+        </div>
+        <span style="font-size:11px;color:#666;">Vista previa 1ª equipación</span>
+      </div>
+    </div>
+
+    <!-- SEGUNDA EQUIPACIÓN -->
+    <div style="margin-top:10px;padding:14px;background:#f9f9f7;border-radius:10px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:12px;">🎽 Segunda equipación</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:12px;display:block;margin-bottom:6px;">Color camiseta</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="eq2CamisetaColor" oninput="actualizarPreviewEquipo()" value="#FFFFFF" style="width:40px;height:40px;border-radius:8px;border:2px solid #ddd;cursor:pointer;padding:2px;">
+            <span id="eq2CamisetaHex" style="font-size:12px;color:#666;">#FFFFFF</span>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px;display:block;margin-bottom:6px;">Color pantalón</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="eq2PantaloonColor" oninput="actualizarPreviewEquipo()" value="#FFFFFF" style="width:40px;height:40px;border-radius:8px;border:2px solid #ddd;cursor:pointer;padding:2px;">
+            <span id="eq2PantaloonHex" style="font-size:12px;color:#666;">#FFFFFF</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
+        <div id="preview2" style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div id="prev2Camiseta" style="width:32px;height:28px;border-radius:4px 4px 0 0;background:#FFFFFF;border:1px solid rgba(0,0,0,.15);"></div>
+          <div id="prev2Pantalon" style="width:28px;height:16px;border-radius:0 0 4px 4px;background:#FFFFFF;border:1px solid rgba(0,0,0,.15);"></div>
+        </div>
+        <span style="font-size:11px;color:#666;">Vista previa 2ª equipación</span>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
       <button class="btn btn-outline" onclick="cerrarModal('modalEquipo')">Cancelar</button>
       <button class="btn btn-rojo" onclick="guardarEquipo()">Guardar equipo</button>
     </div>
   </div>
 </div>
+
 
 <div class="modal" id="modalPartido">
   <div class="modal-box">
@@ -1007,34 +1080,39 @@ function renderTab(tab) {
 //  COMPETICIÓN
 // ══════════════════════════════════════════════════════
 function renderCompeticion() {
-  const el       = document.getElementById('compContent');
-  const isAdmin  = sesion.rol === 'admin';
-  if (!DB.competiciones) DB.competiciones = DB.competicion ? [DB.competicion] : [];
+  const el      = document.getElementById('compContent');
+  const isAdmin = sesion.rol === 'admin';
+  if (!DB.competiciones) DB.competiciones = DB.competicion ? [{...DB.competicion, activa:true}] : [];
 
-  const btnNueva   = document.getElementById('btnNuevaComp');
-  const btnGenCal  = document.getElementById('btnGenerarCalendario');
+  const btnNueva  = document.getElementById('btnNuevaComp');
+  const btnGenCal = document.getElementById('btnGenerarCalendario');
   if (btnNueva)  btnNueva.style.display  = isAdmin ? '' : 'none';
-  if (btnGenCal) btnGenCal.style.display = (isAdmin && DB.competiciones.length>0 && DB.equipos.length>=2) ? '' : 'none';
+  if (btnGenCal) btnGenCal.style.display = 'none'; // handled per-competition
 
-  if (!DB.competiciones.length) {
-    el.innerHTML = `<div class="empty-state"><div class="ei">🏆</div><p>${isAdmin ? 'Crea la primera competición usando el botón de arriba.' : 'El administrador aún no ha creado la competición.'}</p></div>`;
+  // Filter: non-admins only see active competitions
+  const lista = isAdmin ? DB.competiciones : DB.competiciones.filter(c=>c.activa!==false);
+
+  if (!lista.length) {
+    el.innerHTML = `<div class="empty-state"><div class="ei">🏆</div><p>${isAdmin?'Crea la primera competición usando el botón de arriba.':'No hay competiciones activas en este momento.'}</p></div>`;
     return;
   }
 
-  el.innerHTML = DB.competiciones.map(c => {
-    const nEq  = DB.equipos.filter(e=>e.competicionId===c.id).length;
-    const nP   = DB.partidos.filter(p=>p.competicionId===c.id).length;
-    const nJug = DB.partidos.filter(p=>p.competicionId===c.id && p.estado==='jugado').length;
-    return `<div class="comp-banner" style="margin-bottom:16px;">
+  el.innerHTML = lista.map(c => {
+    const nEq  = (DB.equipos||[]).filter(e=>e.competicionId===c.id).length;
+    const nP   = (DB.partidos||[]).filter(p=>p.competicionId===c.id).length;
+    const nJug = (DB.partidos||[]).filter(p=>p.competicionId===c.id && p.estado==='jugado').length;
+    const activa = c.activa !== false;
+    return `<div class="comp-banner" style="margin-bottom:16px;${!activa?'opacity:.6;':''}">
       <div>
         <div class="comp-banner-title">${c.nombre}</div>
         <div class="comp-banner-meta">${c.categoria?c.categoria+' · ':''}${c.temporada||''} · ${c.formato}</div>
         ${c.fechaInicio?`<div class="comp-banner-meta" style="margin-top:4px">📅 ${c.fechaInicio}${c.fechaFin?' → '+c.fechaFin:''}</div>`:''}
       </div>
-      <div class="comp-banner-badges">
-        <span class="badge badge-activa">✅ Activa</span>
+      <div class="comp-banner-badges" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+        <span class="badge ${activa?'badge-activa':'badge-inactiva'}" style="${!activa?'background:rgba(150,150,150,.3);color:#999;':''}">${activa?'✅ Activa':'⏸ Inactiva'}</span>
         ${isAdmin ? `
-          <button class="btn btn-outline btn-sm" onclick="editarCompeticion('${c.id}')" style="border-color:rgba(255,255,255,.3);color:white">✏️</button>
+          ${nEq>=2?`<button class="btn btn-sm" style="background:#117A65;color:white;border:none;" onclick="abrirGeneradorCalendario('${c.id}')">📅 Calendario</button>`:''}
+          <button class="btn btn-outline btn-sm" onclick="editarCompeticion('${c.id}')" style="border-color:rgba(255,255,255,.3);color:white;">✏️</button>
           <button class="btn btn-sm" style="background:rgba(200,16,46,.7);color:white;border:none;" onclick="eliminarCompeticion('${c.id}')">🗑</button>
         ` : ''}
       </div>
@@ -1068,6 +1146,7 @@ function editarCompeticion(id) {
   document.getElementById('compFechaInicio').value= c.fechaInicio||'';
   document.getElementById('compFechaFin').value   = c.fechaFin   ||'';
   document.getElementById('compCategoria').value  = c.categoria  ||'';
+  const chk=document.getElementById('compActiva');if(chk)chk.checked=c.activa!==false;
   const t=document.getElementById('compModalTitle');if(t)t.textContent='Editar competición';
   abrirModal('modalComp');
 }
@@ -1086,6 +1165,7 @@ function guardarComp() {
   if (!nombre) { alert('El nombre es obligatorio'); return; }
   const rec = {
     id:          window._editCompId || ('comp_'+Date.now()),
+    activa:      document.getElementById('compActiva')?.checked !== false,
     nombre,
     temporada:   document.getElementById('compTemporada').value.trim(),
     formato:     document.getElementById('compFormato').value,
@@ -1104,76 +1184,128 @@ function guardarComp() {
 // ══════════════════════════════════════════════════════
 let editEquipoId = null;
 function renderEquipos() {
-  const el = document.getElementById('equiposContent');
-  if (!DB.equipos.length) {
-    el.innerHTML = '<div class="empty-state"><div class="ei">🏟️</div><p>No hay equipos registrados aún.</p></div>'; return;
-  }
-  // Si es club, solo ve sus propios equipos
-  const lista = sesion.rol==='club'
-    ? DB.equipos.filter(e => e.clubId === sesion.user)
-    : DB.equipos;
+  const el      = document.getElementById('equiposContent');
+  const isAdmin = sesion.rol === 'admin';
+  const isClub  = sesion.rol === 'club';
+  if (!DB.equipos) DB.equipos = [];
 
-  el.innerHTML = '<div class="tabla-wrap"><table><thead><tr>' +
-    '<th>Equipo</th><th>Camiseta</th><th>Categoría</th><th>Delegado</th><th>Teléfono</th><th>Email</th><th>Jugadores</th>' +
-    (sesion.rol==='admin'||sesion.rol==='club'?'<th>Acciones</th>':'')+
-    '</tr></thead><tbody>' +
-    lista.map(e => {
-      const nJug = DB.jugadores.filter(j=>j.equipoId===e.id).length;
-      return `<tr>
+  // Admin sees all, club sees only their own
+  let lista = isAdmin ? DB.equipos : DB.equipos.filter(e=>e.clubId===sesion.user);
+
+  const btnAdd = document.getElementById('btnAddEquipo');
+  if (btnAdd) btnAdd.style.display = (isAdmin||isClub) ? '' : 'none';
+
+  if (!lista.length) {
+    el.innerHTML = '<div class="empty-state"><div class="ei">🏟️</div><p>' + (isClub?'Añade tu primer equipo.':'No hay equipos registrados.') + '</p></div>';
+    return;
+  }
+
+  // Group by competition
+  const comps = {};
+  lista.forEach(e => {
+    const key = e.competicionId || '__none__';
+    if (!comps[key]) comps[key] = [];
+    comps[key].push(e);
+  });
+
+  let html = '';
+  Object.entries(comps).forEach(([compId, equipos]) => {
+    const comp = (DB.competiciones||[]).find(c=>c.id===compId);
+    const compNombre = comp?.nombre || (compId==='__none__'?'Sin competición asignada':'Competición desconocida');
+    html += `<div style="margin-bottom:24px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">${compNombre}</div>
+      <table class="tabla-base"><thead><tr>
+        <th>Equipo</th><th>1ª Equipación</th><th>2ª Equipación</th><th>Categoría</th>
+        ${isAdmin?'<th>Club</th>':''}
+        <th>Jugadores</th><th>Acciones</th>
+      </tr></thead><tbody>`;
+    equipos.forEach(e => {
+      const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
+      const kit = (c1,p1)=>`<div style="display:inline-flex;flex-direction:column;gap:1px;vertical-align:middle;">
+        <div style="width:20px;height:14px;border-radius:3px 3px 0 0;background:${c1};border:1px solid rgba(0,0,0,.15);"></div>
+        <div style="width:16px;height:8px;border-radius:0 0 3px 3px;background:${p1};border:1px solid rgba(0,0,0,.15);margin:0 2px;"></div>
+      </div>`;
+      html += `<tr>
         <td><strong>${e.nombre}</strong></td>
-        <td><div style="display:flex;align-items:center;gap:8px;">
-          ${e.color ? `<div style="width:24px;height:24px;border-radius:50%;background:${e.color};border:2px solid rgba(0,0,0,.15);flex-shrink:0;"></div><span style="font-size:12px;">${e.color}</span>` : '—'}
-        </div></td>
+        <td>${kit(e.eq1Camiseta||'#ccc',e.eq1Pantalon||'#333')}</td>
+        <td>${kit(e.eq2Camiseta||'#fff',e.eq2Pantalon||'#fff')}</td>
         <td>${e.categoria||'—'}</td>
-        <td>${e.delegado||'—'}</td>
-        <td>${e.telefono||'—'}</td>
-        <td>${e.email||'—'}</td>
-        <td class="center">${nJug}</td>
-        ${sesion.rol==='admin'||sesion.rol==='club'?`<td><button class="btn btn-outline btn-xs" onclick="editarEquipo('${e.id}')">✏️</button> <button class="btn btn-xs" style="background:var(--rojo-suave);color:var(--rojo)" onclick="eliminarEquipo('${e.id}')">🗑️</button></td>`:''}
+        ${isAdmin?`<td style="font-size:12px;color:var(--gris-suave);">${e.clubId||'—'}</td>`:''}
+        <td>${nJug}</td>
+        <td>
+          ${(isAdmin||isClub)?`<button class="btn btn-outline btn-sm" onclick="editarEquipo('${e.id}')">✏️</button>`:''}
+          ${isAdmin?`<button class="btn btn-sm" style="background:var(--rojo);color:white;border:none;" onclick="eliminarEquipo('${e.id}')">🗑</button>`:''}
+        </td>
       </tr>`;
-    }).join('') +
-    '</tbody></table></div>';
+    });
+    html += '</tbody></table></div>';
+  });
+  el.innerHTML = html;
 }
 
 function abrirModalEquipo() {
   editEquipoId = null;
   document.getElementById('modalEquipoTitle').textContent = 'Nuevo equipo';
-  ['eqNombre','eqCategoria','eqDelegado','eqTelefono','eqEmail','eqColor'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('eqNombre').value    = '';
+  document.getElementById('eqCategoria').value = '';
+  document.getElementById('eqDelegado').value  = '';
+  document.getElementById('eq1CamisetaColor').value  = '#C8102E';
+  document.getElementById('eq1PantaloonColor').value = '#111111';
+  document.getElementById('eq2CamisetaColor').value  = '#FFFFFF';
+  document.getElementById('eq2PantaloonColor').value = '#FFFFFF';
+  actualizarPreviewEquipo();
+  // Populate competitions (active only for clubs, all for admin)
+  const isAdmin = sesion.rol==='admin';
+  const comps   = (DB.competiciones||[]).filter(c=>isAdmin||c.activa!==false);
+  const sel     = document.getElementById('eqCompeticion');
+  sel.innerHTML = '<option value="">— Sin competición —</option>' +
+    comps.map(c=>`<option value="${c.id}">${c.nombre}${c.activa===false?' (inactiva)':''}</option>`).join('');
   abrirModal('modalEquipo');
 }
 
 function editarEquipo(id) {
+  const e = (DB.equipos||[]).find(x=>x.id===id); if(!e) return;
   editEquipoId = id;
-  const e = DB.equipos.find(eq=>eq.id===id);
-  if (!e) return;
   document.getElementById('modalEquipoTitle').textContent = 'Editar equipo';
-  document.getElementById('eqNombre').value    = e.nombre||'';;
-  document.getElementById('eqCategoria').value  = e.categoria||'';
-  document.getElementById('eqDelegado').value   = e.delegado||'';
-  document.getElementById('eqTelefono').value   = e.telefono||'';
-  document.getElementById('eqEmail').value      = e.email||'';
-  document.getElementById('eqColor').value      = e.color||'';
+  document.getElementById('eqNombre').value    = e.nombre    ||'';
+  document.getElementById('eqCategoria').value = e.categoria ||'';
+  document.getElementById('eqDelegado').value  = e.delegado  ||'';
+  document.getElementById('eq1CamisetaColor').value  = e.eq1Camiseta ||'#C8102E';
+  document.getElementById('eq1PantaloonColor').value = e.eq1Pantalon ||'#111111';
+  document.getElementById('eq2CamisetaColor').value  = e.eq2Camiseta ||'#FFFFFF';
+  document.getElementById('eq2PantaloonColor').value = e.eq2Pantalon ||'#FFFFFF';
+  actualizarPreviewEquipo();
+  const isAdmin = sesion.rol==='admin';
+  const comps   = (DB.competiciones||[]).filter(c=>isAdmin||c.activa!==false);
+  const sel     = document.getElementById('eqCompeticion');
+  sel.innerHTML = '<option value="">— Sin competición —</option>' +
+    comps.map(c=>`<option value="${c.id}"${c.id===e.competicionId?' selected':''}>${c.nombre}</option>`).join('');
   abrirModal('modalEquipo');
 }
 
 function guardarEquipo() {
-  const datos = {
-    nombre:    document.getElementById('eqNombre').value.trim(),
-    categoria: document.getElementById('eqCategoria').value.trim(),
-    delegado:  document.getElementById('eqDelegado').value.trim(),
-    telefono:  document.getElementById('eqTelefono').value.trim(),
-    email:     document.getElementById('eqEmail').value.trim(),
-    color:     document.getElementById('eqColor').value.trim(),
-    clubId:    sesion.user || 'admin',
+  const nombre = document.getElementById('eqNombre').value.trim();
+  if (!nombre) { alert('El nombre es obligatorio'); return; }
+  const compId = document.getElementById('eqCompeticion').value;
+  const comp   = (DB.competiciones||[]).find(c=>c.id===compId);
+  const rec = {
+    id:             editEquipoId || ('eq_'+Date.now()),
+    nombre:         nombre.toUpperCase(),
+    competicionId:  compId || '',
+    competicionNombre: comp?.nombre || '',
+    categoria:      document.getElementById('eqCategoria').value,
+    delegado:       document.getElementById('eqDelegado').value,
+    clubId:         sesion.user || '',
+    eq1Camiseta:    document.getElementById('eq1CamisetaColor').value,
+    eq1Pantalon:    document.getElementById('eq1PantaloonColor').value,
+    eq2Camiseta:    document.getElementById('eq2CamisetaColor').value,
+    eq2Pantalon:    document.getElementById('eq2PantaloonColor').value,
   };
-  if (!datos.nombre) { toast('El nombre es obligatorio'); return; }
-  if (editEquipoId) {
-    const idx = DB.equipos.findIndex(e=>e.id===editEquipoId);
-    if (idx>=0) DB.equipos[idx] = { ...DB.equipos[idx], ...datos };
-  } else {
-    DB.equipos.push({ id: uid(), ...datos });
-  }
-  save(); cerrarModal('modalEquipo'); toast('Equipo guardado'); renderAll();
+  if (!DB.equipos) DB.equipos = [];
+  const idx = DB.equipos.findIndex(e=>e.id===editEquipoId);
+  if (idx>=0) DB.equipos[idx]=rec; else DB.equipos.push(rec);
+  editEquipoId = null;
+  save(); cerrarModal('modalEquipo'); renderEquipos(); renderCompeticion();
 }
 
 function eliminarEquipo(id) {
@@ -1189,13 +1321,11 @@ function renderJugadores() {
   const el = document.getElementById('jugadoresContent');
   let misJugadores, misEquipos;
   if (sesion.rol === 'admin' || sesion.rol === 'arbitro') {
-    // Admin y árbitro ven todos los jugadores
-    misEquipos    = DB.equipos;
-    misJugadores  = DB.jugadores || [];
+    misEquipos   = DB.equipos || [];
+    misJugadores = DB.jugadores || [];
   } else {
-    // Clubs solo ven los suyos
-    misEquipos   = DB.equipos.filter(e=>e.clubId===sesion.user);
-    misJugadores = (DB.jugadores||[]).filter(j => misEquipos.some(e=>e.id===j.equipoId));
+    misEquipos   = (DB.equipos||[]).filter(e=>e.clubId===sesion.user);
+    misJugadores = (DB.jugadores||[]).filter(j=>misEquipos.some(e=>e.id===j.equipoId));
   }
   if (!misJugadores.length) {
     el.innerHTML = '<div class="empty-state"><div class="ei">👥</div><p>Añade jugadores a tus equipos.</p></div>'; return;
@@ -1843,9 +1973,11 @@ console.log('Familias: acceso directo (sin contraseña)');
   //  GENERADOR DE CALENDARIO
   // ══════════════════════════════════════════════════════════════
 
-  function abrirGeneradorCalendario() {
-    if (!DB.competicion) { alert('Primero crea una competición.'); return; }
-    if (DB.equipos.length < 2) { alert('Necesitas al menos 2 equipos.'); return; }
+  function abrirGeneradorCalendario(compId) {
+    window._genCompId = compId || (DB.competiciones?.[0]?.id);
+    const equiposComp = (DB.equipos||[]).filter(e=>e.competicionId===window._genCompId);
+    if (!window._genCompId) { alert('Selecciona una competición.'); return; }
+    if (equiposComp.length < 2) { alert('Necesitas al menos 2 equipos en esta competición.'); return; }
     if (DB.partidos.length > 0) {
       if (!confirm('Ya existe un calendario generado. ¿Deseas regenerarlo? Se perderán los partidos actuales.')) return;
     }
@@ -1903,7 +2035,7 @@ console.log('Familias: acceso directo (sin contraseña)');
   }
 
   function generarCalendarioFinal() {
-    const equipos   = [...DB.equipos];
+    const equipos   = (DB.equipos||[]).filter(e=>e.competicionId===window._genCompId);
     const nEq       = equipos.length;
     const segVuelta = document.getElementById('genSegVuelta').checked;
     const playoff   = document.getElementById('genPlayoff').value;
@@ -1966,6 +2098,7 @@ console.log('Familias: acceso directo (sin contraseña)');
           if (local.id === 'BYE' || visitante.id === 'BYE') continue;
           partidos.push({
             id:                'p_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+            competicionId:     window._genCompId || '',
             jornada,
             fase:              'Liga' + (dosVueltas ? (vuelta===0?' 1ª Vuelta':' 2ª Vuelta') : ''),
             equipoLocalId:     local.id,
@@ -2114,6 +2247,20 @@ console.log('Familias: acceso directo (sin contraseña)');
     win.document.write(pdfHTML);
     win.document.close();
     setTimeout(()=>win.print(),500);
+  }
+
+
+  function actualizarPreviewEquipo() {
+    const c1 = document.getElementById('eq1CamisetaColor')?.value||'#C8102E';
+    const p1 = document.getElementById('eq1PantaloonColor')?.value||'#111111';
+    const c2 = document.getElementById('eq2CamisetaColor')?.value||'#FFFFFF';
+    const p2 = document.getElementById('eq2PantaloonColor')?.value||'#FFFFFF';
+    const s = (id,v)=>{const el=document.getElementById(id);if(el)el.style.background=v;};
+    s('prev1Camiseta',c1); s('prev1Pantalon',p1);
+    s('prev2Camiseta',c2); s('prev2Pantalon',p2);
+    const h = (id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    h('eq1CamisetaHex',c1); h('eq1PantaloonHex',p1);
+    h('eq2CamisetaHex',c2); h('eq2PantaloonHex',p2);
   }
 
 </script>
