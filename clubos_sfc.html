@@ -1392,6 +1392,19 @@ function renderEquipos() {
   el.innerHTML = html;
 }
 
+function actualizarPreviewEquipo() {
+  const c1 = document.getElementById('eq1CamisetaColor')?.value  || '#C8102E';
+  const p1 = document.getElementById('eq1PantaloonColor')?.value || '#111111';
+  const c2 = document.getElementById('eq2CamisetaColor')?.value  || '#FFFFFF';
+  const p2 = document.getElementById('eq2PantaloonColor')?.value || '#FFFFFF';
+  const el = (id, v) => { const e = document.getElementById(id); if(e) e.style.background = v; };
+  el('prev1Camiseta', c1); el('prev1Pantalon', p1);
+  el('prev2Camiseta', c2); el('prev2Pantalon', p2);
+  const hx = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  hx('eq1CamisetaHex', c1); hx('eq1PantaloonHex', p1);
+  hx('eq2CamisetaHex', c2); hx('eq2PantaloonHex', p2);
+}
+
 function abrirModalEquipo() {
   editEquipoId = null;
   document.getElementById('modalEquipoTitle').textContent = 'Nuevo equipo';
@@ -2175,8 +2188,9 @@ console.log('Familias: acceso directo (sin contraseña)');
         const del = DB._deleted || {};
         const merge = (local, remote) => {
           const map = {};
-          (local||[]).forEach(x => { if (x?.id && !del[x.id]) map[x.id] = x; });
+          // Remote primero (base), local encima (tiene prioridad)
           (remote||[]).forEach(x => { if (x?.id && !del[x.id]) map[x.id] = x; });
+          (local||[]).forEach(x  => { if (x?.id && !del[x.id]) map[x.id] = x; });
           Object.keys(del).forEach(k => delete map[k]);
           return Object.values(map);
         };
@@ -2200,22 +2214,29 @@ console.log('Familias: acceso directo (sin contraseña)');
     setSyncStatus('syncing');
     try {
       const pwd = encodeURIComponent(
-        sesion.rol==='admin'  ? 'sfc2627' :
-        sesion.rol==='club'   ? sesion.user :
-        sesion.rol==='arbitro'? 'arb2627' : ''
+        sesion.rol==='admin'   ? 'sfc2627'  :
+        sesion.rol==='club'    ? sesion.user :
+        sesion.rol==='arbitro' ? 'arb2627'  : ''
       );
+      // saveCollection espera: ?action=saveCollection&pwd=X&col=Y&data=[...array...]
       const cols = ['competiciones','equipos','jugadores','partidos','actas','noticias','goleadores','sugerencias','patrocinadores'];
       for (const col of cols) {
         const items = DB[col];
         if (!items || !items.length) continue;
-        const url = SCRIPT_URL + '?action=saveCollection&pwd=' + pwd +
-                    '&data=' + encodeURIComponent(JSON.stringify({col, items}));
+        const url = SCRIPT_URL
+          + '?action=saveCollection'
+          + '&pwd=' + pwd
+          + '&col=' + col
+          + '&data=' + encodeURIComponent(JSON.stringify(items));
         await fetch(url, {mode:'no-cors'});
       }
-      // enviar _deleted
+      // enviar _deleted via deleteIds
       if (DB._deleted && Object.keys(DB._deleted).length) {
-        const url = SCRIPT_URL + '?action=saveCollection&pwd=' + pwd +
-                    '&data=' + encodeURIComponent(JSON.stringify({col:'_deleted', items: DB._deleted}));
+        const ids = Object.keys(DB._deleted);
+        const url = SCRIPT_URL
+          + '?action=deleteIds'
+          + '&pwd=' + pwd
+          + '&ids=' + encodeURIComponent(JSON.stringify(ids));
         await fetch(url, {mode:'no-cors'});
       }
       setSyncStatus('ok');
