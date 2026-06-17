@@ -1119,7 +1119,6 @@ function iniciarSesion(cred) {
   sesion = cred;
   document.getElementById('portada').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  setTimeout(() => manualSync(), 500);
   document.getElementById('rolBadge').textContent = cred.rol.charAt(0).toUpperCase() + cred.rol.slice(1);
   document.getElementById('tbUserName').textContent = cred.nombre || '';
 
@@ -1128,7 +1127,7 @@ function iniciarSesion(cred) {
 
   buildNav();
   activarTab(getDefaultTab());
-  renderAll();
+  manualSync().then(() => renderAll()).catch(() => renderAll());
 }
 
 function logout() {
