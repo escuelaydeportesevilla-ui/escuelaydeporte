@@ -933,7 +933,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmUwr4TrEduGWJoSXFaqMMMrBjh6FY3FxCI6nSrBTTxoCh0NtcijRaG7HXTESbgw5W/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxssTp9nLzWH9cghRy0Q9bxpTeU7ARXUeNUkEehXJmO_Pj-R_3MGMzS51cAAtiNgaBj/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -1116,7 +1116,16 @@ function renderTab(tab) {
 function renderCompeticion() {
   const el      = document.getElementById('compContent');
   const isAdmin = sesion.rol === 'admin';
-  if (!DB.competiciones) DB.competiciones = DB.competicion ? [{...DB.competicion, activa:true}] : [];
+  // Migrate legacy singular if needed (once), then clear it
+  if (!DB.competiciones || !DB.competiciones.length) {
+    if (DB.competicion) {
+      DB.competiciones = [{...DB.competicion, id: DB.competicion.id||'comp_legacy', activa:true}];
+      delete DB.competicion;
+      save();
+    } else {
+      DB.competiciones = [];
+    }
+  }
 
   const btnNueva  = document.getElementById('btnNuevaComp');
   const btnGenCal = document.getElementById('btnGenerarCalendario');
@@ -1997,19 +2006,21 @@ console.log('Familias: acceso directo (sin contraseña)');
     _syncTimer = setTimeout(async () => {
       try {
         setStatus('syncing');
-        const pwd = sesion.rol === 'admin' ? 'sfc2627' :
-                    sesion.rol === 'club'   ? sesion.user :
-                    sesion.rol === 'arbitro'? 'arb2627' : '';
-
-        // Sync all collections
-        const collections = ['equipos','partidos','goleadores','noticias','patrocinadores'];
-        for (const col of collections) {
-          const items = DB[col] || [];
-          for (const item of items) {
-            await apiPost('save' + col.charAt(0).toUpperCase() + col.slice(1,-1) + (col.endsWith('es') ? '' : ''), item, pwd);
-          }
-        }
-        setStatus('ok');
+        const pwd = sesion.rol === 'admin'  ? 'sfc2627'  :
+                    sesion.rol === 'club'    ? sesion.user :
+                    sesion.rol === 'arbitro' ? 'arb2627'  : '';
+        const data = encodeURIComponent(JSON.stringify({
+          competiciones: DB.competiciones || [],
+          equipos:       DB.equipos       || [],
+          jugadores:     DB.jugadores     || [],
+          partidos:      DB.partidos      || [],
+          goleadores:    DB.goleadores    || [],
+          noticias:      DB.noticias      || [],
+          sugerencias:   DB.sugerencias   || [],
+        }));
+        const r = await fetch(SCRIPT_URL + '?action=saveAll&pwd=' + encodeURIComponent(pwd) + '&data=' + data);
+        const j = await r.json();
+        if (j.ok) setStatus('ok'); else setStatus('error');
       } catch(e) {
         console.error('Sync error:', e);
         setStatus('error');
@@ -2029,12 +2040,24 @@ console.log('Familias: acceso directo (sin contraseña)');
       const r   = await fetch(url);
       const j   = await r.json();
       if (j.ok && j.data) {
-        if (j.data.equipos?.length)       DB.equipos       = j.data.equipos;
-        if (j.data.partidos?.length)      DB.partidos      = j.data.partidos;
-        if (j.data.goleadores?.length)    DB.goleadores    = j.data.goleadores;
-        if (j.data.noticias?.length)      DB.noticias      = j.data.noticias;
-        if (j.data.patrocinadores?.length)DB.patrocinadores= j.data.patrocinadores;
-        if (j.data.competiciones?.length) DB.competicion   = j.data.competiciones[0] || null;
+        const d = j.data;
+        // MERGE by id: Sheet is master, never lose local records not yet synced
+        const merge = (local, remote) => {
+          if (!remote?.length) return local || [];
+          const map = {};
+          (local||[]).forEach(x=>{ if(x?.id) map[x.id]=x; });
+          (remote||[]).forEach(x=>{ if(x?.id) map[x.id]=x; });
+          return Object.values(map);
+        };
+        DB.competiciones  = merge(DB.competiciones,  d.competiciones);
+        DB.equipos        = merge(DB.equipos,        d.equipos);
+        DB.jugadores      = merge(DB.jugadores,      d.jugadores);
+        DB.partidos       = merge(DB.partidos,       d.partidos);
+        DB.goleadores     = merge(DB.goleadores,     d.goleadores);
+        DB.noticias       = merge(DB.noticias,       d.noticias);
+        DB.patrocinadores = merge(DB.patrocinadores, d.patrocinadores);
+        DB.sugerencias    = merge(DB.sugerencias,    d.sugerencias);
+        delete DB.competicion;
         localStorage.setItem('clubos_sfc', JSON.stringify(DB));
         renderAll();
         setStatus('ok');
