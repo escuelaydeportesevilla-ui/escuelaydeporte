@@ -472,12 +472,16 @@ tbody td.center{text-align:center;}
 
 @media (max-width:768px){
   body{font-size:14px;}
-  .topbar{padding:8px 12px;}
-  .topbar-left .tb-logo-text .tb-club{font-size:1.1rem;}
-  .topbar-right{gap:6px;}
-  #btnSync{padding:5px 10px;font-size:12px;}
+  .topbar{padding:0 10px;height:50px;}
+  .topbar-left .tb-logo-text .tb-club{font-size:1rem;}
+  .topbar-left .tb-logo-text .tb-sub{display:none;}
+  .tb-logo-img{height:30px;}
+  .topbar-right{gap:4px;align-items:center;}
+  #tbUserName{display:none;}
+  .rol-badge{display:none;}
+  #btnSync{padding:5px 8px;font-size:11px;margin-right:4px;}
   #btnSync span[style*="font-size:16px"]{font-size:13px!important;}
-  .btn-logout{padding:5px 10px;font-size:12px;}
+  .btn-logout{padding:5px 10px;font-size:11px;white-space:nowrap;}
   .nav-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
   .nav-tabs{flex-wrap:nowrap;gap:2px;padding:4px 6px;}
   .nav-tab{padding:6px 8px;font-size:10px;white-space:nowrap;}
@@ -1589,7 +1593,10 @@ function eliminarJugador(id) {
   DB.jugadores = (DB.jugadores||[]).filter(x => x.id !== id);
   if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
-  save(); renderJugadores();
+  localStorage.setItem('clubos_sfc_db', JSON.stringify(DB));
+  renderJugadores();
+  toast('Jugador eliminado');
+  _doSync();
 }
 
 // ══════════════════════════════════════════════════════
