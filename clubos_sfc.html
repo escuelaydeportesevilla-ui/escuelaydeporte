@@ -566,7 +566,13 @@ tbody td.center{text-align:center;}
     <div class="topbar-right">
       <span class="rol-badge" id="rolBadge">Admin</span>
       <span id="tbUserName" style="font-size:12px;color:var(--gris-suave);"></span>
-      <button class="btn-logout" onclick="logout()">← Salir</button>
+      <button id="btnSync" onclick="manualSync()"
+  style="background:#C8102E;color:white;border:none;border-radius:8px;
+  padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;
+  margin-right:8px;display:flex;align-items:center;gap:6px;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);">
+  <span style="font-size:16px;">🔄</span><span id="syncLabel">Actualizar</span>
+</button><button class="btn-logout" onclick="logout()">← Salir</button>
     </div>
   </div>
 
@@ -981,7 +987,11 @@ function _initStaticImages(){
 document.addEventListener('DOMContentLoaded',_initStaticImages);
 
 
-function save() { localStorage.setItem('clubos_sfc', JSON.stringify(DB)); }
+function save() {
+    localStorage.setItem('clubos_sfc', JSON.stringify(DB));
+    clearTimeout(_syncTimer);
+    _syncTimer = setTimeout(_doSync, 1500);
+  }
 function uid() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
 
 // ══════════════════════════════════════════════════════
@@ -1026,7 +1036,7 @@ function iniciarSesion(cred) {
   sesion = cred;
   document.getElementById('portada').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  // loadFromSheets only on manual sync
+  setTimeout(() => manualSync(), 500);
   document.getElementById('rolBadge').textContent = cred.rol.charAt(0).toUpperCase() + cred.rol.slice(1);
   document.getElementById('tbUserName').textContent = cred.nombre || '';
 
@@ -1184,9 +1194,11 @@ function editarCompeticion(id) {
 function editarComp() { if(DB.competiciones?.length===1) editarCompeticion(DB.competiciones[0].id); }
 function eliminarCompeticion(id) {
   if (!confirm('¿Eliminar esta competición y sus partidos?')) return;
-  DB.competiciones = (DB.competiciones||[]).filter(c=>c.id!==id);
-  DB.partidos      = DB.partidos.filter(p=>p.competicionId!==id);
-  DB.goleadores    = DB.goleadores.filter(g=>g.competicionId!==id);
+  DB.competiciones = (DB.competiciones||[]).filter(x => x.id !== id);
+  DB.partidos      = (DB.partidos||[]).filter(x => x.competicionId !== id);
+  DB.goleadores    = (DB.goleadores||[]).filter(x => x.competicionId !== id);
+  if (!DB._deleted) DB._deleted = {};
+  DB._deleted[id] = Date.now();
   save(); renderAll();
 }
 
@@ -1347,14 +1359,10 @@ function guardarEquipo() {
 
 function eliminarEquipo(id) {
   if (!confirm('¿Eliminar equipo?')) return;
-  DB.equipos = (DB.equipos||[]).filter(x=>x.id!==id);
-  if (!DB._deleted) DB._deleted={};
+  DB.equipos = (DB.equipos||[]).filter(x => x.id !== id);
+  if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
   save(); renderEquipos();
-  showSyncBanner(
-    '🗑 Equipo eliminado localmente',
-    "syncRecord('deleteIds',{ids:['"+id+"']})"
-  );
 }
 
 // ══════════════════════════════════════════════════════
@@ -1513,15 +1521,10 @@ function toggleJugadorConvocado(id) {
 
 function eliminarJugador(id) {
   if (!confirm('¿Eliminar jugador?')) return;
-  const j = (DB.jugadores||[]).find(x=>x.id===id);
-  DB.jugadores = (DB.jugadores||[]).filter(x=>x.id!==id);
-  if (!DB._deleted) DB._deleted={};
+  DB.jugadores = (DB.jugadores||[]).filter(x => x.id !== id);
+  if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
   save(); renderJugadores();
-  showSyncBanner(
-    '🗑 Jugador eliminado localmente',
-    "syncRecord('deleteIds',{ids:['"+id+"']})"
-  );
 }
 
 // ══════════════════════════════════════════════════════
@@ -2011,434 +2014,32 @@ console.log('Familias: acceso directo (sin contraseña)');
   // ══ GOOGLE SHEETS SYNC ══════════════════════════════════════
   let _syncTimer = null;
 
-  async function syncToSheets() {
-    if (!SCRIPT_URL || !sesion) return;
-    clearTimeout(_syncTimer);
-    _syncTimer = setTimeout(async () => {
-      try {
-        setStatus('syncing');
-        const pwd = sesion.rol === 'admin' ? 'sfc2627' :
-                    sesion.rol === 'club'   ? sesion.user :
-                    sesion.rol === 'arbitro'? 'arb2627' : '';
-
-        // Sync all collections
-        const collections = ['equipos','partidos','goleadores','noticias','patrocinadores'];
-        for (const col of collections) {
-          const items = DB[col] || [];
-          for (const item of items) {
-            await apiPost('save' + col.charAt(0).toUpperCase() + col.slice(1,-1) + (col.endsWith('es') ? '' : ''), item, pwd);
-          }
-        }
-        setStatus('ok');
-      } catch(e) {
-        console.error('Sync error:', e);
-        setStatus('error');
-      }
-    }, 1500);
+  // ── SYNC ────────────────────────────────────────────────
+  function setSyncStatus(state) {
+    const label = document.getElementById('syncLabel');
+    const btn   = document.getElementById('btnSync');
+    if (!label) return;
+    const txt = {ok:'↻ Sync', syncing:'Guardando...', loading:'Cargando...', error:'Error ⚠️', local:'↻ Sync'};
+    label.textContent = txt[state] || '↻ Sync';
+    if (btn) btn.style.borderColor = state==='error' ? 'rgba(200,16,46,.6)' : state==='loading'||state==='syncing' ? 'rgba(212,160,23,.6)' : 'rgba(255,255,255,.25)';
+    if (state==='ok'||state==='local') setTimeout(()=>{ if(label) label.textContent='↻ Sync'; if(btn) btn.style.borderColor='rgba(255,255,255,.25)'; }, 2500);
   }
+  function setStatus(s) { setSyncStatus(s); }
 
-  async function loadFromSheets() {
-    if (!SCRIPT_URL || !sesion) return;
-    try {
-      setStatus('loading');
-      const pwd = sesion.rol === 'admin' ? 'sfc2627' :
-                  sesion.rol === 'club'   ? sesion.user :
-                  sesion.rol === 'arbitro'? 'arb2627' : '';
-
-      const url = SCRIPT_URL + '?action=getAll&pwd=' + pwd;
-      const r   = await fetch(url);
-      const j   = await r.json();
-      if (j.ok && j.data) {
-        if (j.data.equipos?.length)       DB.equipos       = j.data.equipos;
-        if (j.data.partidos?.length)      DB.partidos      = j.data.partidos;
-        if (j.data.goleadores?.length)    DB.goleadores    = j.data.goleadores;
-        if (j.data.noticias?.length)      DB.noticias      = j.data.noticias;
-        if (j.data.patrocinadores?.length)DB.patrocinadores= j.data.patrocinadores;
-        if (j.data.competiciones?.length) DB.competicion   = j.data.competiciones[0] || null;
-        localStorage.setItem('clubos_sfc', JSON.stringify(DB));
-        renderAll();
-        setStatus('ok');
-      } else {
-        setStatus('local');
-      }
-    } catch(e) {
-      console.error('Load error:', e);
-      setStatus('local');
+  function showSyncBanner(mensaje, fnCall) {
+    let b = document.getElementById('syncBanner');
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'syncBanner';
+      b.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1B3A5C;color:white;padding:10px 16px;border-radius:10px;display:flex;align-items:center;gap:10px;z-index:9999;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.3);max-width:90vw;';
+      document.body.appendChild(b);
     }
-  }
-
-  async function apiPost(action, data, pwd) {
-    if (!SCRIPT_URL) return;
-    try {
-      const params = new URLSearchParams({ action, pwd, ...data });
-      const r = await fetch(SCRIPT_URL + '?' + params.toString());
-      return await r.json();
-    } catch(e) { return {ok:false}; }
-  }
-
-  function setStatus(state) {
-    const bar = document.getElementById('syncStatusBar');
-    if (!bar) return;
-    const states = {
-      ok:      { bg:'#1E8449', txt:'✔ Conectado a Google Sheets' },
-      loading: { bg:'#2E6DA4', txt:'⏳ Cargando datos...' },
-      syncing: { bg:'#E8A020', txt:'⟳ Sincronizando...' },
-      local:   { bg:'#E67E22', txt:'⚠ Modo local — sin conexión' },
-      error:   { bg:'#C0392B', txt:'✖ Error de conexión' },
-    };
-    const s = states[state] || states.local;
-    bar.style.background = s.bg;
-    bar.textContent = s.txt;
-    bar.style.display = 'block';
-  }
-
-
-  // ══════════════════════════════════════════════════════════════
-  //  GESTIÓN DE COMPETICIÓN (legacy — sustituidas por versiones globales)
-  // ══════════════════════════════════════════════════════════════
-
-  function _legacyEditarCompeticion() {
-    if (!DB.competicion) return;
-    const c = DB.competicion;
-    document.getElementById('compNombre').value    = c.nombre    || '';
-    document.getElementById('compFormato').value   = c.formato   || 'liga1';
-    document.getElementById('compTemporada').value = c.temporada || '';
-    document.getElementById('compCategoria').value = c.categoria || '';
-    document.getElementById('compFechaIni').value  = c.fechaIni  || '';
-    document.getElementById('compFechaFin').value  = c.fechaFin  || '';
-    abrirModal('modalComp');
-  }
-
-  function _legacyEliminarCompeticion() {
-    if (!confirm('¿Eliminar la competición y todos sus partidos? Esta acción no se puede deshacer.')) return;
-    DB.competicion = null;
-    DB.partidos    = [];
-    DB.goleadores  = [];
-    DB.save();
-    renderCompeticion();
-    renderCalendario();
-    renderClasificacion();
-    renderGoleadores();
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  //  GENERADOR DE CALENDARIO
-  // ══════════════════════════════════════════════════════════════
-
-  function abrirGeneradorCalendario(compId) {
-    window._genCompId = compId || (DB.competiciones?.[0]?.id);
-    const equiposComp = (DB.equipos||[]).filter(e=>e.competicionId===window._genCompId);
-    if (!window._genCompId) { alert('Selecciona una competición.'); return; }
-    if (equiposComp.length < 2) { alert('Necesitas al menos 2 equipos en esta competición.'); return; }
-    if (DB.partidos.length > 0) {
-      if (!confirm('Ya existe un calendario generado. ¿Deseas regenerarlo? Se perderán los partidos actuales.')) return;
-    }
-    abrirModal('modalGeneradorCalendario');
-    initGenerador();
-  }
-
-  function initGenerador() {
-    const comp = (DB.competiciones||[])[0] || DB.competicion;
-    // Set default values
-    document.getElementById('genFormato').value    = comp.formato || 'liga1';
-    document.getElementById('genDiaSemana').value  = '5'; // Viernes
-    document.getElementById('genHora').value       = '18:00';
-    document.getElementById('genFechaIni').value   = comp.fechaIni || '';
-    document.getElementById('genSegVuelta').checked = false;
-    document.getElementById('genPlayoff').value    = 'no';
-    document.getElementById('genTercer').checked   = false;
-    actualizarResumenGenerador();
-  }
-
-  function actualizarResumenGenerador() {
-    const nEq      = DB.equipos.length;
-    const formato  = document.getElementById('genFormato').value;
-    const segVuelta= document.getElementById('genSegVuelta').checked;
-    const playoff  = document.getElementById('genPlayoff').value;
-    const nEqReal  = nEq % 2 === 0 ? nEq : nEq + 1; // Add bye if odd
-    const nJornadas= nEqReal - 1;
-    const nPartPorJ= nEqReal / 2;
-    let totalJorn  = nJornadas;
-    let totalPart  = nJornadas * nPartPorJ;
-    if (segVuelta) { totalJorn *= 2; totalPart *= 2; }
-    if (playoff !== 'no') {
-      const nPO = parseInt(playoff);
-      totalJorn += Math.log2(nPO);
-      totalPart += nPO - 1;
-    }
-
-    const resEl = document.getElementById('genResumen');
-    resEl.innerHTML =
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px;">' +
-      '<div style="background:var(--gris-fondo);border-radius:8px;padding:12px;text-align:center;">' +
-        '<div style="font-size:1.6rem;font-weight:900;color:var(--azul);">' + nEq + '</div>' +
-        '<div style="font-size:11px;opacity:.6;">Equipos</div>' +
-      '</div>' +
-      '<div style="background:var(--gris-fondo);border-radius:8px;padding:12px;text-align:center;">' +
-        '<div style="font-size:1.6rem;font-weight:900;color:var(--azul);">' + totalJorn + '</div>' +
-        '<div style="font-size:11px;opacity:.6;">Jornadas</div>' +
-      '</div>' +
-      '<div style="background:var(--gris-fondo);border-radius:8px;padding:12px;text-align:center;">' +
-        '<div style="font-size:1.6rem;font-weight:900;color:var(--azul);">' + totalPart + '</div>' +
-        '<div style="font-size:11px;opacity:.6;">Partidos</div>' +
-      '</div>' +
-      '</div>' +
-      (nEq % 2 !== 0 ? '<div style="margin-top:8px;padding:8px 12px;background:#FEF9E7;border-radius:8px;font-size:12px;color:#D4AC0D;">⚠️ Número impar de equipos — se generarán jornadas de descanso automáticamente.</div>' : '');
-  }
-
-  function generarCalendarioFinal() {
-    const equipos   = (DB.equipos||[]).filter(e=>e.competicionId===window._genCompId);
-    const nEq       = equipos.length;
-    const segVuelta = document.getElementById('genSegVuelta').checked;
-    const playoff   = document.getElementById('genPlayoff').value;
-    const tercer    = document.getElementById('genTercer').checked;
-    const diaSem    = parseInt(document.getElementById('genDiaSemana').value);
-    const hora      = document.getElementById('genHora').value;
-    const fechaIni  = document.getElementById('genFechaIni').value;
-    const formato   = document.getElementById('genFormato').value;
-
-    let partidos = [];
-
-    if (formato === 'liga1' || formato === 'liga2' || segVuelta) {
-      partidos = generarLiga(equipos, hora, fechaIni, diaSem, segVuelta || formato === 'liga2');
-    } else if (formato === 'eliminatoria') {
-      partidos = generarEliminatoria(equipos, hora, fechaIni, diaSem);
-    }
-
-    // Add playoff if requested
-    if (playoff !== 'no' && (formato === 'liga1' || formato === 'liga2')) {
-      const nPO = parseInt(playoff);
-      const playoffParts = generarPlayoff(nPO, hora, fechaIni, diaSem, partidos.length, tercer);
-      partidos = partidos.concat(playoffParts);
-    }
-
-    DB.partidos = partidos;
-    DB.save();
-    cerrarModal('modalGeneradorCalendario');
-    activarTab('calendario');
-    renderCalendario();
-    alert('✅ Calendario generado con ' + partidos.length + ' partidos en ' +
-      [...new Set(partidos.map(p=>p.jornada))].length + ' jornadas.');
-  }
-
-  // ── Round Robin (método círculo rotativo) ─────────────────
-  function generarLiga(equipos, hora, fechaIni, diaSem, dosVueltas) {
-    const lista = [...equipos];
-    if (lista.length % 2 !== 0) lista.push({ id:'BYE', nombre:'Descanso' });
-    const n = lista.length;
-    const nJornadas = n - 1;
-    const partidos  = [];
-    let   fechaBase = fechaIni ? new Date(fechaIni) : new Date();
-
-    // Advance to first match day
-    while (fechaBase.getDay() !== diaSem) fechaBase.setDate(fechaBase.getDate() + 1);
-
-    for (let vuelta = 0; vuelta < (dosVueltas ? 2 : 1); vuelta++) {
-      const pivote = lista[0];
-      const rotar  = lista.slice(1);
-
-      for (let j = 0; j < nJornadas; j++) {
-        const circle = [pivote, ...rotar];
-        const jornada = vuelta * nJornadas + j + 1;
-        const fechaJ = new Date(fechaBase);
-        fechaJ.setDate(fechaBase.getDate() + (vuelta * nJornadas + j) * 7);
-        const fechaStr = fechaJ.toISOString().split('T')[0];
-
-        for (let i = 0; i < n / 2; i++) {
-          const local     = vuelta === 0 ? circle[i] : circle[n-1-i];
-          const visitante = vuelta === 0 ? circle[n-1-i] : circle[i];
-          if (local.id === 'BYE' || visitante.id === 'BYE') continue;
-          partidos.push({
-            id:                'p_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-            competicionId:     window._genCompId || '',
-            jornada,
-            fase:              'Liga' + (dosVueltas ? (vuelta===0?' 1ª Vuelta':' 2ª Vuelta') : ''),
-            equipoLocalId:     local.id,
-            equipoLocalNombre: local.nombre,
-            equipoVisitanteId:     visitante.id,
-            equipoVisitanteNombre: visitante.nombre,
-            fecha:  fechaStr,
-            hora,
-            estado: 'pendiente',
-            golesLocal: '', golesVisitante: '',
-          });
-        }
-        // Rotate
-        rotar.push(rotar.shift());
-      }
-    }
-    return partidos;
-  }
-
-  // ── Eliminatoria ──────────────────────────────────────────
-  function generarEliminatoria(equipos, hora, fechaIni, diaSem) {
-    const n = equipos.length;
-    const rondas = Math.ceil(Math.log2(n));
-    const totalSlots = Math.pow(2, rondas);
-    const byes = totalSlots - n;
-    const lista = [...equipos];
-    // Shuffle
-    for (let i = lista.length-1; i > 0; i--) {
-      const j = Math.floor(Math.random()*(i+1));
-      [lista[i],lista[j]] = [lista[j],lista[i]];
-    }
-    // Add byes
-    for (let i = 0; i < byes; i++) lista.push({id:'BYE',nombre:'Descanso'});
-
-    const partidos = [];
-    let fechaBase = fechaIni ? new Date(fechaIni) : new Date();
-    while (fechaBase.getDay() !== diaSem) fechaBase.setDate(fechaBase.getDate()+1);
-    const fasesNombres = ['Final','Semifinal','Cuartos','Octavos','16avos','32avos'];
-
-    for (let ronda = 0; ronda < rondas; ronda++) {
-      const nPartRonda = totalSlots / Math.pow(2, ronda+1);
-      const faseName = fasesNombres[rondas-ronda-1] || ('Ronda '+(ronda+1));
-      const fechaR = new Date(fechaBase);
-      fechaR.setDate(fechaBase.getDate() + ronda * 7);
-      const fechaStr = fechaR.toISOString().split('T')[0];
-      for (let i = 0; i < nPartRonda; i++) {
-        const local     = ronda===0 ? lista[i*2]   : {id:'TBD',nombre:'Por determinar'};
-        const visitante = ronda===0 ? lista[i*2+1] : {id:'TBD',nombre:'Por determinar'};
-        if (local.id==='BYE' || visitante.id==='BYE') continue;
-        partidos.push({
-          id: 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
-          jornada: ronda+1, fase: faseName,
-          equipoLocalId: local.id, equipoLocalNombre: local.nombre,
-          equipoVisitanteId: visitante.id, equipoVisitanteNombre: visitante.nombre,
-          fecha: fechaStr, hora, estado: 'pendiente',
-          golesLocal: '', golesVisitante: '',
-        });
-      }
-    }
-    return partidos;
-  }
-
-  // ── Abrir generador de calendario ─────────────────────────────────────────
-  function generarPlayoff(nEquipos, hora, fechaIni, diaSem, offsetJornadas, tercer) {
-    const partidos = [];
-    const rondas = Math.log2(nEquipos);
-    let fechaBase = fechaIni ? new Date(fechaIni) : new Date();
-    while (fechaBase.getDay() !== diaSem) fechaBase.setDate(fechaBase.getDate()+1);
-    const fasesNombres = ['Final Playoff','Semifinal Playoff','Cuartos Playoff'];
-    for (let r = 0; r < rondas; r++) {
-      const nP = nEquipos / Math.pow(2, r+1);
-      const faseName = fasesNombres[rondas-r-1] || ('PO Ronda '+(r+1));
-      const fechaR = new Date(fechaBase);
-      fechaR.setDate(fechaBase.getDate() + (offsetJornadas + r) * 7);
-      const fechaStr = fechaR.toISOString().split('T')[0];
-      for (let i = 0; i < nP; i++) {
-        partidos.push({
-          id: 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
-          jornada: offsetJornadas+r+1, fase: faseName,
-          equipoLocalId: 'TBD', equipoLocalNombre: 'Clasificado '+(i*2+1)+'º',
-          equipoVisitanteId: 'TBD', equipoVisitanteNombre: 'Clasificado '+(i*2+2)+'º',
-          fecha: fechaStr, hora, estado: 'pendiente',
-          golesLocal: '', golesVisitante: '',
-        });
-      }
-    }
-    if (tercer) {
-      const fechaT = new Date(fechaBase);
-      fechaT.setDate(fechaBase.getDate() + (offsetJornadas + rondas - 1) * 7);
-      partidos.push({
-        id: 'p_tercer_'+Date.now(),
-        jornada: offsetJornadas+rondas, fase: '3er y 4º Puesto',
-        equipoLocalId: 'TBD', equipoLocalNombre: 'Perdedor Semifinal 1',
-        equipoVisitanteId: 'TBD', equipoVisitanteNombre: 'Perdedor Semifinal 2',
-        fecha: fechaT.toISOString().split('T')[0], hora, estado: 'pendiente',
-        golesLocal: '', golesVisitante: '',
-      });
-    }
-    return partidos;
-  }
-
-  // ── PDF Calendario ────────────────────────────────────────
-  function exportarCalendarioPDF() {
-    const comp  = DB.competicion;
-    if (!comp) return;
-    const jornadas = [...new Set(DB.partidos.map(p=>p.jornada))].sort((a,b)=>a-b);
-
-    let tablas = jornadas.map(j => {
-      const parts = DB.partidos.filter(p=>p.jornada===j);
-      const fase = parts[0]?.fase || ('Jornada '+j);
-      const filas = parts.map(p =>
-        '<tr><td style="padding:6px 10px;">'+p.equipoLocalNombre+'</td>' +
-        '<td style="padding:6px 10px;text-align:center;font-weight:700;">' +
-          (p.golesLocal!==''&&p.golesVisitante!=='' ? p.golesLocal+' - '+p.golesVisitante : 'vs') +
-        '</td>' +
-        '<td style="padding:6px 10px;">'+p.equipoVisitanteNombre+'</td>' +
-        '<td style="padding:6px 10px;font-size:12px;color:#666;">'+p.fecha+' '+p.hora+'</td>' +
-        '<td style="padding:6px 10px;font-size:11px;">' +
-          '<span style="padding:2px 8px;border-radius:10px;background:'+(p.estado==='jugado'?'#D5F5E3':p.estado==='aplazado'?'#FEF9E7':'#EBF5FB')+'">'+p.estado+'</span>' +
-        '</td></tr>'
-      ).join('');
-      return '<h3 style="margin:18px 0 6px;color:#0D1B2A;">'+fase+' — Jornada '+j+'</h3>' +
-        '<table style="width:100%;border-collapse:collapse;font-size:13px;">' +
-        '<thead><tr style="background:#0D1B2A;color:white;">' +
-        '<th style="padding:8px 10px;text-align:left;">Local</th>' +
-        '<th style="padding:8px 10px;text-align:center;width:80px;">Resultado</th>' +
-        '<th style="padding:8px 10px;text-align:left;">Visitante</th>' +
-        '<th style="padding:8px 10px;text-align:left;">Fecha y hora</th>' +
-        '<th style="padding:8px 10px;text-align:left;">Estado</th>' +
-        '</tr></thead><tbody>'+filas+'</tbody></table>';
-    }).join('');
-
-    const pdfHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-      '<title>Calendario - '+comp.nombre+'</title>' +
-      '<style>body{font-family:Arial,sans-serif;padding:24px;color:#222;}' +
-      '.header{background:#0D1B2A;color:white;padding:20px;border-radius:8px;margin-bottom:24px;}' +
-      'tbody tr:nth-child(even){background:#f9f9f7;}' +
-      '@media print{body{padding:0;}}' +
-      '</style></head><body>' +
-      '<div class="header"><h1 style="margin:0;">'+comp.nombre+'</h1>' +
-      '<p style="margin:4px 0;opacity:.7;">'+comp.temporada+' · '+comp.categoria+'</p></div>' +
-      tablas +
-      '</body></html>';
-
-    const win = window.open('','_blank');
-    win.document.write(pdfHTML);
-    win.document.close();
-    setTimeout(()=>win.print(),500);
-  }
-
-
-  function actualizarPreviewEquipo() {
-    const c1 = document.getElementById('eq1CamisetaColor')?.value||'#C8102E';
-    const p1 = document.getElementById('eq1PantaloonColor')?.value||'#111111';
-    const c2 = document.getElementById('eq2CamisetaColor')?.value||'#FFFFFF';
-    const p2 = document.getElementById('eq2PantaloonColor')?.value||'#FFFFFF';
-    const s = (id,v)=>{const el=document.getElementById(id);if(el)el.style.background=v;};
-    s('prev1Camiseta',c1); s('prev1Pantalon',p1);
-    s('prev2Camiseta',c2); s('prev2Pantalon',p2);
-    const h = (id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-    h('eq1CamisetaHex',c1); h('eq1PantaloonHex',p1);
-    h('eq2CamisetaHex',c2); h('eq2PantaloonHex',p2);
-  }
-
-
-  // ══════════════════════════════════════════════════════
-  //  SYNC — manual per-action
-  // ══════════════════════════════════════════════════════
-  function showSyncBanner(mensaje, accion) {
-    let banner = document.getElementById('syncBanner');
-    if (!banner) {
-      banner = document.createElement('div');
-      banner.id = 'syncBanner';
-      banner.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);' +
-        'background:#1B3A5C;color:white;padding:10px 18px;border-radius:10px;' +
-        'display:flex;align-items:center;gap:12px;z-index:9999;font-size:13px;' +
-        'box-shadow:0 4px 20px rgba(0,0,0,.3);min-width:260px;max-width:90vw;';
-      document.body.appendChild(banner);
-    }
-    banner.innerHTML = '<span>' + mensaje + '</span>' +
-      '<button onclick="' + accion + '" style="background:var(--rojo);color:white;border:none;' +
-      'border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">' +
-      '☁️ Guardar</button>' +
-      '<button onclick="hideSyncBanner()" ' +
-      'style="background:none;border:none;color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;padding:0 4px;">✕</button>';
-    // Auto-hide after 10s
+    b.innerHTML =
+      '<span>' + mensaje + '</span>' +
+      '<button onclick="' + fnCall + ';hideSyncBanner();" style="background:var(--rojo);color:white;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;">☁️ Guardar</button>' +
+      '<button onclick="hideSyncBanner()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:18px;cursor:pointer;line-height:1;">✕</button>';
     clearTimeout(window._bannerTimer);
-    window._bannerTimer = setTimeout(() => { if(banner) banner.remove(); }, 10000);
+    window._bannerTimer = setTimeout(hideSyncBanner, 15000);
   }
 
   function hideSyncBanner() {
@@ -2447,39 +2048,30 @@ console.log('Familias: acceso directo (sin contraseña)');
   }
 
   async function syncRecord(action, data) {
-    const btn = document.querySelector('#syncBanner button');
-    if (btn) { btn.textContent = '⏳...'; btn.disabled = true; }
+    setSyncStatus('syncing');
     try {
-      const pwd = encodeURIComponent(
-        sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':''
-      );
-      const url = SCRIPT_URL + '?action=' + action + '&pwd=' + pwd +
-        '&data=' + encodeURIComponent(JSON.stringify(data));
-      await fetch(url, { mode: 'no-cors' });
-      hideSyncBanner();
-    } catch(e) {
-      const btn2 = document.querySelector('#syncBanner button');
-      if (btn2) { btn2.textContent = '↻ Reintentar'; btn2.disabled = false; }
-    }
+      const pwd = encodeURIComponent(sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'');
+      const url = SCRIPT_URL + '?action=' + action + '&pwd=' + pwd + '&data=' + encodeURIComponent(JSON.stringify(data));
+      await fetch(url, {mode:'no-cors'});
+      setSyncStatus('ok');
+    } catch(e) { setSyncStatus('error'); }
   }
 
-  // Manual full sync button in topbar
   async function manualSync() {
+    if (!SCRIPT_URL || !sesion) return;
     setSyncStatus('loading');
     try {
-      const pwd = encodeURIComponent(
-        sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':''
-      );
+      const pwd = encodeURIComponent(sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'');
       const r = await fetch(SCRIPT_URL + '?action=getAll&pwd=' + pwd);
       const j = await r.json();
       if (j.ok && j.data) {
-        const d = j.data;
-        const del = DB._deleted||{};
+        const d   = j.data;
+        const del = DB._deleted || {};
         const merge = (local, remote) => {
           const map = {};
-          (local||[]).forEach(x=>{ if(x?.id&&!del[x.id]) map[x.id]=x; });
-          (remote||[]).forEach(x=>{ if(x?.id&&!del[x.id]) map[x.id]=x; });
-          Object.keys(del).forEach(k=>delete map[k]);
+          (local||[]).forEach(x => { if (x?.id && !del[x.id]) map[x.id] = x; });
+          (remote||[]).forEach(x => { if (x?.id && !del[x.id]) map[x.id] = x; });
+          Object.keys(del).forEach(k => delete map[k]);
           return Object.values(map);
         };
         if (d.competiciones?.length) DB.competiciones = merge(DB.competiciones, d.competiciones);
@@ -2497,16 +2089,7 @@ console.log('Familias: acceso directo (sin contraseña)');
     } catch(e) { setSyncStatus('error'); }
   }
 
-  function setSyncStatus(state) {
-    const label = document.getElementById('syncLabel');
-    const btn   = document.getElementById('btnSync');
-    if (!label) return;
-    const s = { ok:'↻ Sync', syncing:'Guardando...', loading:'Cargando...', error:'Error ⚠️', local:'↻ Sync' };
-    label.textContent = s[state]||'↻ Sync';
-    if (btn) btn.style.borderColor = state==='error'?'rgba(200,16,46,.6)':state==='loading'||state==='syncing'?'rgba(212,160,23,.6)':'rgba(255,255,255,.25)';
-    if (state==='ok'||state==='local') setTimeout(()=>{ if(label) label.textContent='↻ Sync'; if(btn) btn.style.borderColor='rgba(255,255,255,.25)'; }, 2000);
-  }
-  function setStatus(s) { setSyncStatus(s); }
+  async function syncToSheets() { /* deprecated — use syncRecord */ }
 
 </script>
 <div id="syncStatusBar" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:6px;text-align:center;font-size:12px;font-weight:700;color:white;z-index:9999;"></div>
