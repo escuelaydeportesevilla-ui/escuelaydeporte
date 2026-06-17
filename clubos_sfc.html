@@ -1510,7 +1510,11 @@ function toggleJugadorConvocado(id) {
 
 function eliminarJugador(id) {
   if (!confirm('¿Eliminar jugador?')) return;
-  DB.jugadores = DB.jugadores.filter(j=>j.id!==id); save(); toast('Jugador eliminado'); renderJugadores();
+  DB.jugadores = (DB.jugadores||[]).filter(j=>j.id!==id);
+  // Mark as deleted so merge never restores it
+  if (!DB._deleted) DB._deleted = {};
+  DB._deleted['jug_'+id] = Date.now();
+  save(); renderJugadores();
 }
 
 // ══════════════════════════════════════════════════════
@@ -2018,7 +2022,7 @@ console.log('Familias: acceso directo (sin contraseña)');
           noticias:      DB.noticias      || [],
           sugerencias:   DB.sugerencias   || [],
         }));
-        const r = await fetch(SCRIPT_URL + '?action=saveAll&pwd=' + encodeURIComponent(pwd) + '&data=' + data);
+        const r = await fetch(SCRIPT_URL + '?action=saveAll&pwd=' + encodeURIComponent(pwd) + '&data=' + data, {redirect:'follow'});
         const j = await r.json();
         if (j.ok) setStatus('ok'); else setStatus('error');
       } catch(e) {
@@ -2042,16 +2046,19 @@ console.log('Familias: acceso directo (sin contraseña)');
       if (j.ok && j.data) {
         const d = j.data;
         // MERGE by id: Sheet is master, never lose local records not yet synced
-        const merge = (local, remote) => {
+        const merge = (local, remote, prefix) => {
           if (!remote?.length) return local || [];
+          const deleted = DB._deleted || {};
           const map = {};
           (local||[]).forEach(x=>{ if(x?.id) map[x.id]=x; });
-          (remote||[]).forEach(x=>{ if(x?.id) map[x.id]=x; });
+          (remote||[]).forEach(x=>{
+            if(x?.id && !deleted[(prefix||'')+x.id]) map[x.id]=x;
+          });
           return Object.values(map);
         };
-        DB.competiciones  = merge(DB.competiciones,  d.competiciones);
-        DB.equipos        = merge(DB.equipos,        d.equipos);
-        DB.jugadores      = merge(DB.jugadores,      d.jugadores);
+        DB.competiciones  = merge(DB.competiciones,  d.competiciones, 'comp_');
+        DB.equipos        = merge(DB.equipos,        d.equipos, 'eq_');
+        DB.jugadores      = merge(DB.jugadores,      d.jugadores, 'jug_');
         DB.partidos       = merge(DB.partidos,       d.partidos);
         DB.goleadores     = merge(DB.goleadores,     d.goleadores);
         DB.noticias       = merge(DB.noticias,       d.noticias);
