@@ -611,6 +611,10 @@ tbody td.center{text-align:center;}
     <div class="topbar-right">
       <span class="rol-badge" id="rolBadge">Admin</span>
       <span id="tbUserName" style="font-size:12px;color:var(--gris-suave);"></span>
+      <button id="btnSync" onclick="manualSync()" title="Sincronizar con servidor"
+        style="background:none;border:1.5px solid rgba(255,255,255,.3);color:white;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+        <span id="syncIcon">☁️</span><span id="syncLabel" style="display:none;">Sync</span>
+      </button>
       <button class="btn-logout" onclick="logout()">← Salir</button>
     </div>
   </div>
@@ -1232,6 +1236,8 @@ function eliminarCompeticion(id) {
   DB.competiciones = (DB.competiciones||[]).filter(c=>c.id!==id);
   DB.partidos      = DB.partidos.filter(p=>p.competicionId!==id);
   DB.goleadores    = DB.goleadores.filter(g=>g.competicionId!==id);
+  if(!DB._deleted)DB._deleted={};
+  DB._deleted[id]=Date.now();
   save(); renderAll();
 }
 
@@ -1387,6 +1393,8 @@ function guardarEquipo() {
 function eliminarEquipo(id) {
   if (!confirm('¿Eliminar este equipo?')) return;
   DB.equipos = DB.equipos.filter(e=>e.id!==id);
+  if(!DB._deleted)DB._deleted={};
+  DB._deleted[id]=Date.now();
   save(); toast('Equipo eliminado'); renderAll();
 }
 
@@ -2089,29 +2097,37 @@ console.log('Familias: acceso directo (sin contraseña)');
   async function syncToSheets() {
     if (!SCRIPT_URL || !sesion) return;
     clearTimeout(_syncTimer);
-    _syncTimer = setTimeout(async () => {
-      try {
-        setStatus('syncing');
-        const pwd = sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'';
-        // Only send what this role owns
-        const payload = { action:'saveAll', pwd, data: JSON.stringify({
-          competiciones: sesion.rol==='admin' ? (DB.competiciones||[]) : [],
-          equipos:       sesion.rol==='admin' ? (DB.equipos||[]) : (DB.equipos||[]).filter(e=>e.clubId===sesion.user),
-          jugadores:     sesion.rol==='admin' ? (DB.jugadores||[]) : (DB.jugadores||[]).filter(j=>j.clubId===sesion.user),
-          partidos:      sesion.rol==='admin' ? (DB.partidos||[]) : [],
-          goleadores:    sesion.rol==='admin' ? (DB.goleadores||[]) : [],
-          noticias:      sesion.rol==='admin' ? (DB.noticias||[]) : [],
-          actas:         (sesion.rol==='admin'||sesion.rol==='arbitro') ? (DB.actas||[]) : [],
-          sugerencias:   (DB.sugerencias||[]).filter(s=>s.clubId===sesion.user||sesion.rol==='admin'),
-        })};
-        await fetch(SCRIPT_URL, {
-          method:'POST', mode:'cors',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify(payload)
-        });
-        setStatus('ok');
-      } catch(e) { setStatus('error'); }
-    }, 2000);
+    _syncTimer = setTimeout(() => _doSync(), 2000);
+  }
+
+  async function manualSync() {
+    await loadFromSheets();
+  }
+
+  async function _doSync() {
+    if (!SCRIPT_URL || !sesion) return;
+    setSyncStatus('syncing');
+    try {
+      const pwd = sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'';
+      const payload = { action:'saveAll', pwd, data: JSON.stringify({
+        competiciones: sesion.rol==='admin' ? (DB.competiciones||[]) : [],
+        equipos:       sesion.rol==='admin' ? (DB.equipos||[]) : (DB.equipos||[]).filter(e=>e.clubId===sesion.user),
+        jugadores:     sesion.rol==='admin' ? (DB.jugadores||[]) : (DB.jugadores||[]).filter(j=>j.clubId===sesion.user),
+        partidos:      sesion.rol==='admin' ? (DB.partidos||[]) : [],
+        goleadores:    sesion.rol==='admin' ? (DB.goleadores||[]) : [],
+        noticias:      sesion.rol==='admin' ? (DB.noticias||[]) : [],
+        actas:         (sesion.rol==='admin'||sesion.rol==='arbitro') ? (DB.actas||[]) : [],
+        sugerencias:   (DB.sugerencias||[]).filter(s=>s.clubId===sesion.user||sesion.rol==='admin'),
+        _deleted:      DB._deleted||{},
+      })};
+      const r = await fetch(SCRIPT_URL, {
+        method:'POST', mode:'cors',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const j = await r.json();
+      setSyncStatus(j.ok?'ok':'error');
+    } catch(e) { setSyncStatus('error'); }
   }
 
   async function loadFromSheets() {
@@ -2129,6 +2145,8 @@ console.log('Familias: acceso directo (sin contraseña)');
           const map = {};
           (local||[]).forEach(x=>{ if(x?.id&&!del[x.id]) map[x.id]=x; });
           (remote||[]).forEach(x=>{ if(x?.id&&!del[x.id]) map[x.id]=x; });
+          // Re-apply local deletes over remote
+          Object.keys(del).forEach(k=>{ delete map[k]; });
           return Object.values(map);
         };
         if (d.competiciones?.length) DB.competiciones = merge(DB.competiciones, d.competiciones);
@@ -2152,21 +2170,25 @@ console.log('Familias: acceso directo (sin contraseña)');
   }
 
 
-  function setStatus(state) {
-    const bar = document.getElementById('syncStatusBar');
-    if (!bar) return;
-    const states = {
-      ok:      { bg:'#1E8449', txt:'✔ Conectado a Google Sheets' },
-      loading: { bg:'#2E6DA4', txt:'⏳ Cargando datos...' },
-      syncing: { bg:'#E8A020', txt:'⟳ Sincronizando...' },
-      local:   { bg:'#E67E22', txt:'⚠ Modo local — sin conexión' },
-      error:   { bg:'#C0392B', txt:'✖ Error de conexión' },
+  function setSyncStatus(state) {
+    const icon  = document.getElementById('syncIcon');
+    const label = document.getElementById('syncLabel');
+    const btn   = document.getElementById('btnSync');
+    if (!icon) return;
+    const s = {
+      ok:      {icon:'☁️', color:'rgba(255,255,255,.3)',  spin:false},
+      syncing: {icon:'🔄', color:'rgba(212,160,23,.5)',   spin:true },
+      loading: {icon:'⬇️', color:'rgba(46,109,164,.5)',   spin:true },
+      error:   {icon:'⚠️', color:'rgba(200,16,46,.5)',    spin:false},
+      local:   {icon:'💾', color:'rgba(230,126,34,.5)',   spin:false},
     };
-    const s = states[state] || states.local;
-    bar.style.background = s.bg;
-    bar.textContent = s.txt;
-    bar.style.display = 'block';
+    const st = s[state]||s.local;
+    icon.textContent = st.icon;
+    if(btn) btn.style.borderColor = st.color;
+    if(label) { label.style.display=''; label.textContent=state==='syncing'?'Guardando...':state==='loading'?'Cargando...':state==='error'?'Error':''; setTimeout(()=>{ if(label) label.style.display='none'; },2000); }
   }
+  // Keep old name for compatibility
+  function setStatus(state) { setSyncStatus(state); }
 
 
   // ══════════════════════════════════════════════════════════════
@@ -2731,7 +2753,7 @@ console.log('Familias: acceso directo (sin contraseña)');
   }
 
 </script>
-<div id="syncStatusBar" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:6px;text-align:center;font-size:12px;font-weight:700;color:white;z-index:9999;"></div>
+
 
 <!-- ══ MODAL GENERADOR CALENDARIO ══ -->
 <div class="modal" id="modalGeneradorCalendario">
