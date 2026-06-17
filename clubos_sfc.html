@@ -611,9 +611,9 @@ tbody td.center{text-align:center;}
     <div class="topbar-right">
       <span class="rol-badge" id="rolBadge">Admin</span>
       <span id="tbUserName" style="font-size:12px;color:var(--gris-suave);"></span>
-      <button id="btnSync" onclick="manualSync()" title="Sincronizar con servidor"
-        style="background:none;border:1.5px solid rgba(255,255,255,.3);color:white;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;">
-        <span id="syncIcon">☁️</span><span id="syncLabel" style="display:none;">Sync</span>
+      <button id="btnSync" onclick="manualSync()"
+        style="background:none;border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;">
+        <span id="syncLabel">↻ Sync</span>
       </button>
       <button class="btn-logout" onclick="logout()">← Salir</button>
     </div>
@@ -983,7 +983,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxssTp9nLzWH9cghRy0Q9bxpTeU7ARXUeNUkEehXJmO_Pj-R_3MGMzS51cAAtiNgaBj/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXuR_ScVFX8gepJWn1BvM2wnKXET_3a4-r1SiMsee4QLaqnyppY9Zl5kOeAmq_McrY/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -2109,7 +2109,7 @@ console.log('Familias: acceso directo (sin contraseña)');
     setSyncStatus('syncing');
     try {
       const pwd = sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'';
-      const payload = { action:'saveAll', pwd, data: JSON.stringify({
+      const data = encodeURIComponent(JSON.stringify({
         competiciones: sesion.rol==='admin' ? (DB.competiciones||[]) : [],
         equipos:       sesion.rol==='admin' ? (DB.equipos||[]) : (DB.equipos||[]).filter(e=>e.clubId===sesion.user),
         jugadores:     sesion.rol==='admin' ? (DB.jugadores||[]) : (DB.jugadores||[]).filter(j=>j.clubId===sesion.user),
@@ -2119,14 +2119,11 @@ console.log('Familias: acceso directo (sin contraseña)');
         actas:         (sesion.rol==='admin'||sesion.rol==='arbitro') ? (DB.actas||[]) : [],
         sugerencias:   (DB.sugerencias||[]).filter(s=>s.clubId===sesion.user||sesion.rol==='admin'),
         _deleted:      DB._deleted||{},
-      })};
-      const r = await fetch(SCRIPT_URL, {
-        method:'POST', mode:'cors',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      const j = await r.json();
-      setSyncStatus(j.ok?'ok':'error');
+      }));
+      const url = SCRIPT_URL+'?action=saveAll&pwd='+encodeURIComponent(pwd)+'&data='+data;
+      // no-cors GET — fire and forget, no response needed
+      await fetch(url, {mode:'no-cors'});
+      setSyncStatus('ok');
     } catch(e) { setSyncStatus('error'); }
   }
 
@@ -2171,23 +2168,15 @@ console.log('Familias: acceso directo (sin contraseña)');
 
 
   function setSyncStatus(state) {
-    const icon  = document.getElementById('syncIcon');
     const label = document.getElementById('syncLabel');
     const btn   = document.getElementById('btnSync');
-    if (!icon) return;
-    const s = {
-      ok:      {icon:'☁️', color:'rgba(255,255,255,.3)',  spin:false},
-      syncing: {icon:'🔄', color:'rgba(212,160,23,.5)',   spin:true },
-      loading: {icon:'⬇️', color:'rgba(46,109,164,.5)',   spin:true },
-      error:   {icon:'⚠️', color:'rgba(200,16,46,.5)',    spin:false},
-      local:   {icon:'💾', color:'rgba(230,126,34,.5)',   spin:false},
-    };
-    const st = s[state]||s.local;
-    icon.textContent = st.icon;
-    if(btn) btn.style.borderColor = st.color;
-    if(label) { label.style.display=''; label.textContent=state==='syncing'?'Guardando...':state==='loading'?'Cargando...':state==='error'?'Error':''; setTimeout(()=>{ if(label) label.style.display='none'; },2000); }
+    if (!label) return;
+    const s = { ok:'↻ Sync', syncing:'Guardando...', loading:'Cargando...', error:'Error ⚠️', local:'↻ Sync' };
+    label.textContent = s[state]||'↻ Sync';
+    if (btn) btn.style.borderColor = state==='error'?'rgba(200,16,46,.6)':state==='syncing'||state==='loading'?'rgba(212,160,23,.6)':'rgba(255,255,255,.25)';
+    if (state==='ok'||state==='local') setTimeout(()=>{ label.textContent='↻ Sync'; if(btn) btn.style.borderColor='rgba(255,255,255,.25)'; }, 2000);
   }
-  // Keep old name for compatibility
+  function setStatus(state) { setSyncStatus(state); }
   function setStatus(state) { setSyncStatus(state); }
 
 
