@@ -514,6 +514,26 @@ tbody td.center{text-align:center;}
   .lc-desc{display:none;}
 }
 
+
+/* ── Equipos: tarjetas en móvil ── */
+@media (max-width:768px){
+  .tabla-equipos-desktop{display:none;}
+  .cards-equipos{display:flex;flex-direction:column;gap:10px;}
+  .card-equipo{background:white;border-radius:10px;padding:12px;
+    box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;align-items:center;gap:12px;}
+  .ceq-kit{display:flex;flex-direction:column;gap:2px;align-items:center;min-width:32px;}
+  .ceq-camiseta{width:28px;height:20px;border-radius:4px 4px 0 0;border:1px solid rgba(0,0,0,.15);}
+  .ceq-pantalon{width:22px;height:12px;border-radius:0 0 4px 4px;border:1px solid rgba(0,0,0,.15);}
+  .ceq-info{flex:1;}
+  .ceq-nombre{font-weight:700;font-size:14px;}
+  .ceq-meta{font-size:11px;color:var(--gris-suave);margin-top:2px;}
+  .ceq-actions{display:flex;gap:4px;align-items:center;}
+}
+@media (min-width:769px){
+  .cards-equipos{display:none;}
+  .tabla-equipos-desktop{display:block;}
+}
+
 /* ── Jugadores: tarjetas en móvil ── */
 @media (max-width:768px){
   .tabla-jugadores-desktop{display:none;}
@@ -1282,10 +1302,7 @@ function guardarComp() {
   const idx = DB.competiciones.findIndex(c=>c.id===rec.id);
   if (idx>=0) DB.competiciones[idx] = rec; else DB.competiciones.push(rec);
   window._editCompId = null;
-  save(); cerrarModal('modalComp'); renderAll();
-
-  const lastItem = (DB.competiciones||[]).slice(-1)[0];
-  if (lastItem) showSyncBanner('✅ Competición guardada localmente', "syncRecord('saveCollection',{col:'competiciones',items:[" + JSON.stringify(lastItem) + "]})");
+  save(); cerrarModal('modalComp'); renderAll(); _doSync();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1322,8 +1339,31 @@ function renderEquipos() {
     const comp = (DB.competiciones||[]).find(c=>c.id===compId);
     const compNombre = comp?.nombre || (compId==='__none__'?'Sin competición asignada':'Competición desconocida');
     html += `<div style="margin-bottom:24px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">${compNombre}</div>
-      <table class="tabla-base"><thead><tr>
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">${compNombre}</div>`;
+
+    // ── MOBILE CARDS ──
+    html += `<div class="cards-equipos">`;
+    equipos.forEach(e => {
+      const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
+      html += `<div class="card-equipo">
+        <div class="ceq-kit">
+          <div class="ceq-camiseta" style="background:${e.eq1Camiseta||'#ccc'};"></div>
+          <div class="ceq-pantalon" style="background:${e.eq1Pantalon||'#333'};"></div>
+        </div>
+        <div class="ceq-info">
+          <div class="ceq-nombre">${e.nombre}</div>
+          <div class="ceq-meta">${e.categoria||'—'}${isAdmin&&e.clubId?' · '+e.clubId:''} · ${nJug} jugadores</div>
+        </div>
+        <div class="ceq-actions">
+          ${(isAdmin||isClub)?`<button class="btn-xs btn-outline" onclick="editarEquipo('${e.id}')">✏️</button>`:''}
+          ${isAdmin?`<button class="btn-xs" style="background:#FADBD8;color:var(--rojo);border:none;border-radius:6px;" onclick="eliminarEquipo('${e.id}')">🗑</button>`:''}
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+
+    // ── DESKTOP TABLE ──
+    html += `<div class="tabla-equipos-desktop"><table class="tabla-base"><thead><tr>
         <th>Equipo</th><th>1ª Equipación</th><th>2ª Equipación</th><th>Categoría</th>
         ${isAdmin?'<th>Club</th>':''}
         <th>Jugadores</th><th>Acciones</th>
@@ -1347,7 +1387,7 @@ function renderEquipos() {
         </td>
       </tr>`;
     });
-    html += '</tbody></table></div>';
+    html += '</tbody></table></div></div>';
   });
   el.innerHTML = html;
 }
@@ -1414,10 +1454,7 @@ function guardarEquipo() {
   const idx = DB.equipos.findIndex(e=>e.id===editEquipoId);
   if (idx>=0) DB.equipos[idx]=rec; else DB.equipos.push(rec);
   editEquipoId = null;
-  save(); cerrarModal('modalEquipo'); renderEquipos(); renderCompeticion();
-
-  const lastItem = (DB.equipos||[]).slice(-1)[0];
-  if (lastItem) showSyncBanner('✅ Equipo guardado localmente', "syncRecord('saveCollection',{col:'equipos',items:[" + JSON.stringify(lastItem) + "]})");
+  save(); cerrarModal('modalEquipo'); renderEquipos(); renderCompeticion(); _doSync();
 }
 
 function eliminarEquipo(id) {
@@ -1425,7 +1462,7 @@ function eliminarEquipo(id) {
   DB.equipos = (DB.equipos||[]).filter(x => x.id !== id);
   if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
-  save(); renderEquipos();
+  save(); renderEquipos(); toast('Equipo eliminado'); _doSync();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1570,22 +1607,19 @@ function guardarJugador() {
   } else {
     DB.jugadores.push(j);
   }
-  save(); cerrarModal('modalJugador'); toast(editId?'Jugador actualizado':'Jugador añadido'); renderJugadores();
-
-  const lastItem = (DB.jugadores||[]).slice(-1)[0];
-  if (lastItem) showSyncBanner('✅ Jugador guardado localmente', "syncRecord('saveCollection',{col:'jugadores',items:[" + JSON.stringify(lastItem) + "]})");
+  save(); cerrarModal('modalJugador'); toast(editId?'Jugador actualizado':'Jugador añadido'); renderJugadores(); _doSync();
 }
 
 function toggleJugadorActivo(id) {
   const j = (DB.jugadores||[]).find(x=>x.id===id); if(!j) return;
   j.activo = j.activo === false ? true : false;
-  save(); renderJugadores();
+  save(); renderJugadores(); _doSync();
 }
 
 function toggleJugadorConvocado(id) {
   const j = (DB.jugadores||[]).find(x=>x.id===id); if(!j) return;
   j.convocado = !j.convocado;
-  save(); renderJugadores();
+  save(); renderJugadores(); _doSync();
 }
 
 function eliminarJugador(id) {
@@ -1593,7 +1627,7 @@ function eliminarJugador(id) {
   DB.jugadores = (DB.jugadores||[]).filter(x => x.id !== id);
   if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
-  localStorage.setItem('clubos_sfc_db', JSON.stringify(DB));
+  save();
   renderJugadores();
   toast('Jugador eliminado');
   _doSync();
@@ -2161,7 +2195,34 @@ console.log('Familias: acceso directo (sin contraseña)');
     } catch(e) { setSyncStatus('error'); }
   }
 
-  async function syncToSheets() { /* deprecated — use syncRecord */ }
+  async function _doSync() {
+    if (!SCRIPT_URL || !sesion) return;
+    setSyncStatus('syncing');
+    try {
+      const pwd = encodeURIComponent(
+        sesion.rol==='admin'  ? 'sfc2627' :
+        sesion.rol==='club'   ? sesion.user :
+        sesion.rol==='arbitro'? 'arb2627' : ''
+      );
+      const cols = ['competiciones','equipos','jugadores','partidos','actas','noticias','goleadores','sugerencias','patrocinadores'];
+      for (const col of cols) {
+        const items = DB[col];
+        if (!items || !items.length) continue;
+        const url = SCRIPT_URL + '?action=saveCollection&pwd=' + pwd +
+                    '&data=' + encodeURIComponent(JSON.stringify({col, items}));
+        await fetch(url, {mode:'no-cors'});
+      }
+      // enviar _deleted
+      if (DB._deleted && Object.keys(DB._deleted).length) {
+        const url = SCRIPT_URL + '?action=saveCollection&pwd=' + pwd +
+                    '&data=' + encodeURIComponent(JSON.stringify({col:'_deleted', items: DB._deleted}));
+        await fetch(url, {mode:'no-cors'});
+      }
+      setSyncStatus('ok');
+    } catch(e) { setSyncStatus('error'); }
+  }
+
+  async function syncToSheets() { /* deprecated — use _doSync */ }
 
 </script>
 <div id="syncStatusBar" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:6px;text-align:center;font-size:12px;font-weight:700;color:white;z-index:9999;"></div>
