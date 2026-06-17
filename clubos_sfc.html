@@ -469,6 +469,65 @@ tbody td.center{text-align:center;}
   .topbar{padding:0 14px;}
   .main{padding:20px 14px 48px;}
 }
+
+@media (max-width:768px){
+  body{font-size:14px;}
+  .topbar{padding:8px 12px;}
+  .topbar-left .tb-logo-text .tb-club{font-size:1.1rem;}
+  .topbar-right{gap:6px;}
+  #btnSync{padding:5px 10px;font-size:12px;}
+  #btnSync span[style*="font-size:16px"]{font-size:13px!important;}
+  .btn-logout{padding:5px 10px;font-size:12px;}
+  .nav-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .nav-tabs{flex-wrap:nowrap;gap:2px;padding:4px 6px;}
+  .nav-tab{padding:6px 8px;font-size:10px;white-space:nowrap;}
+  .nav-tab .tab-label{display:none;}
+  .nav-tab.active .tab-label{display:block;}
+  .main{padding:10px 8px 80px;}
+  .comp-banner{flex-direction:column;gap:8px;padding:12px;}
+  .comp-banner-title{font-size:1rem;}
+  .stats-row{grid-template-columns:repeat(2,1fr);gap:8px;}
+  .stat-card{padding:10px 6px;}
+  .sv{font-size:1.5rem;}
+  .card{padding:12px 10px;}
+  .form-grid{grid-template-columns:1fr;}
+  .form-full{grid-column:1;}
+  .modal-box{margin:8px;max-height:92vh;overflow-y:auto;border-radius:12px;}
+  .patr-grid{grid-template-columns:repeat(2,1fr);}
+  .section-header{flex-wrap:wrap;gap:6px;}
+  .section-header h2{font-size:0.95rem;}
+  .btn{padding:7px 12px;font-size:13px;}
+  .btn-sm{padding:4px 9px;font-size:12px;}
+  .btn-xs{padding:3px 7px;font-size:11px;}
+}
+@media (max-width:480px){
+  .portada-hero{padding:20px 12px;}
+  .hero-title{font-size:2rem;}
+  .login-cards{gap:8px;}
+  .login-card{padding:14px 10px;min-width:100px;}
+  .lc-icon{font-size:1.6rem;}
+  .lc-role{font-size:12px;}
+  .lc-desc{display:none;}
+}
+
+/* ── Jugadores: tarjetas en móvil ── */
+@media (max-width:768px){
+  .tabla-jugadores-desktop{display:none;}
+  .cards-jugadores{display:flex;flex-direction:column;gap:8px;}
+  .card-jugador{background:white;border-radius:10px;padding:12px;
+    box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;align-items:center;gap:10px;}
+  .cj-dorsal{font-size:1.1rem;font-weight:900;color:var(--rojo);min-width:28px;text-align:center;}
+  .cj-info{flex:1;}
+  .cj-nombre{font-weight:700;font-size:14px;}
+  .cj-meta{font-size:11px;color:var(--gris-suave);margin-top:1px;}
+  .cj-badges{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
+  .cj-actions{display:flex;flex-direction:column;gap:4px;align-items:flex-end;}
+}
+@media (min-width:769px){
+  .cards-jugadores{display:none;}
+  .tabla-jugadores-desktop{display:block;}
+}
+
 </style>
 </head>
 <body>
@@ -1370,83 +1429,89 @@ function eliminarEquipo(id) {
 // ══════════════════════════════════════════════════════
 function renderJugadores() {
   const el = document.getElementById('jugadoresContent');
-  const isAdmin = sesion.rol === 'admin';
-  const isArb   = sesion.rol === 'arbitro';
-  const isClub  = sesion.rol === 'club';
-  let misJugadores, misEquipos;
-  if (isAdmin || isArb) {
-    misEquipos   = DB.equipos || [];
-    misJugadores = DB.jugadores || [];
-  } else {
-    misEquipos   = (DB.equipos||[]).filter(e=>e.clubId===sesion.user);
-    misJugadores = (DB.jugadores||[]).filter(j=>misEquipos.some(e=>e.id===j.equipoId));
+  const isAdmin   = sesion.rol==='admin';
+  const isClub    = sesion.rol==='club';
+  const isArbitro = sesion.rol==='arbitro';
+  if (!DB.jugadores) DB.jugadores=[];
+
+  const misEquipos = (isAdmin||isArbitro) ? (DB.equipos||[]) : (DB.equipos||[]).filter(e=>e.clubId===sesion.user);
+  const lista = (isAdmin||isArbitro) ? DB.jugadores : DB.jugadores.filter(j=>misEquipos.some(e=>e.id===j.equipoId));
+
+  const btnAdd = document.getElementById('btnAddJugador');
+  if (btnAdd) btnAdd.style.display=(isAdmin||isClub)?'':'none';
+
+  if (!lista.length) {
+    el.innerHTML='<div class="empty-state"><div class="ei">👤</div><p>'+(isClub?'Añade tu primer jugador.':'No hay jugadores.')+'</p></div>'; return;
   }
-  if (!misJugadores.length) {
-    el.innerHTML = '<div class="empty-state"><div class="ei">👥</div><p>Añade jugadores a tus equipos.</p></div>'; return;
-  }
 
-  // Agrupar por equipo
-  const porEquipo = {};
-  misJugadores.forEach(j => {
-    const key = j.equipoId || '__none__';
-    if (!porEquipo[key]) porEquipo[key] = [];
-    porEquipo[key].push(j);
-  });
+  const byEq={};
+  lista.forEach(j=>{ const k=j.equipoId||'__none__'; if(!byEq[k])byEq[k]=[]; byEq[k].push(j); });
 
-  let html = '';
-  Object.entries(porEquipo).forEach(([eqId, jugadores]) => {
-    const eq = (DB.equipos||[]).find(e=>e.id===eqId);
-    const eqNombre = eq?.nombre || 'Sin equipo asignado';
-    // Para árbitro: mostrar solo convocados
-    const listaVis = isArb ? jugadores.filter(j=>j.convocado) : jugadores;
-    if (isArb && !listaVis.length) return;
+  let out='';
+  Object.entries(byEq).forEach(([eid,jugs])=>{
+    const eq=(DB.equipos||[]).find(e=>e.id===eid);
+    const eNom=eq?.nombre||'Sin equipo';
+    const esPropio=eq?.clubId===sesion.user;
+    const puedeEditar=isAdmin||(isClub&&esPropio);
 
-    html += `<div style="margin-bottom:24px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">
-        🏟️ ${eqNombre}${isArb?' — Solo convocados':''}
-      </div>
-      <div class="tabla-wrap"><table><thead><tr>
-        <th>#</th><th>Nombre</th><th>Apellidos</th><th>Posición</th><th>Dorsal</th><th>F. Nac.</th>
-        <th>Activo</th><th>Convocado</th>
-        ${(isAdmin||isClub)?'<th>Acciones</th>':''}
+    out+=`<div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:8px;">${eNom}</div>`;
+
+    // ── MOBILE CARDS ──
+    out+=`<div class="cards-jugadores">`;
+    jugs.sort((a,b)=>Number(a.dorsal||99)-Number(b.dorsal||99)).forEach(j=>{
+      const activo    = j.activo!==false&&j.activo!=='false';
+      const convocado = j.convocado===true||j.convocado==='true';
+      out+=`<div class="card-jugador" style="${!activo?'opacity:.5;':''}">
+        <div class="cj-dorsal">${j.dorsal||'—'}</div>
+        <div class="cj-info">
+          <div class="cj-nombre">${j.nombre}${j.apellidos?' '+j.apellidos:''}</div>
+          <div class="cj-meta">${j.posicion||''}</div>
+          <div class="cj-badges">
+            ${puedeEditar
+              ?`<button class="btn-xs" style="background:${activo?'#D5F5E3':'#FADBD8'};color:${activo?'#1E8449':'#C0392B'};border:none;border-radius:6px;" onclick="toggleActivo('${j.id}')">${activo?'Activo':'Inactivo'}</button>
+                <button class="btn-xs" style="background:${convocado?'#D6EAF8':'#F2F3F4'};color:${convocado?'#1A5276':'#888'};border:none;border-radius:6px;" onclick="toggleConvocado('${j.id}')">${convocado?'✓Conv.':'Conv.'}</button>`
+              :`<span style="font-size:11px;padding:2px 7px;border-radius:6px;background:${activo?'#D5F5E3':'#FADBD8'};color:${activo?'#1E8449':'#C0392B'};">${activo?'Activo':'Inactivo'}</span>
+                <span style="font-size:11px;padding:2px 7px;border-radius:6px;background:${convocado?'#D6EAF8':'#F2F3F4'};color:${convocado?'#1A5276':'#888'};">${convocado?'✓Conv.':'—'}</span>`
+            }
+          </div>
+        </div>
+        <div class="cj-actions">
+          ${puedeEditar?`<button class="btn-xs btn-outline" onclick="editarJugador('${j.id}')">✏️</button>`:''}
+          ${isAdmin?`<button class="btn-xs" style="background:#FADBD8;color:var(--rojo);border:none;border-radius:6px;" onclick="eliminarJugador('${j.id}')">🗑</button>`:''}
+        </div>
+      </div>`;
+    });
+    out+=`</div>`;
+
+    // ── DESKTOP TABLE ──
+    out+=`<div class="tabla-jugadores-desktop"><div style="overflow-x:auto;"><table class="tabla-base"><thead><tr>
+        <th>#</th><th>Jugador</th><th>Pos.</th><th>Estado</th><th>Conv.</th><th></th>
       </tr></thead><tbody>`;
-
-    listaVis.forEach((j,i) => {
-      const activo     = j.activo !== false;
-      const convocado  = !!j.convocado;
-      const puedeEditar= isAdmin || isClub;
-      html += `<tr style="${!activo?'opacity:.5;':''}" >
-        <td>${i+1}</td>
-        <td><strong>${j.nombre}</strong></td>
-        <td>${j.apellidos||''}</td>
-        <td>${j.posicion||'—'}</td>
-        <td class="center"><strong>${j.dorsal||'—'}</strong></td>
-        <td>${j.fechaNac||'—'}</td>
-        <td class="center">
-          ${puedeEditar
-            ? `<button class="btn btn-xs" title="${activo?'Marcar inactivo':'Marcar activo'}"
-                style="background:${activo?'var(--verde-suave)':'var(--rojo-suave)'};color:${activo?'var(--verde)':'var(--rojo)'};border:none;"
-                onclick="toggleJugadorActivo('${j.id}')">${activo?'✅ Activo':'❌ Inactivo'}</button>`
-            : `<span style="font-size:12px;">${activo?'✅':'❌'}</span>`
-          }
+    jugs.sort((a,b)=>Number(a.dorsal||99)-Number(b.dorsal||99)).forEach(j=>{
+      const activo    = j.activo!==false&&j.activo!=='false';
+      const convocado = j.convocado===true||j.convocado==='true';
+      out+=`<tr style="${!activo?'opacity:.45;':''}">
+        <td style="font-size:12px;">${j.dorsal||'—'}</td>
+        <td><strong>${j.nombre}</strong>${j.apellidos?' '+j.apellidos:''}</td>
+        <td style="font-size:12px;">${j.posicion||'—'}</td>
+        <td>${puedeEditar
+          ?`<button class="btn-xs" style="background:${activo?'#D5F5E3':'#FADBD8'};color:${activo?'#1E8449':'#C0392B'};border:none;" onclick="toggleActivo('${j.id}')">${activo?'Activo':'Inactivo'}</button>`
+          :`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:${activo?'#D5F5E3':'#FADBD8'};color:${activo?'#1E8449':'#C0392B'};">${activo?'Activo':'Inactivo'}</span>`
+        }</td>
+        <td>${puedeEditar
+          ?`<button class="btn-xs" style="background:${convocado?'#D6EAF8':'#F2F3F4'};color:${convocado?'#1A5276':'#888'};border:none;" onclick="toggleConvocado('${j.id}')">${convocado?'✓':'Conv.'}</button>`
+          :`<span style="font-size:11px;">${convocado?'✓':'—'}</span>`
+        }</td>
+        <td style="white-space:nowrap;">
+          ${puedeEditar?`<button class="btn-xs btn-outline" onclick="editarJugador('${j.id}')">✏️</button>`:''}
+          ${isAdmin?`<button class="btn-xs" style="background:#FADBD8;color:var(--rojo);border:none;" onclick="eliminarJugador('${j.id}')">🗑</button>`:''}
         </td>
-        <td class="center">
-          ${puedeEditar
-            ? `<button class="btn btn-xs" title="${convocado?'Quitar convocatoria':'Convocar'}"
-                style="background:${convocado?'#EBF5FB':'var(--dorado-suave)'};color:${convocado?'var(--azul)':'#8B6914'};border:none;"
-                onclick="toggleJugadorConvocado('${j.id}')">${convocado?'📋 Convocado':'➕ Convocar'}</button>`
-            : `<span style="font-size:12px;">${convocado?'📋 Sí':'—'}</span>`
-          }
-        </td>
-        ${puedeEditar?`<td style="white-space:nowrap;">
-          <button class="btn btn-outline btn-xs" onclick="editarJugador('${j.id}')">✏️</button>
-          <button class="btn btn-xs" style="background:var(--rojo-suave);color:var(--rojo);border:none;" onclick="eliminarJugador('${j.id}')">🗑️</button>
-        </td>`:''}
       </tr>`;
     });
-    html += '</tbody></table></div></div>';
+    out+=`</tbody></table></div></div></div>`;
   });
-  el.innerHTML = html || '<div class="empty-state"><div class="ei">👥</div><p>No hay jugadores convocados.</p></div>';
+  el.innerHTML=out;
 }
 
 function abrirModalJugador() {
