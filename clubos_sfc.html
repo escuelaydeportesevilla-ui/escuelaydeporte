@@ -469,51 +469,6 @@ tbody td.center{text-align:center;}
   .topbar{padding:0 14px;}
   .main{padding:20px 14px 48px;}
 }
-
-/* ── MOBILE POLISH ─────────────────────────────────────── */
-@media (max-width: 768px) {
-  .main { padding: 12px 10px 80px; }
-  .topbar { padding: 10px 12px; }
-  .topbar-title { font-size: 15px; }
-  .nav-tabs { gap: 2px; padding: 6px 8px; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
-  .nav-tab { font-size: 10px; padding: 6px 8px; white-space: nowrap; }
-  .nav-tab .tab-icon { font-size: 14px; }
-  .nav-tab .tab-label { display: none; }
-  .nav-tab.active .tab-label { display: block; }
-  .comp-banner { flex-direction: column; gap: 10px; padding: 14px; }
-  .comp-banner-title { font-size: 1.1rem; }
-  .stats-row { grid-template-columns: repeat(2,1fr); gap: 8px; }
-  .stat-card { padding: 12px 8px; }
-  .sv { font-size: 1.6rem; }
-  .card { padding: 14px 12px; }
-  .form-grid { grid-template-columns: 1fr; }
-  .form-full { grid-column: 1; }
-  .tabla-base { font-size: 12px; }
-  .tabla-base th, .tabla-base td { padding: 6px 8px; }
-  .btn-xs { font-size: 11px; padding: 4px 8px; }
-  .btn-sm { font-size: 12px; padding: 5px 10px; }
-  .btn { font-size: 13px; padding: 8px 14px; }
-  .modal-box { margin: 10px; max-height: 90vh; overflow-y: auto; }
-  .portada-header { padding: 12px 16px; }
-  .portada-logo-wrap { gap: 8px; }
-  .portada-logo-text .club { font-size: 1.8rem; }
-  .portada-hero { padding: 24px 16px; }
-  .hero-title { font-size: 2.4rem; }
-  .login-cards { gap: 10px; }
-  .login-card { padding: 16px 12px; min-width: 130px; }
-  .section-header { flex-wrap: wrap; gap: 8px; }
-  .section-header h2 { font-size: 1rem; }
-  .patr-grid { grid-template-columns: repeat(2,1fr); }
-}
-@media (max-width: 480px) {
-  .hero-title { font-size: 2rem; }
-  .login-card { padding: 14px 10px; min-width: 110px; }
-  .lc-icon { font-size: 1.8rem; }
-  .lc-role { font-size: 13px; }
-  .lc-desc { display: none; }
-  .stats-row { grid-template-columns: repeat(2,1fr); }
-}
-
 </style>
 </head>
 <body>
@@ -611,10 +566,6 @@ tbody td.center{text-align:center;}
     <div class="topbar-right">
       <span class="rol-badge" id="rolBadge">Admin</span>
       <span id="tbUserName" style="font-size:12px;color:var(--gris-suave);"></span>
-      <button id="btnSync" onclick="manualSync()"
-        style="background:none;border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;">
-        <span id="syncLabel">↻ Sync</span>
-      </button>
       <button class="btn-logout" onclick="logout()">← Salir</button>
     </div>
   </div>
@@ -860,16 +811,15 @@ tbody td.center{text-align:center;}
 </div>
 
 <div class="modal" id="modalActa">
-  <div class="modal-box" style="max-width:640px;max-height:90vh;overflow-y:auto;">
+  <div class="modal-box" style="max-width:640px">
     <div class="modal-header">
-      <h3 id="modalActaTitle">Acta del partido</h3>
+      <h3>Acta del partido</h3>
       <button class="modal-close" onclick="cerrarModal('modalActa')">✕</button>
     </div>
     <div id="modalActaContent"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap;">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
       <button class="btn btn-outline" onclick="cerrarModal('modalActa')">Cancelar</button>
-      <button class="btn btn-outline" id="btnFirmarActa" onclick="firmarActa()" style="background:#117A65;color:white;border:none;display:none;">✍️ Firmar y cerrar acta</button>
-      <button class="btn btn-rojo" id="btnGuardarActa" onclick="guardarActa()">Guardar acta</button>
+      <button class="btn btn-rojo" onclick="guardarActa()">Guardar acta</button>
     </div>
   </div>
 </div>
@@ -999,8 +949,6 @@ let sesion = null;
 let DB = JSON.parse(localStorage.getItem('clubos_sfc') || JSON.stringify({
   competicion: null,
   competiciones: [],
-  actas: [],
-  jugadores: [],
   equipos: [],
   partidos: [],
   goleadores: [],
@@ -1033,9 +981,7 @@ function _initStaticImages(){
 document.addEventListener('DOMContentLoaded',_initStaticImages);
 
 
-function save() {
-    localStorage.setItem('clubos_sfc', JSON.stringify(DB));
-  }
+function save() { localStorage.setItem('clubos_sfc', JSON.stringify(DB)); }
 function uid() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
 
 // ══════════════════════════════════════════════════════
@@ -1080,7 +1026,7 @@ function iniciarSesion(cred) {
   sesion = cred;
   document.getElementById('portada').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  setTimeout(() => { loadFromSheets(); startPolling(); }, 300);
+  // loadFromSheets only on manual sync
   document.getElementById('rolBadge').textContent = cred.rol.charAt(0).toUpperCase() + cred.rol.slice(1);
   document.getElementById('tbUserName').textContent = cred.nombre || '';
 
@@ -1104,9 +1050,9 @@ function logout() {
 // ══════════════════════════════════════════════════════
 const TABS_POR_ROL = {
   admin:    ['competicion','equipos','jugadores','calendario','clasificacion','goleadores','actas','noticias','patrocinadores','sugerencias'],
-  club:     ['competicion','equipos','jugadores','calendario','clasificacion','goleadores','actas','noticias','patrocinadores','sugerencias'],
-  familias: ['competicion','calendario','clasificacion','goleadores','noticias','patrocinadores','sugerencias'],
-  arbitro:  ['competicion','equipos','jugadores','calendario','clasificacion','goleadores','actas','noticias','patrocinadores','sugerencias'],
+  club:     ['competicion','equipos','jugadores','calendario','clasificacion','goleadores','noticias','sugerencias'],
+  familias: ['competicion','equipos','calendario','clasificacion','goleadores','actas','noticias','patrocinadores','sugerencias'],
+  arbitro:  ['competicion','calendario','equipos','jugadores','actas','noticias','patrocinadores','sugerencias'],
 };
 const TAB_LABELS = {
   competicion:'⚙️ Competición', equipos:'🏟️ Equipos', jugadores:'👥 Jugadores',
@@ -1165,35 +1111,41 @@ function renderTab(tab) {
 //  COMPETICIÓN
 // ══════════════════════════════════════════════════════
 function renderCompeticion() {
-  const el = document.getElementById('compContent');
-  const isAdmin = sesion.rol==='admin';
-  if (!DB.competiciones) DB.competiciones = DB.competicion?[{...DB.competicion,id:DB.competicion.id||'comp_legacy',activa:true}]:[];
-  if (DB.competicion && !DB.competiciones.length) { DB.competiciones=[{...DB.competicion,id:'comp_legacy',activa:true}]; delete DB.competicion; }
+  const el      = document.getElementById('compContent');
+  const isAdmin = sesion.rol === 'admin';
+  if (!DB.competiciones) DB.competiciones = DB.competicion ? [{...DB.competicion, activa:true}] : [];
 
-  const btnNueva = document.getElementById('btnNuevaComp');
-  if (btnNueva) btnNueva.style.display = isAdmin?'':'none';
+  const btnNueva  = document.getElementById('btnNuevaComp');
+  const btnGenCal = document.getElementById('btnGenerarCalendario');
+  if (btnNueva)  btnNueva.style.display  = isAdmin ? '' : 'none';
+  if (btnGenCal) btnGenCal.style.display = 'none'; // handled per-competition
 
+  // Filter: non-admins only see active competitions
   const lista = isAdmin ? DB.competiciones : DB.competiciones.filter(c=>c.activa!==false);
+
   if (!lista.length) {
-    el.innerHTML=`<div class="empty-state"><div class="ei">🏆</div><p>${isAdmin?'Crea la primera competición.':'No hay competiciones activas.'}</p></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="ei">🏆</div><p>${isAdmin?'Crea la primera competición usando el botón de arriba.':'No hay competiciones activas en este momento.'}</p></div>`;
     return;
   }
-  el.innerHTML = lista.map(c=>{
+
+  el.innerHTML = lista.map(c => {
     const nEq  = (DB.equipos||[]).filter(e=>e.competicionId===c.id).length;
     const nP   = (DB.partidos||[]).filter(p=>p.competicionId===c.id).length;
-    const nJug = (DB.partidos||[]).filter(p=>p.competicionId===c.id&&p.estado==='jugado').length;
-    const activa = c.activa!==false;
-    return `<div class="comp-banner" style="margin-bottom:16px;${!activa?'opacity:.55;':''}">
-      <div><div class="comp-banner-title">${c.nombre}</div>
-        <div class="comp-banner-meta">${c.categoria?c.categoria+' · ':''}${c.temporada||''} · ${c.formato||''}</div>
+    const nJug = (DB.partidos||[]).filter(p=>p.competicionId===c.id && p.estado==='jugado').length;
+    const activa = c.activa !== false;
+    return `<div class="comp-banner" style="margin-bottom:16px;${!activa?'opacity:.6;':''}">
+      <div>
+        <div class="comp-banner-title">${c.nombre}</div>
+        <div class="comp-banner-meta">${c.categoria?c.categoria+' · ':''}${c.temporada||''} · ${c.formato}</div>
+        ${c.fechaInicio?`<div class="comp-banner-meta" style="margin-top:4px">📅 ${c.fechaInicio}${c.fechaFin?' → '+c.fechaFin:''}</div>`:''}
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-        <span class="badge" style="${activa?'':'background:rgba(150,150,150,.3);color:#999;'}">${activa?'✅ Activa':'⏸ Inactiva'}</span>
-        ${isAdmin?`
-          ${nEq>=2?`<button class="btn btn-sm" style="background:#117A65;color:#fff;border:none;" onclick="abrirGeneradorCalendario('${c.id}')">📅</button>`:''}
-          <button class="btn btn-outline btn-sm" onclick="editarCompeticion('${c.id}')">✏️</button>
-          <button class="btn btn-sm" style="background:var(--rojo);color:#fff;border:none;" onclick="eliminarCompeticion('${c.id}')">🗑</button>
-        `:''}
+      <div class="comp-banner-badges" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+        <span class="badge ${activa?'badge-activa':'badge-inactiva'}" style="${!activa?'background:rgba(150,150,150,.3);color:#999;':''}">${activa?'✅ Activa':'⏸ Inactiva'}</span>
+        ${isAdmin ? `
+          ${nEq>=2?`<button class="btn btn-sm" style="background:#117A65;color:white;border:none;" onclick="abrirGeneradorCalendario('${c.id}')">📅 Calendario</button>`:''}
+          <button class="btn btn-outline btn-sm" onclick="editarCompeticion('${c.id}')" style="border-color:rgba(255,255,255,.3);color:white;">✏️</button>
+          <button class="btn btn-sm" style="background:rgba(200,16,46,.7);color:white;border:none;" onclick="eliminarCompeticion('${c.id}')">🗑</button>
+        ` : ''}
       </div>
     </div>
     <div class="stats-row" style="margin-bottom:24px;">
@@ -1235,8 +1187,6 @@ function eliminarCompeticion(id) {
   DB.competiciones = (DB.competiciones||[]).filter(c=>c.id!==id);
   DB.partidos      = DB.partidos.filter(p=>p.competicionId!==id);
   DB.goleadores    = DB.goleadores.filter(g=>g.competicionId!==id);
-  if(!DB._deleted)DB._deleted={};
-  DB._deleted[id]=Date.now();
   save(); renderAll();
 }
 
@@ -1258,6 +1208,9 @@ function guardarComp() {
   if (idx>=0) DB.competiciones[idx] = rec; else DB.competiciones.push(rec);
   window._editCompId = null;
   save(); cerrarModal('modalComp'); renderAll();
+
+  const lastItem = (DB.competiciones||[]).slice(-1)[0];
+  if (lastItem) showSyncBanner('✅ Competición guardada localmente', "syncRecord('saveCollection',{col:'competiciones',items:[" + JSON.stringify(lastItem) + "]})");
 }
 
 // ══════════════════════════════════════════════════════
@@ -1265,63 +1218,63 @@ function guardarComp() {
 // ══════════════════════════════════════════════════════
 let editEquipoId = null;
 function renderEquipos() {
-  const el = document.getElementById('equiposContent');
-  const isAdmin = sesion.rol==='admin';
-  const isClub  = sesion.rol==='club';
-  const isArbitro = sesion.rol==='arbitro';
-  if (!DB.equipos) DB.equipos=[];
+  const el      = document.getElementById('equiposContent');
+  const isAdmin = sesion.rol === 'admin';
+  const isClub  = sesion.rol === 'club';
+  if (!DB.equipos) DB.equipos = [];
 
-  const btnAdd = document.getElementById('btnAddEquipo');
-  if (btnAdd) btnAdd.style.display=(isAdmin||isClub)?'':'none';
+  // Admin sees all, club sees only their own
+  let lista = isAdmin ? DB.equipos : DB.equipos.filter(e=>e.clubId===sesion.user);
 
-  // All roles see all teams; clubs can only edit their own
-  const lista = DB.equipos;
+  const btnAdd = document.getElementById('btnNuevoEquipo');
+  if (btnAdd) btnAdd.style.display = (isAdmin||isClub) ? '' : 'none';
+
   if (!lista.length) {
-    el.innerHTML='<div class="empty-state"><div class="ei">🏟️</div><p>No hay equipos registrados.</p></div>'; return;
+    el.innerHTML = '<div class="empty-state"><div class="ei">🏟️</div><p>' + (isClub?'Añade tu primer equipo.':'No hay equipos registrados.') + '</p></div>';
+    return;
   }
 
   // Group by competition
-  const byComp = {};
-  lista.forEach(e=>{
-    const k = e.competicionId||'__none__';
-    if(!byComp[k]) byComp[k]=[];
-    byComp[k].push(e);
+  const comps = {};
+  lista.forEach(e => {
+    const key = e.competicionId || '__none__';
+    if (!comps[key]) comps[key] = [];
+    comps[key].push(e);
   });
 
-  let out='';
-  Object.entries(byComp).forEach(([cid,eqs])=>{
-    const comp = (DB.competiciones||[]).find(c=>c.id===cid);
-    const cNom = comp?.nombre||(cid==='__none__'?'Sin competición':'');
-    out+=`<div style="margin-bottom:24px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid var(--rojo-suave);">${cNom}</div>
-      <div style="overflow-x:auto;"><table class="tabla-base"><thead><tr>
-        <th>Equipo</th><th>1ª</th><th>2ª</th><th>Cat.</th>
+  let html = '';
+  Object.entries(comps).forEach(([compId, equipos]) => {
+    const comp = (DB.competiciones||[]).find(c=>c.id===compId);
+    const compNombre = comp?.nombre || (compId==='__none__'?'Sin competición asignada':'Competición desconocida');
+    html += `<div style="margin-bottom:24px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">${compNombre}</div>
+      <table class="tabla-base"><thead><tr>
+        <th>Equipo</th><th>1ª Equipación</th><th>2ª Equipación</th><th>Categoría</th>
         ${isAdmin?'<th>Club</th>':''}
-        <th>Jug.</th><th></th>
+        <th>Jugadores</th><th>Acciones</th>
       </tr></thead><tbody>`;
-    eqs.forEach(e=>{
-      const nJ=(DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
-      const esPropio = e.clubId===sesion.user;
-      const kit=(c1,p1)=>`<div style="display:inline-flex;flex-direction:column;gap:1px;">
-        <div style="width:18px;height:12px;border-radius:2px 2px 0 0;background:${c1||'#ccc'};border:1px solid rgba(0,0,0,.15);"></div>
-        <div style="width:14px;height:8px;border-radius:0 0 2px 2px;background:${p1||'#333'};border:1px solid rgba(0,0,0,.15);margin:0 2px;"></div>
+    equipos.forEach(e => {
+      const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
+      const kit = (c1,p1)=>`<div style="display:inline-flex;flex-direction:column;gap:1px;vertical-align:middle;">
+        <div style="width:20px;height:14px;border-radius:3px 3px 0 0;background:${c1};border:1px solid rgba(0,0,0,.15);"></div>
+        <div style="width:16px;height:8px;border-radius:0 0 3px 3px;background:${p1};border:1px solid rgba(0,0,0,.15);margin:0 2px;"></div>
       </div>`;
-      out+=`<tr>
+      html += `<tr>
         <td><strong>${e.nombre}</strong></td>
-        <td>${kit(e.eq1Camiseta,e.eq1Pantalon)}</td>
-        <td>${kit(e.eq2Camiseta,e.eq2Pantalon)}</td>
-        <td style="font-size:12px;">${e.categoria||'—'}</td>
-        ${isAdmin?`<td style="font-size:11px;color:var(--gris-suave);">${e.clubId||'—'}</td>`:''}
-        <td>${nJ}</td>
-        <td style="white-space:nowrap;">
-          ${(isAdmin||esPropio)?`<button class="btn btn-outline btn-xs" onclick="editarEquipo('${e.id}')">✏️</button>`:''}
-          ${isAdmin?`<button class="btn btn-xs" style="background:var(--rojo);color:#fff;border:none;" onclick="eliminarEquipo('${e.id}')">🗑</button>`:''}
+        <td>${kit(e.eq1Camiseta||'#ccc',e.eq1Pantalon||'#333')}</td>
+        <td>${kit(e.eq2Camiseta||'#fff',e.eq2Pantalon||'#fff')}</td>
+        <td>${e.categoria||'—'}</td>
+        ${isAdmin?`<td style="font-size:12px;color:var(--gris-suave);">${e.clubId||'—'}</td>`:''}
+        <td>${nJug}</td>
+        <td>
+          ${(isAdmin||isClub)?`<button class="btn btn-outline btn-sm" onclick="editarEquipo('${e.id}')">✏️</button>`:''}
+          ${isAdmin?`<button class="btn btn-sm" style="background:var(--rojo);color:white;border:none;" onclick="eliminarEquipo('${e.id}')">🗑</button>`:''}
         </td>
       </tr>`;
     });
-    out+='</tbody></table></div></div>';
+    html += '</tbody></table></div>';
   });
-  el.innerHTML=out;
+  el.innerHTML = html;
 }
 
 function abrirModalEquipo() {
@@ -1387,14 +1340,21 @@ function guardarEquipo() {
   if (idx>=0) DB.equipos[idx]=rec; else DB.equipos.push(rec);
   editEquipoId = null;
   save(); cerrarModal('modalEquipo'); renderEquipos(); renderCompeticion();
+
+  const lastItem = (DB.equipos||[]).slice(-1)[0];
+  if (lastItem) showSyncBanner('✅ Equipo guardado localmente', "syncRecord('saveCollection',{col:'equipos',items:[" + JSON.stringify(lastItem) + "]})");
 }
 
 function eliminarEquipo(id) {
-  if (!confirm('¿Eliminar este equipo?')) return;
-  DB.equipos = DB.equipos.filter(e=>e.id!==id);
-  if(!DB._deleted)DB._deleted={};
-  DB._deleted[id]=Date.now();
-  save(); toast('Equipo eliminado'); renderAll();
+  if (!confirm('¿Eliminar equipo?')) return;
+  DB.equipos = (DB.equipos||[]).filter(x=>x.id!==id);
+  if (!DB._deleted) DB._deleted={};
+  DB._deleted[id] = Date.now();
+  save(); renderEquipos();
+  showSyncBanner(
+    '🗑 Equipo eliminado localmente',
+    "syncRecord('deleteIds',{ids:['"+id+"']})"
+  );
 }
 
 // ══════════════════════════════════════════════════════
@@ -1402,72 +1362,83 @@ function eliminarEquipo(id) {
 // ══════════════════════════════════════════════════════
 function renderJugadores() {
   const el = document.getElementById('jugadoresContent');
-  const isAdmin   = sesion.rol==='admin';
-  const isClub    = sesion.rol==='club';
-  const isArbitro = sesion.rol==='arbitro';
-  if (!DB.jugadores) DB.jugadores=[];
-
-  // Club & arbitro see all teams; club edits only own players
-  const misEquipos = isAdmin||isArbitro ? (DB.equipos||[]) : (DB.equipos||[]).filter(e=>e.clubId===sesion.user);
-  const lista = isAdmin||isArbitro ? DB.jugadores : DB.jugadores.filter(j=>misEquipos.some(e=>e.id===j.equipoId));
-
-  const btnAdd = document.getElementById('btnAddJugador');
-  if (btnAdd) btnAdd.style.display=(isAdmin||isClub)?'':'none';
-
-  if (!lista.length) {
-    el.innerHTML='<div class="empty-state"><div class="ei">👤</div><p>'+(isClub?'Añade tu primer jugador.':'No hay jugadores registrados.')+'</p></div>'; return;
+  const isAdmin = sesion.rol === 'admin';
+  const isArb   = sesion.rol === 'arbitro';
+  const isClub  = sesion.rol === 'club';
+  let misJugadores, misEquipos;
+  if (isAdmin || isArb) {
+    misEquipos   = DB.equipos || [];
+    misJugadores = DB.jugadores || [];
+  } else {
+    misEquipos   = (DB.equipos||[]).filter(e=>e.clubId===sesion.user);
+    misJugadores = (DB.jugadores||[]).filter(j=>misEquipos.some(e=>e.id===j.equipoId));
+  }
+  if (!misJugadores.length) {
+    el.innerHTML = '<div class="empty-state"><div class="ei">👥</div><p>Añade jugadores a tus equipos.</p></div>'; return;
   }
 
-  // Group by team
-  const byEq={};
-  lista.forEach(j=>{ const k=j.equipoId||'__none__'; if(!byEq[k])byEq[k]=[]; byEq[k].push(j); });
+  // Agrupar por equipo
+  const porEquipo = {};
+  misJugadores.forEach(j => {
+    const key = j.equipoId || '__none__';
+    if (!porEquipo[key]) porEquipo[key] = [];
+    porEquipo[key].push(j);
+  });
 
-  let out='';
-  Object.entries(byEq).forEach(([eid,jugs])=>{
-    const eq=(DB.equipos||[]).find(e=>e.id===eid);
-    const eNom=eq?.nombre||'Sin equipo';
-    const esPropio = eq?.clubId===sesion.user;
-    out+=`<div style="margin-bottom:24px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:8px;">${eNom}</div>
-      <div style="overflow-x:auto;"><table class="tabla-base"><thead><tr>
-        <th>#</th><th>Jugador</th><th>Pos.</th><th>Estado</th><th>Conv.</th><th></th>
+  let html = '';
+  Object.entries(porEquipo).forEach(([eqId, jugadores]) => {
+    const eq = (DB.equipos||[]).find(e=>e.id===eqId);
+    const eqNombre = eq?.nombre || 'Sin equipo asignado';
+    // Para árbitro: mostrar solo convocados
+    const listaVis = isArb ? jugadores.filter(j=>j.convocado) : jugadores;
+    if (isArb && !listaVis.length) return;
+
+    html += `<div style="margin-bottom:24px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">
+        🏟️ ${eqNombre}${isArb?' — Solo convocados':''}
+      </div>
+      <div class="tabla-wrap"><table><thead><tr>
+        <th>#</th><th>Nombre</th><th>Apellidos</th><th>Posición</th><th>Dorsal</th><th>F. Nac.</th>
+        <th>Activo</th><th>Convocado</th>
+        ${(isAdmin||isClub)?'<th>Acciones</th>':''}
       </tr></thead><tbody>`;
-    jugs.sort((a,b)=>Number(a.dorsal||99)-Number(b.dorsal||99)).forEach(j=>{
-      const activo    = j.activo!==false&&j.activo!=='false';
-      const convocado = j.convocado===true||j.convocado==='true';
-      const puedeEditar = isAdmin||(isClub&&esPropio);
-      out+=`<tr style="${!activo?'opacity:.45;':''}">
-        <td style="font-size:12px;color:var(--gris-suave);">${j.dorsal||'—'}</td>
-        <td><strong>${j.nombre}</strong>${j.apellidos?' '+j.apellidos:''}</td>
-        <td style="font-size:12px;">${j.posicion||'—'}</td>
-        <td>${puedeEditar
-          ?`<button class="btn btn-xs" style="background:${activo?'#D5F5E3':'#FADBD8'};color:${activo?'#1E8449':'#C0392B'};border:none;" onclick="toggleActivo('${j.id}')">${activo?'Activo':'Inactivo'}</button>`
-          :`<span style="font-size:11px;padding:2px 7px;border-radius:8px;background:${activo?'#D5F5E3':'#FADBD8'};color:${activo?'#1E8449':'#C0392B'};">${activo?'Activo':'Inactivo'}</span>`
-        }</td>
-        <td>${puedeEditar
-          ?`<button class="btn btn-xs" style="background:${convocado?'#D6EAF8':'#F2F3F4'};color:${convocado?'#1A5276':'#888'};border:none;" onclick="toggleConvocado('${j.id}')">${convocado?'✓ Conv.':'Conv.'}</button>`
-          :`<span style="font-size:11px;">${convocado?'✓':'—'}</span>`
-        }</td>
-        <td style="white-space:nowrap;">
-          ${puedeEditar?`<button class="btn btn-outline btn-xs" onclick="editarJugador('${j.id}')">✏️</button>`:''}
-          ${isAdmin?`<button class="btn btn-xs" style="background:var(--rojo);color:#fff;border:none;" onclick="eliminarJugador('${j.id}')">🗑</button>`:''}
+
+    listaVis.forEach((j,i) => {
+      const activo     = j.activo !== false;
+      const convocado  = !!j.convocado;
+      const puedeEditar= isAdmin || isClub;
+      html += `<tr style="${!activo?'opacity:.5;':''}" >
+        <td>${i+1}</td>
+        <td><strong>${j.nombre}</strong></td>
+        <td>${j.apellidos||''}</td>
+        <td>${j.posicion||'—'}</td>
+        <td class="center"><strong>${j.dorsal||'—'}</strong></td>
+        <td>${j.fechaNac||'—'}</td>
+        <td class="center">
+          ${puedeEditar
+            ? `<button class="btn btn-xs" title="${activo?'Marcar inactivo':'Marcar activo'}"
+                style="background:${activo?'var(--verde-suave)':'var(--rojo-suave)'};color:${activo?'var(--verde)':'var(--rojo)'};border:none;"
+                onclick="toggleJugadorActivo('${j.id}')">${activo?'✅ Activo':'❌ Inactivo'}</button>`
+            : `<span style="font-size:12px;">${activo?'✅':'❌'}</span>`
+          }
         </td>
+        <td class="center">
+          ${puedeEditar
+            ? `<button class="btn btn-xs" title="${convocado?'Quitar convocatoria':'Convocar'}"
+                style="background:${convocado?'#EBF5FB':'var(--dorado-suave)'};color:${convocado?'var(--azul)':'#8B6914'};border:none;"
+                onclick="toggleJugadorConvocado('${j.id}')">${convocado?'📋 Convocado':'➕ Convocar'}</button>`
+            : `<span style="font-size:12px;">${convocado?'📋 Sí':'—'}</span>`
+          }
+        </td>
+        ${puedeEditar?`<td style="white-space:nowrap;">
+          <button class="btn btn-outline btn-xs" onclick="editarJugador('${j.id}')">✏️</button>
+          <button class="btn btn-xs" style="background:var(--rojo-suave);color:var(--rojo);border:none;" onclick="eliminarJugador('${j.id}')">🗑️</button>
+        </td>`:''}
       </tr>`;
     });
-    out+='</tbody></table></div></div>';
+    html += '</tbody></table></div></div>';
   });
-  el.innerHTML=out;
-}
-
-function toggleActivo(id) {
-  const j=(DB.jugadores||[]).find(x=>x.id===id); if(!j) return;
-  j.activo = !(j.activo!==false&&j.activo!=='false');
-  save(); renderJugadores();
-}
-function toggleConvocado(id) {
-  const j=(DB.jugadores||[]).find(x=>x.id===id); if(!j) return;
-  j.convocado = !(j.convocado===true||j.convocado==='true');
-  save(); renderJugadores();
+  el.innerHTML = html || '<div class="empty-state"><div class="ei">👥</div><p>No hay jugadores convocados.</p></div>';
 }
 
 function abrirModalJugador() {
@@ -1523,6 +1494,9 @@ function guardarJugador() {
     DB.jugadores.push(j);
   }
   save(); cerrarModal('modalJugador'); toast(editId?'Jugador actualizado':'Jugador añadido'); renderJugadores();
+
+  const lastItem = (DB.jugadores||[]).slice(-1)[0];
+  if (lastItem) showSyncBanner('✅ Jugador guardado localmente', "syncRecord('saveCollection',{col:'jugadores',items:[" + JSON.stringify(lastItem) + "]})");
 }
 
 function toggleJugadorActivo(id) {
@@ -1539,7 +1513,15 @@ function toggleJugadorConvocado(id) {
 
 function eliminarJugador(id) {
   if (!confirm('¿Eliminar jugador?')) return;
-  DB.jugadores = DB.jugadores.filter(j=>j.id!==id); save(); toast('Jugador eliminado'); renderJugadores();
+  const j = (DB.jugadores||[]).find(x=>x.id===id);
+  DB.jugadores = (DB.jugadores||[]).filter(x=>x.id!==id);
+  if (!DB._deleted) DB._deleted={};
+  DB._deleted[id] = Date.now();
+  save(); renderJugadores();
+  showSyncBanner(
+    '🗑 Jugador eliminado localmente',
+    "syncRecord('deleteIds',{ids:['"+id+"']})"
+  );
 }
 
 // ══════════════════════════════════════════════════════
@@ -1744,45 +1726,24 @@ function eliminarGol(id) {
 // ══════════════════════════════════════════════════════
 function renderActas() {
   const el = document.getElementById('actasContent');
-  const isAdmin   = sesion.rol==='admin';
-  const isArbitro = sesion.rol==='arbitro';
-  const isClub    = sesion.rol==='club';
-
-  if (!DB.partidos) DB.partidos=[];
-  if (!DB.actas)    DB.actas=[];
-
-  // Club only sees actas of their own teams
-  const misEqIds = (DB.equipos||[]).filter(e=>e.clubId===sesion.user).map(e=>e.id);
-  const partidos = isClub
-    ? DB.partidos.filter(p=>p.estado==='jugado'&&(misEqIds.includes(p.equipoLocalId)||misEqIds.includes(p.equipoVisitanteId)))
-    : DB.partidos.filter(p=>p.estado==='jugado'||p.acta);
-
-  if (!partidos.length) {
-    el.innerHTML='<div class="empty-state"><div class="ei">📋</div><p>No hay actas disponibles.</p></div>'; return;
+  const jugados = DB.partidos.filter(p=>p.estado==='jugado'||p.acta);
+  if (!jugados.length) {
+    el.innerHTML = '<div class="empty-state"><div class="ei">📋</div><p>No hay actas disponibles aún.</p></div>'; return;
   }
-
-  let out='';
-  if (isArbitro) {
-    out+=`<button class="btn btn-primary" style="margin-bottom:16px;" onclick="abrirModalActa()">+ Nueva acta</button>`;
-  }
-
-  partidos.forEach(p=>{
-    const acta = (DB.actas||[]).find(a=>a.partidoId===p.id);
-    out+=`<div class="card" style="margin-bottom:12px;padding:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-        <div>
-          <div style="font-weight:700;">${p.equipoLocalNombre} <span style="color:var(--rojo);">${p.golesLocal??'—'} - ${p.golesVisitante??'—'}</span> ${p.equipoVisitanteNombre}</div>
-          <div style="font-size:12px;color:var(--gris-suave);">J${p.jornada||''} · ${p.fecha||''} ${p.hora||''}</div>
-          ${acta?`<div style="font-size:11px;margin-top:4px;color:#1E8449;">📋 Acta: ${acta.arbitroNombre||''} · ${acta.fechaFirma||''}</div>`:''}
-        </div>
-        <div style="display:flex;gap:6px;">
-          ${acta?`<button class="btn btn-outline btn-sm" onclick="verActa('${p.id}')">👁 Ver</button>`:''}
-          ${isArbitro?`<button class="btn btn-sm" style="background:var(--rojo);color:#fff;border:none;" onclick="elaborarActa('${p.id}')">✍️ Acta</button>`:''}
-        </div>
+  el.innerHTML = jugados.map(p => {
+    const local = DB.equipos.find(e=>e.id===p.localId);
+    const visit = DB.equipos.find(e=>e.id===p.visitanteId);
+    return `<div class="card" style="margin-bottom:14px">
+      <div class="acta-header">
+        <div class="acta-equipo">${local?local.nombre:'—'}</div>
+        <div class="acta-score">${p.golesLocal??'?'} – ${p.golesVisitante??'?'}</div>
+        <div class="acta-equipo" style="text-align:right">${visit?visit.nombre:'—'}</div>
       </div>
+      <div style="font-size:12px;color:var(--gris-suave);margin-bottom:10px">📅 ${p.fecha||'—'} · ${p.campo||''}  · J${p.jornada}</div>
+      ${p.acta ? `<div style="font-size:13px;color:var(--gris-texto);line-height:1.6;white-space:pre-line">${p.acta}</div>` : '<div class="info-box">Acta pendiente de redactar.</div>'}
+      ${(sesion.rol==='admin'||sesion.rol==='arbitro') ? `<div style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="abrirActaPartido('${p.id}')">✏️ Redactar / editar acta</button></div>` : ''}
     </div>`;
-  });
-  el.innerHTML=out;
+  }).join('');
 }
 
 function abrirActaPartido(partidoId) {
@@ -1975,79 +1936,36 @@ function eliminarPatr(id) {
 // ══════════════════════════════════════════════════════
 function renderSugerencias() {
   const el = document.getElementById('sugerenciasContent');
-  const isAdmin   = sesion.rol==='admin';
-  const isClub    = sesion.rol==='club';
-  const isFamilias= sesion.rol==='familias';
+  const esAdmin    = sesion.rol==='admin';
+  const esFamilias = sesion.rol==='familias';
+  // Añadir sugerencias/comentarios a tabs para todos
+  const puedeEnviar = true; // Todos pueden enviar
+  const puedeVer    = esAdmin; // Solo admin ve los de otros
 
-  let out='';
+  let html = '';
+  if (esFamilias) {
+    html += `<div class="card" style="margin-bottom:20px">
+      <div class="card-header"><h3 style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;text-transform:uppercase">Envía tu sugerencia</h3></div>
+      <p style="font-size:13px;color:var(--gris-suave);margin-bottom:12px">¿Tienes alguna idea o comentario para mejorar la competición? ¡Escríbenos!</p>
+      <button class="btn btn-rojo" onclick="abrirModal('modalSug')">💬 Enviar sugerencia</button>
+    </div>`;
+  }
 
-  // Send form (always visible except no history for familias)
-  out+=`<div class="card" style="margin-bottom:20px;">
-    <div class="card-header"><div class="card-title">💬 Enviar sugerencia</div></div>
-    <div class="card-body">
-      <div class="form-grid">
-        <div class="form-field"><label>Nombre</label><input id="sugNombre" placeholder="Tu nombre"></div>
-        <div class="form-field"><label>Tipo</label>
-          <select id="sugTipo">
-            <option>Sugerencia</option><option>Consulta</option><option>Incidencia</option><option>Felicitación</option>
-          </select>
+  if (!DB.sugerencias.length) {
+    html += '<div class="empty-state"><div class="ei">💬</div><p>No hay sugerencias recibidas aún.</p></div>';
+  } else if (esAdmin) {
+    html += [...DB.sugerencias].reverse().map(s => `
+      <div class="sug-card">
+        <div class="sug-meta">${s.nombre||'Anónimo'} · ${s.fecha||''}</div>
+        <div class="sug-texto">${s.texto}</div>
+        <div class="sug-actions">
+          <button class="btn btn-xs" style="background:var(--rojo-suave);color:var(--rojo)" onclick="eliminarSug('${s.id}')">🗑️ Eliminar</button>
         </div>
-        <div class="form-field form-full"><label>Mensaje</label><textarea id="sugMensaje" rows="3" placeholder="Escribe tu mensaje..."></textarea></div>
-      </div>
-      <button class="btn btn-primary" style="margin-top:10px;" onclick="enviarSugerencia()">Enviar</button>
-    </div>
-  </div>`;
-
-  // History: admin sees all, club sees own, familias sees nothing
-  if (!isFamilias) {
-    const lista = isAdmin
-      ? (DB.sugerencias||[])
-      : (DB.sugerencias||[]).filter(s=>s.clubId===sesion.user);
-    if (lista.length) {
-      out+=`<div class="card"><div class="card-header"><div class="card-title">📬 Historial</div></div><div class="card-body">`;
-      lista.slice().reverse().forEach(s=>{
-        out+=`<div style="padding:10px 0;border-bottom:1px solid var(--gris-linea);">
-          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gris-suave);">
-            <span>${s.nombre||'Anónimo'} · ${s.tipo||''}</span><span>${s.fecha||''}</span>
-          </div>
-          <div style="margin-top:4px;">${s.mensaje||''}</div>
-          ${isAdmin&&!s.leida?`<button class="btn btn-xs btn-outline" style="margin-top:6px;" onclick="marcarLeida('${s.id}')">Marcar leída</button>`:''}
-        </div>`;
-      });
-      out+='</div></div>';
-    }
-  }
-  el.innerHTML=out;
-}
-
-function enviarSugerencia() {
-  const msg = document.getElementById('sugMensaje')?.value?.trim();
-  if (!msg) { alert('Escribe un mensaje'); return; }
-  const rec = {
-    id:      'sug_'+Date.now(),
-    nombre:  document.getElementById('sugNombre')?.value?.trim()||'Anónimo',
-    tipo:    document.getElementById('sugTipo')?.value||'Sugerencia',
-    mensaje: msg,
-    fecha:   new Date().toLocaleString('es-ES'),
-    clubId:  sesion.user||'',
-    leida:   false,
-  };
-  if (!DB.sugerencias) DB.sugerencias=[];
-  DB.sugerencias.push(rec);
-  save();
-  document.getElementById('sugMensaje').value='';
-  document.getElementById('sugNombre').value='';
-  if (sesion.rol==='familias') {
-    // Clear for public profile - no history shown
-    document.getElementById('sugerenciasContent').innerHTML='<div class="empty-state"><div class="ei">✅</div><p>Sugerencia enviada. ¡Gracias!</p></div>';
+      </div>`).join('');
   } else {
-    renderSugerencias();
+    html += '<div class="success-box">Tu sugerencia ha sido recibida. ¡Gracias!</div>';
   }
-}
-
-function marcarLeida(id) {
-  const s=(DB.sugerencias||[]).find(x=>x.id===id); if(!s) return;
-  s.leida=true; save(); renderSugerencias();
+  el.innerHTML = html;
 }
 
 function guardarSug() {
@@ -2096,93 +2014,83 @@ console.log('Familias: acceso directo (sin contraseña)');
   async function syncToSheets() {
     if (!SCRIPT_URL || !sesion) return;
     clearTimeout(_syncTimer);
-    _syncTimer = setTimeout(() => _doSync(), 2000);
-  }
+    _syncTimer = setTimeout(async () => {
+      try {
+        setStatus('syncing');
+        const pwd = sesion.rol === 'admin' ? 'sfc2627' :
+                    sesion.rol === 'club'   ? sesion.user :
+                    sesion.rol === 'arbitro'? 'arb2627' : '';
 
-  async function manualSync() {
-    await _doSync();
-    setTimeout(()=>loadFromSheets(), 1500);
-  }
-
-  async function _doSync() {
-    if (!SCRIPT_URL || !sesion) return;
-    setSyncStatus('syncing');
-    try {
-      const pwd = encodeURIComponent(sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'');
-      const del = DB._deleted||{};
-
-      // Send deletes first (small)
-      if (Object.keys(del).length) {
-        await fetch(SCRIPT_URL+'?action=deleteIds&pwd='+pwd+'&ids='+encodeURIComponent(JSON.stringify(Object.keys(del))), {mode:'no-cors'});
+        // Sync all collections
+        const collections = ['equipos','partidos','goleadores','noticias','patrocinadores'];
+        for (const col of collections) {
+          const items = DB[col] || [];
+          for (const item of items) {
+            await apiPost('save' + col.charAt(0).toUpperCase() + col.slice(1,-1) + (col.endsWith('es') ? '' : ''), item, pwd);
+          }
+        }
+        setStatus('ok');
+      } catch(e) {
+        console.error('Sync error:', e);
+        setStatus('error');
       }
-
-      // Send each collection separately to avoid URL length limit
-      const collections = sesion.rol==='admin'
-        ? { competiciones:DB.competiciones, equipos:DB.equipos, jugadores:DB.jugadores, partidos:DB.partidos, goleadores:DB.goleadores, noticias:DB.noticias, actas:DB.actas }
-        : sesion.rol==='arbitro'
-        ? { actas:DB.actas }
-        : { equipos:(DB.equipos||[]).filter(e=>e.clubId===sesion.user), jugadores:(DB.jugadores||[]).filter(j=>j.clubId===sesion.user), sugerencias:(DB.sugerencias||[]).filter(s=>s.clubId===sesion.user) };
-
-      for (const [col, items] of Object.entries(collections)) {
-        if (!items?.length) continue;
-        const data = encodeURIComponent(JSON.stringify(items));
-        await fetch(SCRIPT_URL+'?action=saveCollection&pwd='+pwd+'&col='+col+'&data='+data, {mode:'no-cors'});
-      }
-      setSyncStatus('ok');
-    } catch(e) { setSyncStatus('error'); }
+    }, 1500);
   }
 
   async function loadFromSheets() {
     if (!SCRIPT_URL || !sesion) return;
     try {
       setStatus('loading');
-      const pwd = sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'';
-      const r = await fetch(SCRIPT_URL+'?action=getAll&pwd='+encodeURIComponent(pwd));
-      const j = await r.json();
+      const pwd = sesion.rol === 'admin' ? 'sfc2627' :
+                  sesion.rol === 'club'   ? sesion.user :
+                  sesion.rol === 'arbitro'? 'arb2627' : '';
+
+      const url = SCRIPT_URL + '?action=getAll&pwd=' + pwd;
+      const r   = await fetch(url);
+      const j   = await r.json();
       if (j.ok && j.data) {
-        const d = j.data;
-        const merge = (local, remote) => {
-          if (!remote?.length) return local||[];
-          const del = DB._deleted||{};
-          const map = {};
-          (local||[]).forEach(x=>{ if(x?.id&&!del[x.id]) map[x.id]=x; });
-          (remote||[]).forEach(x=>{ if(x?.id&&!del[x.id]) map[x.id]=x; });
-          // Re-apply local deletes over remote
-          Object.keys(del).forEach(k=>{ delete map[k]; });
-          return Object.values(map);
-        };
-        if (d.competiciones?.length) DB.competiciones = merge(DB.competiciones, d.competiciones);
-        if (d.equipos?.length)       DB.equipos       = merge(DB.equipos,       d.equipos);
-        if (d.jugadores?.length)     DB.jugadores     = merge(DB.jugadores,      d.jugadores);
-        if (d.partidos?.length)      DB.partidos      = merge(DB.partidos,       d.partidos);
-        if (d.goleadores?.length)    DB.goleadores    = merge(DB.goleadores,     d.goleadores);
-        if (d.noticias?.length)      DB.noticias      = merge(DB.noticias,       d.noticias);
-        if (d.actas?.length)         DB.actas         = merge(DB.actas,          d.actas);
-        if (d.sugerencias?.length)   DB.sugerencias   = merge(DB.sugerencias,    d.sugerencias);
-        delete DB.competicion;
+        if (j.data.equipos?.length)       DB.equipos       = j.data.equipos;
+        if (j.data.partidos?.length)      DB.partidos      = j.data.partidos;
+        if (j.data.goleadores?.length)    DB.goleadores    = j.data.goleadores;
+        if (j.data.noticias?.length)      DB.noticias      = j.data.noticias;
+        if (j.data.patrocinadores?.length)DB.patrocinadores= j.data.patrocinadores;
+        if (j.data.competiciones?.length) DB.competicion   = j.data.competiciones[0] || null;
         localStorage.setItem('clubos_sfc', JSON.stringify(DB));
-        renderAll(); setStatus('ok');
-      } else { setStatus('local'); }
-    } catch(e) { setStatus('local'); }
+        renderAll();
+        setStatus('ok');
+      } else {
+        setStatus('local');
+      }
+    } catch(e) {
+      console.error('Load error:', e);
+      setStatus('local');
+    }
   }
 
-  function startPolling() {
-    if (window._poll) clearInterval(window._poll);
-    window._poll = setInterval(()=>{ if(sesion) loadFromSheets(); }, 30000);
+  async function apiPost(action, data, pwd) {
+    if (!SCRIPT_URL) return;
+    try {
+      const params = new URLSearchParams({ action, pwd, ...data });
+      const r = await fetch(SCRIPT_URL + '?' + params.toString());
+      return await r.json();
+    } catch(e) { return {ok:false}; }
   }
 
-
-  function setSyncStatus(state) {
-    const label = document.getElementById('syncLabel');
-    const btn   = document.getElementById('btnSync');
-    if (!label) return;
-    const s = { ok:'↻ Sync', syncing:'Guardando...', loading:'Cargando...', error:'Error ⚠️', local:'↻ Sync' };
-    label.textContent = s[state]||'↻ Sync';
-    if (btn) btn.style.borderColor = state==='error'?'rgba(200,16,46,.6)':state==='syncing'||state==='loading'?'rgba(212,160,23,.6)':'rgba(255,255,255,.25)';
-    if (state==='ok'||state==='local') setTimeout(()=>{ label.textContent='↻ Sync'; if(btn) btn.style.borderColor='rgba(255,255,255,.25)'; }, 2000);
+  function setStatus(state) {
+    const bar = document.getElementById('syncStatusBar');
+    if (!bar) return;
+    const states = {
+      ok:      { bg:'#1E8449', txt:'✔ Conectado a Google Sheets' },
+      loading: { bg:'#2E6DA4', txt:'⏳ Cargando datos...' },
+      syncing: { bg:'#E8A020', txt:'⟳ Sincronizando...' },
+      local:   { bg:'#E67E22', txt:'⚠ Modo local — sin conexión' },
+      error:   { bg:'#C0392B', txt:'✖ Error de conexión' },
+    };
+    const s = states[state] || states.local;
+    bar.style.background = s.bg;
+    bar.textContent = s.txt;
+    bar.style.display = 'block';
   }
-  function setStatus(state) { setSyncStatus(state); }
-  function setStatus(state) { setSyncStatus(state); }
 
 
   // ══════════════════════════════════════════════════════════════
@@ -2509,245 +2417,99 @@ console.log('Familias: acceso directo (sin contraseña)');
 
 
   // ══════════════════════════════════════════════════════
-  //  ACTAS
+  //  SYNC — manual per-action
   // ══════════════════════════════════════════════════════
-
-  let _actaPartidoId = null;
-
-  function elaborarActa(partidoId) {
-    const p = (DB.partidos||[]).find(x=>x.id===partidoId);
-    if (!p) return;
-    _actaPartidoId = partidoId;
-    const acta = (DB.actas||[]).find(a=>a.partidoId===partidoId) || {};
-    const isArbitro = sesion.rol==='arbitro';
-
-    // Get convocados per team
-    const eqL = (DB.equipos||[]).find(e=>e.id===p.equipoLocalId);
-    const eqV = (DB.equipos||[]).find(e=>e.id===p.equipoVisitanteId);
-    const jugsL = (DB.jugadores||[]).filter(j=>j.equipoId===p.equipoLocalId&&(j.convocado===true||j.convocado==='true'));
-    const jugsV = (DB.jugadores||[]).filter(j=>j.equipoId===p.equipoVisitanteId&&(j.convocado===true||j.convocado==='true'));
-
-    const jugRow = (j, equipo) => `
-      <tr>
-        <td style="font-size:12px;">${j.dorsal||'—'}</td>
-        <td>${j.nombre}${j.apellidos?' '+j.apellidos:''}</td>
-        <td><select style="font-size:11px;padding:2px 4px;border:1px solid #ddd;border-radius:4px;" id="jug_${equipo}_${j.id}_goles">
-          ${[0,1,2,3,4,5].map(n=>`<option${n==0?' selected':''}>${n}</option>`).join('')}
-        </select></td>
-        <td><select style="font-size:11px;padding:2px 4px;border:1px solid #ddd;border-radius:4px;" id="jug_${equipo}_${j.id}_amarilla">
-          ${[0,1,2].map(n=>`<option${n==0?' selected':''}>${n}</option>`).join('')}
-        </select></td>
-        <td><input type="checkbox" id="jug_${equipo}_${j.id}_roja"></td>
-      </tr>`;
-
-    const firmada = acta.firmada===true||acta.firmada==='true';
-
-    document.getElementById('modalActaTitle').textContent =
-      `Acta: ${p.equipoLocalNombre} vs ${p.equipoVisitanteNombre}`;
-    document.getElementById('btnFirmarActa').style.display = (isArbitro&&!firmada)?'':'none';
-    document.getElementById('btnGuardarActa').style.display = (!firmada)?'':'none';
-
-    document.getElementById('modalActaContent').innerHTML = `
-      <!-- Datos del árbitro -->
-      <div style="background:#f9f9f7;border-radius:10px;padding:14px;margin-bottom:16px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;">Árbitro</div>
-        <div class="form-grid">
-          <div class="form-field">
-            <label>Nombre y apellidos</label>
-            <input id="actaArbitroNombre" value="${acta.arbitroNombre||''}" placeholder="Nombre completo del árbitro" ${firmada?'disabled':''}>
-          </div>
-          <div class="form-field">
-            <label>Fecha del acta</label>
-            <input type="date" id="actaFecha" value="${acta.fecha||new Date().toISOString().split('T')[0]}" ${firmada?'disabled':''}>
-          </div>
-        </div>
-      </div>
-
-      <!-- Resultado -->
-      <div style="background:#f9f9f7;border-radius:10px;padding:14px;margin-bottom:16px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;">Resultado</div>
-        <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;">
-          <div style="text-align:center;">
-            <div style="font-weight:700;font-size:13px;margin-bottom:6px;">${p.equipoLocalNombre}</div>
-            <input type="number" id="actaGolesLocal" min="0" max="99" value="${acta.golesLocal??p.golesLocal??''}"
-              style="width:70px;text-align:center;font-size:1.8rem;font-weight:900;border:2px solid #ddd;border-radius:8px;padding:6px;" ${firmada?'disabled':''}>
-          </div>
-          <div style="font-size:1.4rem;font-weight:900;color:var(--gris-suave);">—</div>
-          <div style="text-align:center;">
-            <div style="font-weight:700;font-size:13px;margin-bottom:6px;">${p.equipoVisitanteNombre}</div>
-            <input type="number" id="actaGolesVisitante" min="0" max="99" value="${acta.golesVisitante??p.golesVisitante??''}"
-              style="width:70px;text-align:center;font-size:1.8rem;font-weight:900;border:2px solid #ddd;border-radius:8px;padding:6px;" ${firmada?'disabled':''}>
-          </div>
-        </div>
-      </div>
-
-      <!-- Jugadores local -->
-      ${jugsL.length ? `
-      <div style="background:#f9f9f7;border-radius:10px;padding:14px;margin-bottom:16px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;">${p.equipoLocalNombre} — Convocados</div>
-        <div style="overflow-x:auto;"><table class="tabla-base"><thead><tr><th>#</th><th>Jugador</th><th>⚽</th><th>🟨</th><th>🟥</th></tr></thead><tbody>
-          ${jugsL.map(j=>jugRow(j,'local')).join('')}
-        </tbody></table></div>
-      </div>` : ''}
-
-      <!-- Jugadores visitante -->
-      ${jugsV.length ? `
-      <div style="background:#f9f9f7;border-radius:10px;padding:14px;margin-bottom:16px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;">${p.equipoVisitanteNombre} — Convocados</div>
-        <div style="overflow-x:auto;"><table class="tabla-base"><thead><tr><th>#</th><th>Jugador</th><th>⚽</th><th>🟨</th><th>🟥</th></tr></thead><tbody>
-          ${jugsV.map(j=>jugRow(j,'visitante')).join('')}
-        </tbody></table></div>
-      </div>` : ''}
-
-      <!-- Incidencias -->
-      <div style="background:#f9f9f7;border-radius:10px;padding:14px;margin-bottom:16px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;">Incidencias</div>
-        <textarea id="actaIncidencias" rows="4" style="width:100%;padding:8px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;" placeholder="Observaciones, incidentes, protestas..." ${firmada?'disabled':''}>${acta.incidencias||''}</textarea>
-      </div>
-
-      ${firmada?`<div style="background:#D5F5E3;border-radius:10px;padding:12px;text-align:center;font-weight:700;color:#1E8449;">✅ Acta firmada · ${acta.arbitroNombre||''} · ${acta.fecha||''}</div>`:''}
-    `;
-
-    // Restore goles/tarjetas if editing existing acta
-    if (acta.jugadores) {
-      try {
-        const jdata = typeof acta.jugadores==='string' ? JSON.parse(acta.jugadores) : acta.jugadores;
-        jdata.forEach(jd=>{
-          const gEl = document.getElementById('jug_'+jd.equipo+'_'+jd.id+'_goles');
-          const aEl = document.getElementById('jug_'+jd.equipo+'_'+jd.id+'_amarilla');
-          const rEl = document.getElementById('jug_'+jd.equipo+'_'+jd.id+'_roja');
-          if(gEl) gEl.value = jd.goles||0;
-          if(aEl) aEl.value = jd.amarillas||0;
-          if(rEl) rEl.checked = !!jd.roja;
-        });
-      } catch(e) {}
+  function showSyncBanner(mensaje, accion) {
+    let banner = document.getElementById('syncBanner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'syncBanner';
+      banner.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);' +
+        'background:#1B3A5C;color:white;padding:10px 18px;border-radius:10px;' +
+        'display:flex;align-items:center;gap:12px;z-index:9999;font-size:13px;' +
+        'box-shadow:0 4px 20px rgba(0,0,0,.3);min-width:260px;max-width:90vw;';
+      document.body.appendChild(banner);
     }
-
-    abrirModal('modalActa');
+    banner.innerHTML = '<span>' + mensaje + '</span>' +
+      '<button onclick="' + accion + '" style="background:var(--rojo);color:white;border:none;' +
+      'border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">' +
+      '☁️ Guardar</button>' +
+      '<button onclick="document.getElementById('syncBanner').remove()" ' +
+      'style="background:none;border:none;color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;padding:0 4px;">✕</button>';
+    // Auto-hide after 10s
+    clearTimeout(window._bannerTimer);
+    window._bannerTimer = setTimeout(() => { if(banner) banner.remove(); }, 10000);
   }
 
-  function verActa(partidoId) {
-    const acta = (DB.actas||[]).find(a=>a.partidoId===partidoId);
-    const p = (DB.partidos||[]).find(x=>x.id===partidoId);
-    if (!acta || !p) { alert('No hay acta disponible para este partido.'); return; }
-    // Open in view mode (firmada)
-    _actaPartidoId = partidoId;
-    elaborarActa(partidoId);
+  function hideSyncBanner() {
+    const b = document.getElementById('syncBanner');
+    if (b) b.remove();
   }
 
-  function _recogerDatosActa() {
-    const p = (DB.partidos||[]).find(x=>x.id===_actaPartidoId);
-    if (!p) return null;
-    const jugsL = (DB.jugadores||[]).filter(j=>j.equipoId===p.equipoLocalId&&(j.convocado===true||j.convocado==='true'));
-    const jugsV = (DB.jugadores||[]).filter(j=>j.equipoId===p.equipoVisitanteId&&(j.convocado===true||j.convocado==='true'));
-
-    const recogerJugadores = (jugs, equipo) => jugs.map(j=>({
-      id:        j.id,
-      nombre:    j.nombre+(j.apellidos?' '+j.apellidos:''),
-      dorsal:    j.dorsal||'',
-      equipo,
-      goles:     Number(document.getElementById('jug_'+equipo+'_'+j.id+'_goles')?.value||0),
-      amarillas: Number(document.getElementById('jug_'+equipo+'_'+j.id+'_amarilla')?.value||0),
-      roja:      document.getElementById('jug_'+equipo+'_'+j.id+'_roja')?.checked||false,
-    }));
-
-    return {
-      id:               (DB.actas||[]).find(a=>a.partidoId===_actaPartidoId)?.id || 'acta_'+Date.now(),
-      partidoId:        _actaPartidoId,
-      competicionId:    p.competicionId||'',
-      arbitroNombre:    document.getElementById('actaArbitroNombre')?.value?.trim()||'',
-      fecha:            document.getElementById('actaFecha')?.value||'',
-      golesLocal:       document.getElementById('actaGolesLocal')?.value||'0',
-      golesVisitante:   document.getElementById('actaGolesVisitante')?.value||'0',
-      equipoLocalNombre:    p.equipoLocalNombre,
-      equipoVisitanteNombre:p.equipoVisitanteNombre,
-      incidencias:      document.getElementById('actaIncidencias')?.value?.trim()||'',
-      jugadores:        JSON.stringify([...recogerJugadores(jugsL,'local'),...recogerJugadores(jugsV,'visitante')]),
-      firmada:          false,
-    };
-  }
-
-  function guardarActa() {
-    const data = _recogerDatosActa(); if(!data) return;
-    if (!DB.actas) DB.actas=[];
-    const idx = DB.actas.findIndex(a=>a.partidoId===data.partidoId);
-    if(idx>=0) DB.actas[idx]=data; else DB.actas.push(data);
-
-    // Update partido result
-    const p = DB.partidos.find(x=>x.id===_actaPartidoId);
-    if(p) { p.golesLocal=data.golesLocal; p.golesVisitante=data.golesVisitante; p.acta='borrador'; }
-
-    // Update goleadores
-    _actualizarGoleadores(data);
-
-    save(); cerrarModal('modalActa'); renderActas(); renderCalendario();
-  }
-
-  function firmarActa() {
-    if (!confirm('¿Firmar y cerrar el acta? Esta acción no se puede deshacer.')) return;
-    const data = _recogerDatosActa(); if(!data) return;
-    if (!data.arbitroNombre) { alert('Introduce el nombre del árbitro antes de firmar.'); return; }
-    data.firmada    = true;
-    data.fechaFirma = new Date().toLocaleString('es-ES');
-
-    if (!DB.actas) DB.actas=[];
-    const idx = DB.actas.findIndex(a=>a.partidoId===data.partidoId);
-    if(idx>=0) DB.actas[idx]=data; else DB.actas.push(data);
-
-    // Mark partido as jugado
-    const p = DB.partidos.find(x=>x.id===_actaPartidoId);
-    if(p) {
-      p.golesLocal=data.golesLocal; p.golesVisitante=data.golesVisitante;
-      p.estado='jugado'; p.acta='Firmada · '+data.arbitroNombre;
-    }
-
-    _actualizarGoleadores(data);
-    save(); cerrarModal('modalActa');
-    renderActas(); renderCalendario(); renderClasificacion(); renderGoleadores();
-  }
-
-  function abrirModalActa() {
-    // Open blank acta selector
-    const jugados = (DB.partidos||[]).filter(p=>p.estado==='pendiente'||p.estado==='jugado');
-    if (!jugados.length) { alert('No hay partidos disponibles.'); return; }
-    // For now open first pending partido - could show selector
-    const pending = jugados.find(p=>p.estado==='pendiente') || jugados[0];
-    elaborarActa(pending.id);
-  }
-
-  function _actualizarGoleadores(actaData) {
+  async function syncRecord(action, data) {
+    const btn = document.querySelector('#syncBanner button');
+    if (btn) { btn.textContent = '⏳...'; btn.disabled = true; }
     try {
-      const jugs = typeof actaData.jugadores==='string' ? JSON.parse(actaData.jugadores) : actaData.jugadores||[];
-      jugs.forEach(jd=>{
-        if(!jd.goles&&!jd.amarillas&&!jd.roja) return;
-        if(!DB.goleadores) DB.goleadores=[];
-        const p   = DB.partidos.find(x=>x.id===actaData.partidoId);
-        const eqId= jd.equipo==='local' ? p?.equipoLocalId : p?.equipoVisitanteId;
-        const eqNom=jd.equipo==='local' ? p?.equipoLocalNombre : p?.equipoVisitanteNombre;
-        const gol  = DB.goleadores.find(g=>g.jugadorId===jd.id&&g.competicionId===actaData.competicionId);
-        if(gol) {
-          gol.goles     = Number(gol.goles||0)+Number(jd.goles||0);
-          gol.amarillas = Number(gol.amarillas||0)+Number(jd.amarillas||0);
-          gol.rojas     = Number(gol.rojas||0)+(jd.roja?1:0);
-        } else {
-          DB.goleadores.push({
-            id:'gol_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
-            jugadorId:    jd.id,
-            jugador:      jd.nombre,
-            equipoId:     eqId||'',
-            equipoNombre: eqNom||'',
-            competicionId:actaData.competicionId||'',
-            goles:        Number(jd.goles||0),
-            amarillas:    Number(jd.amarillas||0),
-            rojas:        jd.roja?1:0,
-          });
-        }
-      });
-    } catch(e) { console.error('Goleadores error',e); }
+      const pwd = encodeURIComponent(
+        sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':''
+      );
+      const url = SCRIPT_URL + '?action=' + action + '&pwd=' + pwd +
+        '&data=' + encodeURIComponent(JSON.stringify(data));
+      await fetch(url, { mode: 'no-cors' });
+      hideSyncBanner();
+    } catch(e) {
+      const btn2 = document.querySelector('#syncBanner button');
+      if (btn2) { btn2.textContent = '↻ Reintentar'; btn2.disabled = false; }
+    }
   }
+
+  // Manual full sync button in topbar
+  async function manualSync() {
+    setSyncStatus('loading');
+    try {
+      const pwd = encodeURIComponent(
+        sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':''
+      );
+      const r = await fetch(SCRIPT_URL + '?action=getAll&pwd=' + pwd);
+      const j = await r.json();
+      if (j.ok && j.data) {
+        const d = j.data;
+        const del = DB._deleted||{};
+        const merge = (local, remote) => {
+          const map = {};
+          (local||[]).forEach(x=>{ if(x?.id&&!del[x.id]) map[x.id]=x; });
+          (remote||[]).forEach(x=>{ if(x?.id&&!del[x.id]) map[x.id]=x; });
+          Object.keys(del).forEach(k=>delete map[k]);
+          return Object.values(map);
+        };
+        if (d.competiciones?.length) DB.competiciones = merge(DB.competiciones, d.competiciones);
+        if (d.equipos?.length)       DB.equipos       = merge(DB.equipos,       d.equipos);
+        if (d.jugadores?.length)     DB.jugadores     = merge(DB.jugadores,     d.jugadores);
+        if (d.partidos?.length)      DB.partidos      = merge(DB.partidos,      d.partidos);
+        if (d.actas?.length)         DB.actas         = merge(DB.actas,         d.actas);
+        if (d.noticias?.length)      DB.noticias      = merge(DB.noticias,      d.noticias);
+        if (d.goleadores?.length)    DB.goleadores    = merge(DB.goleadores,    d.goleadores);
+        if (d.sugerencias?.length)   DB.sugerencias   = merge(DB.sugerencias,   d.sugerencias);
+        delete DB.competicion;
+        localStorage.setItem('clubos_sfc', JSON.stringify(DB));
+        renderAll(); setSyncStatus('ok');
+      } else { setSyncStatus('local'); }
+    } catch(e) { setSyncStatus('error'); }
+  }
+
+  function setSyncStatus(state) {
+    const label = document.getElementById('syncLabel');
+    const btn   = document.getElementById('btnSync');
+    if (!label) return;
+    const s = { ok:'↻ Sync', syncing:'Guardando...', loading:'Cargando...', error:'Error ⚠️', local:'↻ Sync' };
+    label.textContent = s[state]||'↻ Sync';
+    if (btn) btn.style.borderColor = state==='error'?'rgba(200,16,46,.6)':state==='loading'||state==='syncing'?'rgba(212,160,23,.6)':'rgba(255,255,255,.25)';
+    if (state==='ok'||state==='local') setTimeout(()=>{ if(label) label.textContent='↻ Sync'; if(btn) btn.style.borderColor='rgba(255,255,255,.25)'; }, 2000);
+  }
+  function setStatus(s) { setSyncStatus(s); }
 
 </script>
-
+<div id="syncStatusBar" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:6px;text-align:center;font-size:12px;font-weight:700;color:white;z-index:9999;"></div>
 
 <!-- ══ MODAL GENERADOR CALENDARIO ══ -->
 <div class="modal" id="modalGeneradorCalendario">
