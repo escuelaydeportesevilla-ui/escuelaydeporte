@@ -2434,7 +2434,7 @@ console.log('Familias: acceso directo (sin contraseña)');
       '<button onclick="' + accion + '" style="background:var(--rojo);color:white;border:none;' +
       'border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">' +
       '☁️ Guardar</button>' +
-      '<button onclick="document.getElementById('syncBanner').remove()" ' +
+      '<button onclick="hideSyncBanner()" ' +
       'style="background:none;border:none;color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;padding:0 4px;">✕</button>';
     // Auto-hide after 10s
     clearTimeout(window._bannerTimer);
