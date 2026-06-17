@@ -983,7 +983,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXuR_ScVFX8gepJWn1BvM2wnKXET_3a4-r1SiMsee4QLaqnyppY9Zl5kOeAmq_McrY/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-Q2JEyLeAxa8P21r0mi9lBv_AjCLJSBe5AsSYq9HmwU2UgyvZpteEkmtJSW4fzdc/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -1035,7 +1035,6 @@ document.addEventListener('DOMContentLoaded',_initStaticImages);
 
 function save() {
     localStorage.setItem('clubos_sfc', JSON.stringify(DB));
-    syncToSheets();
   }
 function uid() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
 
@@ -2101,28 +2100,34 @@ console.log('Familias: acceso directo (sin contraseña)');
   }
 
   async function manualSync() {
-    await loadFromSheets();
+    await _doSync();
+    setTimeout(()=>loadFromSheets(), 1500);
   }
 
   async function _doSync() {
     if (!SCRIPT_URL || !sesion) return;
     setSyncStatus('syncing');
     try {
-      const pwd = sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'';
-      const data = encodeURIComponent(JSON.stringify({
-        competiciones: sesion.rol==='admin' ? (DB.competiciones||[]) : [],
-        equipos:       sesion.rol==='admin' ? (DB.equipos||[]) : (DB.equipos||[]).filter(e=>e.clubId===sesion.user),
-        jugadores:     sesion.rol==='admin' ? (DB.jugadores||[]) : (DB.jugadores||[]).filter(j=>j.clubId===sesion.user),
-        partidos:      sesion.rol==='admin' ? (DB.partidos||[]) : [],
-        goleadores:    sesion.rol==='admin' ? (DB.goleadores||[]) : [],
-        noticias:      sesion.rol==='admin' ? (DB.noticias||[]) : [],
-        actas:         (sesion.rol==='admin'||sesion.rol==='arbitro') ? (DB.actas||[]) : [],
-        sugerencias:   (DB.sugerencias||[]).filter(s=>s.clubId===sesion.user||sesion.rol==='admin'),
-        _deleted:      DB._deleted||{},
-      }));
-      const url = SCRIPT_URL+'?action=saveAll&pwd='+encodeURIComponent(pwd)+'&data='+data;
-      // no-cors GET — fire and forget, no response needed
-      await fetch(url, {mode:'no-cors'});
+      const pwd = encodeURIComponent(sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'');
+      const del = DB._deleted||{};
+
+      // Send deletes first (small)
+      if (Object.keys(del).length) {
+        await fetch(SCRIPT_URL+'?action=deleteIds&pwd='+pwd+'&ids='+encodeURIComponent(JSON.stringify(Object.keys(del))), {mode:'no-cors'});
+      }
+
+      // Send each collection separately to avoid URL length limit
+      const collections = sesion.rol==='admin'
+        ? { competiciones:DB.competiciones, equipos:DB.equipos, jugadores:DB.jugadores, partidos:DB.partidos, goleadores:DB.goleadores, noticias:DB.noticias, actas:DB.actas }
+        : sesion.rol==='arbitro'
+        ? { actas:DB.actas }
+        : { equipos:(DB.equipos||[]).filter(e=>e.clubId===sesion.user), jugadores:(DB.jugadores||[]).filter(j=>j.clubId===sesion.user), sugerencias:(DB.sugerencias||[]).filter(s=>s.clubId===sesion.user) };
+
+      for (const [col, items] of Object.entries(collections)) {
+        if (!items?.length) continue;
+        const data = encodeURIComponent(JSON.stringify(items));
+        await fetch(SCRIPT_URL+'?action=saveCollection&pwd='+pwd+'&col='+col+'&data='+data, {mode:'no-cors'});
+      }
       setSyncStatus('ok');
     } catch(e) { setSyncStatus('error'); }
   }
