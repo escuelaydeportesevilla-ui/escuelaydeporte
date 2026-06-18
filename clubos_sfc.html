@@ -1289,19 +1289,36 @@ function guardarComp() {
 // ══════════════════════════════════════════════════════
 let editEquipoId = null;
 function renderEquipos() {
-  const el      = document.getElementById('equiposContent');
-  const isAdmin = sesion.rol === 'admin';
-  const isClub  = sesion.rol === 'club';
+  const el        = document.getElementById('equiposContent');
+  const isAdmin   = sesion.rol === 'admin';
+  const isClub    = sesion.rol === 'club';
+  const isFamilia = sesion.rol === 'familias';
   if (!DB.equipos) DB.equipos = [];
 
-  // Admin sees all, club sees only their own
-  let lista = isAdmin ? DB.equipos : DB.equipos.filter(e=>e.clubId===sesion.user);
+  // Admin sees all, club sees only their own, familias sees all (simplified view)
+  let lista = (isAdmin || isFamilia) ? DB.equipos : DB.equipos.filter(e=>e.clubId===sesion.user);
 
   const btnAdd = document.getElementById('btnNuevoEquipo');
   if (btnAdd) btnAdd.style.display = (isAdmin||isClub) ? '' : 'none';
 
   if (!lista.length) {
     el.innerHTML = '<div class="empty-state"><div class="ei">🏟️</div><p>' + (isClub?'Añade tu primer equipo.':'No hay equipos registrados.') + '</p></div>';
+    return;
+  }
+
+  // ── VISTA SIMPLIFICADA FAMILIAS ──────────────────────────
+  if (isFamilia) {
+    let htmlFam = lista.map(e => {
+      const comp = (DB.competiciones||[]).find(c=>c.id===e.competicionId);
+      const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
+      return `<div class="card-equipo" data-nombre="${(e.nombre||'').toLowerCase()}">
+        <div class="ceq-info">
+          <div class="ceq-nombre">${e.nombre}</div>
+          <div class="ceq-meta">${comp?.nombre||'Sin competición'} · ${e.categoria||'—'} · ${nJug} jugadores</div>
+        </div>
+      </div>`;
+    }).join('');
+    el.innerHTML = `<div class="cards-equipos">${htmlFam}</div>`;
     return;
   }
 
@@ -1899,19 +1916,26 @@ function renderClasificacion() {
 // ══════════════════════════════════════════════════════
 function renderGoleadores() {
   const el = document.getElementById('goleadoresContent');
+  const isFamilia = sesion.rol === 'familias';
   if (!DB.goleadores.length) {
     el.innerHTML = '<div class="empty-state"><div class="ei">⚽</div><p>Aún no hay goles registrados.</p></div>'; return;
   }
+  const nombreCorto = (nombreCompleto) => {
+    if (!isFamilia) return nombreCompleto;
+    const partes = (nombreCompleto||'').trim().split(/\s+/);
+    return partes.length > 1 ? (partes[0] + ' ' + partes[1]) : (partes[0]||'');
+  };
   const sorted = [...DB.goleadores].sort((a,b)=>b.goles-a.goles);
   el.innerHTML = '<div class="card">' +
     sorted.map((g,i) => {
       const eq = DB.equipos.find(e=>e.id===g.equipoId);
+      const comp = eq ? (DB.competiciones||[]).find(c=>c.id===eq.competicionId) : null;
       const pos = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'º';
       return `<div class="goleador-row">
         <div class="goleador-pos">${pos}</div>
         <div style="flex:1">
-          <div class="goleador-name">${g.jugador}</div>
-          <div class="goleador-equipo">${eq?eq.nombre:''}</div>
+          <div class="goleador-name">${nombreCorto(g.jugador)}</div>
+          <div class="goleador-equipo">${eq?eq.nombre:''}${isFamilia&&comp?' · '+comp.nombre:''}</div>
         </div>
         <div class="goleador-goles">${g.goles} ⚽</div>
         ${sesion.rol==='admin'?`<button class="btn btn-xs btn-outline" onclick="eliminarGol('${g.id}')">🗑️</button>`:''}
@@ -1947,6 +1971,7 @@ function eliminarGol(id) {
 // ══════════════════════════════════════════════════════
 function renderActas() {
   const el = document.getElementById('actasContent');
+  const isFamilia = sesion.rol === 'familias';
   const jugados = DB.partidos.filter(p=>p.estado==='jugado'||p.acta);
   if (!jugados.length) {
     el.innerHTML = '<div class="empty-state"><div class="ei">📋</div><p>No hay actas disponibles aún.</p></div>'; return;
@@ -1960,8 +1985,8 @@ function renderActas() {
         <div class="acta-score">${p.golesLocal??'?'} – ${p.golesVisitante??'?'}</div>
         <div class="acta-equipo" style="text-align:right">${visit?visit.nombre:'—'}</div>
       </div>
-      <div style="font-size:12px;color:var(--gris-suave);margin-bottom:10px">📅 ${p.fecha||'—'} · ${p.campo||''}  · J${p.jornada}</div>
-      ${p.acta ? `<div style="font-size:13px;color:var(--gris-texto);line-height:1.6;white-space:pre-line">${p.acta}</div>` : '<div class="info-box">Acta pendiente de redactar.</div>'}
+      <div style="font-size:12px;color:var(--gris-suave);margin-bottom:10px">📅 ${p.fecha||'—'} ${p.hora?'· 🕐 '+p.hora:''} · ${p.campo||''}  · J${p.jornada}</div>
+      ${isFamilia ? '' : (p.acta ? `<div style="font-size:13px;color:var(--gris-texto);line-height:1.6;white-space:pre-line">${p.acta}</div>` : '<div class="info-box">Acta pendiente de redactar.</div>')}
       ${(sesion.rol==='admin'||sesion.rol==='arbitro') ? `<div style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="abrirActaPartido('${p.id}')">✏️ Redactar / editar acta</button></div>` : ''}
     </div>`;
   }).join('');
@@ -2176,7 +2201,7 @@ function renderSugerencias() {
   }
 
   if (!DB.sugerencias.length) {
-    html += '<div class="empty-state"><div class="ei">💬</div><p>No hay sugerencias recibidas aún.</p></div>';
+    if (!esFamilias) html += '<div class="empty-state"><div class="ei">💬</div><p>No hay sugerencias recibidas aún.</p></div>';
   } else if (esAdmin) {
     html += [...DB.sugerencias].reverse().map(s => `
       <div class="sug-card">
@@ -2186,7 +2211,7 @@ function renderSugerencias() {
           <button class="btn btn-xs" style="background:var(--rojo-suave);color:var(--rojo)" onclick="eliminarSug('${s.id}')">🗑️ Eliminar</button>
         </div>
       </div>`).join('');
-  } else {
+  } else if (esFamilias && window._sugEnviada) {
     html += '<div class="success-box">Tu sugerencia ha sido recibida. ¡Gracias!</div>';
   }
   el.innerHTML = html;
@@ -2201,7 +2226,10 @@ function guardarSug() {
     texto,
     fecha: new Date().toLocaleDateString('es-ES')
   });
-  save(); cerrarModal('modalSug'); toast('Sugerencia enviada, gracias'); renderSugerencias();
+  window._sugEnviada = true;
+  document.getElementById('sugTexto').value = '';
+  document.getElementById('sugNombre').value = '';
+  save(); cerrarModal('modalSug'); toast('Sugerencia enviada, gracias'); renderSugerencias(); _doSync();
 }
 
 function eliminarSug(id) {
