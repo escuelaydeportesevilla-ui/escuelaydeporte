@@ -680,6 +680,8 @@ tbody td.center{text-align:center;}
     <div class="tab-panel" id="panel-equipos">
       <div class="section-header">
         <h2>🏟️ Equipos</h2><div class="section-line"></div>
+        <input type="text" id="buscadorEquiposGlobal" placeholder="🔎 Buscar equipo…" oninput="filtrarEquiposGlobal(this.value)"
+               style="padding:8px 12px;border:1px solid var(--gris-linea);border-radius:8px;font-size:13px;width:200px;margin-right:8px;">
         <button class="btn btn-rojo" id="btnNuevoEquipo" onclick="abrirModalEquipo()">+ Añadir equipo</button>
       </div>
       <div id="equiposContent"></div>
@@ -1315,11 +1317,8 @@ function renderEquipos() {
   Object.entries(comps).forEach(([compId, equipos]) => {
     const comp = (DB.competiciones||[]).find(c=>c.id===compId);
     const compNombre = comp?.nombre || (compId==='__none__'?'Sin competición asignada':'Competición desconocida');
-    const buscadorId = 'buscadorEq_' + compId;
     html += `<div style="margin-bottom:24px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">${compNombre}</div>
-      <input type="text" id="${buscadorId}" placeholder="🔎 Buscar equipo…" oninput="filtrarEquiposGrupo('${compId}', this.value)"
-             style="width:100%;max-width:280px;padding:8px 12px;border:1px solid var(--gris-linea);border-radius:8px;margin-bottom:12px;font-size:13px;">`;
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">${compNombre}</div>`;
 
     // ── MOBILE CARDS ──
     html += `<div class="cards-equipos">`;
@@ -1476,13 +1475,18 @@ function eliminarEquipo(id) {
 }
 
 // ── BUSCADOR DE EQUIPOS ──────────────────────────────────
-function filtrarEquiposGrupo(compId, texto) {
+function filtrarEquiposGlobal(texto) {
   const q = (texto||'').toLowerCase().trim();
-  const wrap = document.getElementById('buscadorEq_' + compId)?.closest('div[style*="margin-bottom:24px"]');
-  if (!wrap) return;
-  wrap.querySelectorAll('[data-nombre]').forEach(elNode => {
-    const match = !q || elNode.getAttribute('data-nombre').includes(q);
-    elNode.style.display = match ? '' : 'none';
+  const el = document.getElementById('equiposContent');
+  if (!el) return;
+  el.querySelectorAll(':scope > div').forEach(grupo => {
+    let visibles = 0;
+    grupo.querySelectorAll('[data-nombre]').forEach(item => {
+      const match = !q || item.getAttribute('data-nombre').includes(q);
+      item.style.display = match ? '' : 'none';
+      if (match) visibles++;
+    });
+    grupo.style.display = visibles > 0 ? '' : 'none';
   });
 }
 
