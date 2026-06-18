@@ -801,36 +801,26 @@ tbody td.center{text-align:center;}
       </div>
       <div class="form-field"><label>Categoría</label><input id="eqCategoria" placeholder="Alevín, Benjamín..."></div>
       <div class="form-field"><label>Delegado</label><input id="eqDelegado" placeholder="Nombre delegado"></div>
+      <div class="form-field">
+        <label>Camiseta</label>
+        <div id="paletaCamiseta" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;"></div>
+      </div>
+      <div class="form-field">
+        <label>Pantalón</label>
+        <div id="paletaPantalon" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;"></div>
+      </div>
     </div>
 
-    <!-- EQUIPACIÓN (obligatoria) -->
-    <div style="margin-top:16px;padding:14px;background:#f9f9f7;border-radius:10px;border:2px solid var(--rojo-suave);">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:4px;">🎽 Equipación <span style="color:var(--rojo);">*</span></div>
-      <div style="font-size:11px;color:#888;margin-bottom:12px;">Obligatorio. Selecciona los colores de camiseta y pantalón.</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div>
-          <label style="font-size:12px;display:block;margin-bottom:6px;">Color camiseta *</label>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="eq1CamisetaColor" oninput="actualizarPreviewEquipo()" value="#C8102E" style="width:44px;height:44px;border-radius:8px;border:2px solid var(--rojo);cursor:pointer;padding:2px;">
-            <span id="eq1CamisetaHex" style="font-size:12px;color:#666;">#C8102E</span>
-          </div>
-        </div>
-        <div>
-          <label style="font-size:12px;display:block;margin-bottom:6px;">Color pantalón *</label>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="eq1PantaloonColor" oninput="actualizarPreviewEquipo()" value="#111111" style="width:44px;height:44px;border-radius:8px;border:2px solid var(--rojo);cursor:pointer;padding:2px;">
-            <span id="eq1PantaloonHex" style="font-size:12px;color:#666;">#111111</span>
-          </div>
-        </div>
+    <div style="margin-top:14px;display:flex;align-items:center;gap:10px;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+        <div id="prev1Camiseta" style="width:36px;height:28px;border-radius:4px 4px 0 0;background:#C8102E;border:1px solid rgba(0,0,0,.1);"></div>
+        <div id="prev1Pantalon" style="width:28px;height:16px;border-radius:0 0 4px 4px;background:#111111;border:1px solid rgba(0,0,0,.1);"></div>
       </div>
-      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-          <div id="prev1Camiseta" style="width:36px;height:28px;border-radius:4px 4px 0 0;background:#C8102E;border:1px solid rgba(0,0,0,.1);"></div>
-          <div id="prev1Pantalon" style="width:28px;height:16px;border-radius:0 0 4px 4px;background:#111111;border:1px solid rgba(0,0,0,.1);"></div>
-        </div>
-        <span style="font-size:11px;color:#666;">Vista previa equipación</span>
-      </div>
+      <span style="font-size:11px;color:#666;">Vista previa equipación</span>
     </div>
+
+    <input type="hidden" id="eq1CamisetaColor" value="#C8102E">
+    <input type="hidden" id="eq1PantaloonColor" value="#111111">
 
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
       <button class="btn btn-outline" onclick="cerrarModal('modalEquipo')">Cancelar</button>
@@ -1364,13 +1354,31 @@ function renderEquipos() {
   el.innerHTML = html;
 }
 
+const PALETA_COLORES = ['#C8102E','#1A56A0','#1A7A3C','#D4A017','#111111','#FFFFFF','#6E2C00','#4A235A'];
+
+function renderPaletaColor(containerId, inputId, colorActual) {
+  const cont = document.getElementById(containerId);
+  if (!cont) return;
+  cont.innerHTML = PALETA_COLORES.map(c => `
+    <div onclick="seleccionarColorPaleta('${inputId}','${c}','${containerId}')"
+         style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;
+                border:2px solid ${c.toUpperCase()===colorActual.toUpperCase()?'var(--rojo)':'rgba(0,0,0,.15)'};
+                box-shadow:${c.toUpperCase()===colorActual.toUpperCase()?'0 0 0 2px #fff inset':'none'};"
+         title="${c}"></div>
+  `).join('');
+}
+
+function seleccionarColorPaleta(inputId, color, containerId) {
+  document.getElementById(inputId).value = color;
+  renderPaletaColor(containerId, inputId, color);
+  actualizarPreviewEquipo();
+}
+
 function actualizarPreviewEquipo() {
   const c1 = document.getElementById('eq1CamisetaColor')?.value || '#C8102E';
   const p1 = document.getElementById('eq1PantaloonColor')?.value || '#111111';
   const el = (id, v) => { const e = document.getElementById(id); if(e) e.style.background = v; };
   el('prev1Camiseta', c1); el('prev1Pantalon', p1);
-  const hx = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
-  hx('eq1CamisetaHex', c1); hx('eq1PantaloonHex', p1);
 }
 
 function abrirModalEquipo() {
@@ -1381,8 +1389,9 @@ function abrirModalEquipo() {
   document.getElementById('eqDelegado').value  = '';
   document.getElementById('eq1CamisetaColor').value  = '#C8102E';
   document.getElementById('eq1PantaloonColor').value = '#111111';
+  renderPaletaColor('paletaCamiseta','eq1CamisetaColor','#C8102E');
+  renderPaletaColor('paletaPantalon','eq1PantaloonColor','#111111');
   actualizarPreviewEquipo();
-  // Populate competitions (active only for clubs, all for admin)
   const isAdmin = sesion.rol==='admin';
   const comps   = (DB.competiciones||[]).filter(c=>isAdmin||c.activa!==false);
   const sel     = document.getElementById('eqCompeticion');
@@ -1400,6 +1409,8 @@ function editarEquipo(id) {
   document.getElementById('eqDelegado').value  = e.delegado  ||'';
   document.getElementById('eq1CamisetaColor').value  = e.eq1Camiseta ||'#C8102E';
   document.getElementById('eq1PantaloonColor').value = e.eq1Pantalon ||'#111111';
+  renderPaletaColor('paletaCamiseta','eq1CamisetaColor', e.eq1Camiseta ||'#C8102E');
+  renderPaletaColor('paletaPantalon','eq1PantaloonColor', e.eq1Pantalon ||'#111111');
   actualizarPreviewEquipo();
   const isAdmin = sesion.rol==='admin';
   const comps   = (DB.competiciones||[]).filter(c=>isAdmin||c.activa!==false);
