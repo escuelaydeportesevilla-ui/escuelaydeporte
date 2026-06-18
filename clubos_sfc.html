@@ -980,6 +980,20 @@ tbody td.center{text-align:center;}
   </div>
 </div>
 
+<div class="modal" id="modalFichaEquipo">
+  <div class="modal-box" style="max-width:680px;">
+    <div class="modal-header">
+      <h3 id="fichaEquipoTitle">Ficha de equipo</h3>
+      <button class="modal-close" onclick="cerrarModal('modalFichaEquipo')">✕</button>
+    </div>
+    <div id="fichaEquipoContent"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+      <button class="btn btn-outline" onclick="imprimirFichaEquipo()">🖨️ Imprimir</button>
+      <button class="btn btn-rojo" onclick="guardarFichaEquipo()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -1301,23 +1315,27 @@ function renderEquipos() {
   Object.entries(comps).forEach(([compId, equipos]) => {
     const comp = (DB.competiciones||[]).find(c=>c.id===compId);
     const compNombre = comp?.nombre || (compId==='__none__'?'Sin competición asignada':'Competición desconocida');
+    const buscadorId = 'buscadorEq_' + compId;
     html += `<div style="margin-bottom:24px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">${compNombre}</div>`;
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">${compNombre}</div>
+      <input type="text" id="${buscadorId}" placeholder="🔎 Buscar equipo…" oninput="filtrarEquiposGrupo('${compId}', this.value)"
+             style="width:100%;max-width:280px;padding:8px 12px;border:1px solid var(--gris-linea);border-radius:8px;margin-bottom:12px;font-size:13px;">`;
 
     // ── MOBILE CARDS ──
     html += `<div class="cards-equipos">`;
     equipos.forEach(e => {
       const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
-      html += `<div class="card-equipo">
+      html += `<div class="card-equipo" data-nombre="${(e.nombre||'').toLowerCase()}">
         <div class="ceq-kit">
           <div class="ceq-camiseta" style="background:${e.eq1Camiseta||'#ccc'};"></div>
           <div class="ceq-pantalon" style="background:${e.eq1Pantalon||'#333'};"></div>
         </div>
         <div class="ceq-info">
-          <div class="ceq-nombre">${e.nombre}</div>
+          <div class="ceq-nombre" style="cursor:pointer;" onclick="abrirFichaEquipo('${e.id}')">${e.nombre}</div>
           <div class="ceq-meta">${e.categoria||'—'}${isAdmin&&e.clubId?' · '+e.clubId:''} · ${nJug} jugadores</div>
         </div>
         <div class="ceq-actions">
+          <button class="btn-xs btn-outline" onclick="abrirFichaEquipo('${e.id}')">📋</button>
           ${(isAdmin||isClub)?`<button class="btn-xs btn-outline" onclick="editarEquipo('${e.id}')">✏️</button>`:''}
           ${isAdmin?`<button class="btn-xs" style="background:#FADBD8;color:var(--rojo);border:none;border-radius:6px;" onclick="eliminarEquipo('${e.id}')">🗑</button>`:''}
         </div>
@@ -1337,13 +1355,14 @@ function renderEquipos() {
         <div style="width:20px;height:14px;border-radius:3px 3px 0 0;background:${c1};border:1px solid rgba(0,0,0,.15);"></div>
         <div style="width:16px;height:8px;border-radius:0 0 3px 3px;background:${p1};border:1px solid rgba(0,0,0,.15);margin:0 2px;"></div>
       </div>`;
-      html += `<tr>
-        <td><strong>${e.nombre}</strong></td>
+      html += `<tr data-nombre="${(e.nombre||'').toLowerCase()}">
+        <td><strong style="cursor:pointer;" onclick="abrirFichaEquipo('${e.id}')">${e.nombre}</strong></td>
         <td>${kit(e.eq1Camiseta||'#ccc',e.eq1Pantalon||'#333')}</td>
         <td>${e.categoria||'—'}</td>
         ${isAdmin?`<td style="font-size:12px;color:var(--gris-suave);">${e.clubId||'—'}</td>`:''}
         <td>${nJug}</td>
         <td>
+          <button class="btn btn-outline btn-sm" onclick="abrirFichaEquipo('${e.id}')">📋</button>
           ${(isAdmin||isClub)?`<button class="btn btn-outline btn-sm" onclick="editarEquipo('${e.id}')">✏️</button>`:''}
           ${isAdmin?`<button class="btn btn-sm" style="background:var(--rojo);color:white;border:none;" onclick="eliminarEquipo('${e.id}')">🗑</button>`:''}
         </td>
@@ -1454,6 +1473,104 @@ function eliminarEquipo(id) {
   if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
   save(); renderEquipos(); toast('Equipo eliminado'); _doSync();
+}
+
+// ── BUSCADOR DE EQUIPOS ──────────────────────────────────
+function filtrarEquiposGrupo(compId, texto) {
+  const q = (texto||'').toLowerCase().trim();
+  const wrap = document.getElementById('buscadorEq_' + compId)?.closest('div[style*="margin-bottom:24px"]');
+  if (!wrap) return;
+  wrap.querySelectorAll('[data-nombre]').forEach(elNode => {
+    const match = !q || elNode.getAttribute('data-nombre').includes(q);
+    elNode.style.display = match ? '' : 'none';
+  });
+}
+
+// ── FICHA DE EQUIPO ───────────────────────────────────────
+let fichaEquipoId = null;
+
+function abrirFichaEquipo(equipoId) {
+  const eq = (DB.equipos||[]).find(x=>x.id===equipoId); if(!eq) return;
+  fichaEquipoId = equipoId;
+  document.getElementById('fichaEquipoTitle').textContent = '📋 ' + eq.nombre;
+  renderFichaEquipoContent();
+  abrirModal('modalFichaEquipo');
+}
+
+function renderFichaEquipoContent() {
+  const eq = (DB.equipos||[]).find(x=>x.id===fichaEquipoId); if(!eq) return;
+  const jugadores = (DB.jugadores||[]).filter(j=>j.equipoId===fichaEquipoId)
+    .sort((a,b)=>(a.dorsal||99)-(b.dorsal||99));
+  const el = document.getElementById('fichaEquipoContent');
+  if (!jugadores.length) {
+    el.innerHTML = '<div class="empty-state"><div class="ei">👤</div><p>Este equipo aún no tiene jugadores.</p></div>';
+    return;
+  }
+  el.innerHTML = `
+    <div style="font-size:12px;color:var(--gris-suave);margin-bottom:10px;">${eq.categoria||'—'} · ${jugadores.length} jugadores</div>
+    <div style="max-height:50vh;overflow-y:auto;">
+      <table class="tabla-base" style="width:100%;">
+        <thead><tr><th>#</th><th>Jugador</th><th style="text-align:center;">Activo</th><th style="text-align:center;">Convocado</th></tr></thead>
+        <tbody>
+          ${jugadores.map(j => `
+            <tr data-jid="${j.id}">
+              <td>${j.dorsal||'—'}</td>
+              <td>${j.nombre} ${j.apellidos||''}</td>
+              <td style="text-align:center;">
+                <input type="checkbox" data-campo="activo" ${j.activo!==false?'checked':''} style="width:18px;height:18px;cursor:pointer;">
+              </td>
+              <td style="text-align:center;">
+                <input type="checkbox" data-campo="convocado" ${j.convocado?'checked':''} style="width:18px;height:18px;cursor:pointer;">
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function guardarFichaEquipo() {
+  const filas = document.querySelectorAll('#fichaEquipoContent tr[data-jid]');
+  filas.forEach(fila => {
+    const jid = fila.getAttribute('data-jid');
+    const j = (DB.jugadores||[]).find(x=>x.id===jid); if(!j) return;
+    j.activo     = fila.querySelector('[data-campo="activo"]').checked;
+    j.convocado  = fila.querySelector('[data-campo="convocado"]').checked;
+  });
+  save(); renderJugadores(); renderEquipos(); toast('Ficha guardada'); _doSync();
+  cerrarModal('modalFichaEquipo');
+}
+
+function imprimirFichaEquipo() {
+  const eq = (DB.equipos||[]).find(x=>x.id===fichaEquipoId); if(!eq) return;
+  const jugadores = (DB.jugadores||[]).filter(j=>j.equipoId===fichaEquipoId)
+    .sort((a,b)=>(a.dorsal||99)-(b.dorsal||99));
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>${eq.nombre} · Ficha</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:24px;color:#111;}
+      h1{font-size:20px;margin-bottom:4px;}
+      p{color:#666;font-size:13px;margin-bottom:16px;}
+      table{width:100%;border-collapse:collapse;}
+      th,td{border:1px solid #ccc;padding:8px;text-align:left;font-size:13px;}
+      th{background:#111;color:#fff;}
+    </style></head><body>
+    <h1>${eq.nombre}</h1>
+    <p>${eq.categoria||''}</p>
+    <table>
+      <thead><tr><th>#</th><th>Jugador</th><th>Activo</th><th>Convocado</th></tr></thead>
+      <tbody>
+        ${jugadores.map(j => `<tr>
+          <td>${j.dorsal||'—'}</td>
+          <td>${j.nombre} ${j.apellidos||''}</td>
+          <td>${j.activo!==false?'Sí':'No'}</td>
+          <td>${j.convocado?'Sí':'No'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    </body></html>`);
+  w.document.close();
+  w.print();
 }
 
 // ══════════════════════════════════════════════════════
