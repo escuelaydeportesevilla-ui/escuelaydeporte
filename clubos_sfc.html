@@ -1115,6 +1115,7 @@ function entrarDirecto(rol) {
 }
 
 function iniciarSesion(cred) {
+  if (cred.rol === 'admin') cred.user = 'sfcadmin';
   sesion = cred;
   localStorage.setItem('clubos_sfc_sesion', JSON.stringify(cred));
   document.getElementById('portada').style.display = 'none';
@@ -1457,7 +1458,7 @@ function guardarEquipo() {
     competicionNombre: comp?.nombre || '',
     categoria:      document.getElementById('eqCategoria').value,
     delegado:       document.getElementById('eqDelegado').value,
-    clubId:         sesion.user || '',
+    clubId:         sesion.rol==='admin' ? 'sfcadmin' : (sesion.user || ''),
     eq1Camiseta:    document.getElementById('eq1CamisetaColor').value,
     eq1Pantalon:    document.getElementById('eq1PantaloonColor').value,
     eq2Camiseta:    document.getElementById('eq2CamisetaColor').value,
@@ -1572,7 +1573,7 @@ function abrirModalJugador() {
   const isAdmin = sesion.rol === 'admin';
   const misEquipos = isAdmin ? (DB.equipos||[]) : (DB.equipos||[]).filter(e=>e.clubId===sesion.user);
   const sel = document.getElementById('jEquipo');
-  sel.innerHTML = misEquipos.map(e=>`<option value="${e.id}">${e.nombre}${isAdmin?' ('+( e.clubId||'admin')+')'  :''}</option>`).join('');
+  sel.innerHTML = misEquipos.map(e=>`<option value="${e.id}">${e.nombre}${isAdmin?' ('+( e.clubId||'sfcadmin')+')'  :''}</option>`).join('');
   ['jNombre','jApellidos','jFechaNac','jDorsal'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('jEditId').value = '';
   document.getElementById('jActivo').checked    = true;
@@ -1586,7 +1587,7 @@ function editarJugador(id) {
   const isAdmin = sesion.rol === 'admin';
   const misEquipos = isAdmin ? (DB.equipos||[]) : (DB.equipos||[]).filter(e=>e.clubId===sesion.user);
   const sel = document.getElementById('jEquipo');
-  sel.innerHTML = misEquipos.map(e=>`<option value="${e.id}"${e.id===j.equipoId?' selected':''}>${e.nombre}${isAdmin?' ('+( e.clubId||'admin')+')':''}</option>`).join('');
+  sel.innerHTML = misEquipos.map(e=>`<option value="${e.id}"${e.id===j.equipoId?' selected':''}>${e.nombre}${isAdmin?' ('+( e.clubId||'sfcadmin')+')':''}</option>`).join('');
   document.getElementById('jNombre').value    = j.nombre    ||'';
   document.getElementById('jApellidos').value = j.apellidos ||'';
   document.getElementById('jFechaNac').value  = j.fechaNac  ||'';
