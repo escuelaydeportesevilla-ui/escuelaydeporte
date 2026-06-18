@@ -993,7 +993,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzla2KaLCXpwf1RD7xm0rY99fNSm1czgyFpk5DsdhN9aYXIT3ymls8Ols27yQn5TMA/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzUdyWEBlPlBObnLybnG_HvSlgM78_YiBYqYiUtLV9VkdYxuTIkZN8iiQc_W9ADTQ3K/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -1946,7 +1946,10 @@ function guardarNoticia() {
 
 function eliminarNoticia(id) {
   if (!confirm('¿Eliminar noticia?')) return;
-  DB.noticias = DB.noticias.filter(n=>n.id!==id); save(); toast('Noticia eliminada'); renderNoticias();
+  DB.noticias = DB.noticias.filter(n=>n.id!==id);
+  if (!DB._deleted) DB._deleted = {};
+  DB._deleted[id] = Date.now();
+  save(); toast('Noticia eliminada'); renderNoticias(); _doSync();
 }
 
 // ══════════════════════════════════════════════════════
@@ -2070,7 +2073,10 @@ function guardarSug() {
 }
 
 function eliminarSug(id) {
-  DB.sugerencias = DB.sugerencias.filter(s=>s.id!==id); save(); toast('Eliminada'); renderSugerencias();
+  DB.sugerencias = DB.sugerencias.filter(s=>s.id!==id);
+  if (!DB._deleted) DB._deleted = {};
+  DB._deleted[id] = Date.now();
+  save(); toast('Eliminada'); renderSugerencias(); _doSync();
 }
 
 // ══════════════════════════════════════════════════════
