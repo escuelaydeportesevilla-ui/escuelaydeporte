@@ -496,7 +496,7 @@ tbody td.center{text-align:center;}
   .card{padding:12px 10px;}
   .form-grid{grid-template-columns:1fr;}
   .form-full{grid-column:1;}
-  .modal-box{margin:8px;max-height:92vh;overflow-y:auto;border-radius:12px;}
+  .modal-box{margin:8px auto;max-height:92vh;overflow-y:auto;border-radius:12px;width:calc(100% - 16px);}
   .patr-grid{grid-template-columns:repeat(2,1fr);}
   .section-header{flex-wrap:wrap;gap:6px;}
   .section-header h2{font-size:0.95rem;}
@@ -755,20 +755,19 @@ tbody td.center{text-align:center;}
 
 <!-- MODALES -->
 <div class="modal" id="modalComp">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:520px;width:calc(100% - 24px);margin:12px auto;">
     <div class="modal-header">
       <h3 id="compModalTitle">Nueva competición</h3>
       <button class="modal-close" onclick="cerrarModal('modalComp')">✕</button>
     </div>
     <div class="form-grid">
       <div class="form-field form-full"><label>Nombre de la competición</label><input id="compNombre" placeholder="Liga Interna SFC Academy 26/27"></div>
-      <div class="form-field"><label>Temporada</label><input id="compTemporada" placeholder="2026/2027"></div>
-      <div class="form-field"><label>Formato</label><select id="compFormato"><option value="liga">Liga (todos vs todos)</option><option value="eliminatoria">Eliminatoria</option><option value="grupos">Grupos + Eliminatoria</option></select></div>
+      <div class="form-field form-full"><label>Temporada</label><input id="compTemporada" placeholder="2026/2027"></div>
+      <div class="form-field form-full"><label>Formato</label><select id="compFormato"><option value="liga">Liga (todos vs todos)</option><option value="eliminatoria">Eliminatoria</option><option value="grupos">Grupos + Eliminatoria</option></select></div>
       <div class="form-field"><label>Fecha inicio</label><input type="date" id="compFechaInicio"></div>
       <div class="form-field"><label>Fecha fin</label><input type="date" id="compFechaFin"></div>
-      <div class="form-field"><label>Categoría</label><input id="compCategoria" placeholder="Alevín, Benjamín…"></div>
-    </div>
-      <div class="form-field form-full" style="margin-top:8px;">
+      <div class="form-field form-full"><label>Categoría</label><input id="compCategoria" placeholder="Alevín, Benjamín…"></div>
+      <div class="form-field form-full" style="margin-top:4px;">
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:600;">
           <input type="checkbox" id="compActiva" checked style="width:18px;height:18px;cursor:pointer;">
           Competición activa
@@ -776,7 +775,7 @@ tbody td.center{text-align:center;}
         <div style="font-size:11px;color:var(--gris-suave);margin-top:4px;">Solo los admins pueden desactivar una competición. Los demás perfiles solo ven las activas.</div>
       </div>
     </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--gris-linea);">
       <button class="btn btn-outline" onclick="cerrarModal('modalComp')">Cancelar</button>
       <button class="btn btn-rojo" onclick="guardarComp()">Guardar competición</button>
     </div>
@@ -2180,7 +2179,7 @@ console.log('Familias: acceso directo (sin contraseña)');
     setSyncStatus('loading');
     try {
       const pwd = encodeURIComponent(sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'');
-      const r = await fetch(SCRIPT_URL + '?action=getAll&pwd=' + pwd);
+      const r = await fetch(SCRIPT_URL + '?action=getAll&pwd=' + pwd, {mode:'cors'});
       const j = await r.json();
       if (j.ok && j.data) {
         const d   = j.data;
