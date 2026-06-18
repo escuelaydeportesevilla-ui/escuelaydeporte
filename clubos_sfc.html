@@ -649,7 +649,6 @@ tbody td.center{text-align:center;}
     <div class="topbar-right">
       <span class="rol-badge" id="rolBadge">Admin</span>
       <span id="tbUserName" style="font-size:12px;color:var(--gris-suave);"></span>
-      <button onclick="limpiarCache()" style="background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-right:4px;" title="Limpiar datos locales y recargar del servidor">🗑 Caché</button>
       <button id="btnSync" onclick="manualSync()"
   style="background:#C8102E;color:white;border:none;border-radius:8px;
   padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;
@@ -802,31 +801,36 @@ tbody td.center{text-align:center;}
       </div>
       <div class="form-field"><label>Categoría</label><input id="eqCategoria" placeholder="Alevín, Benjamín..."></div>
       <div class="form-field"><label>Delegado</label><input id="eqDelegado" placeholder="Nombre delegado"></div>
-      <div class="form-field"><label>Camiseta *</label><select id="eq1Camiseta" required>
-<option value="">— Selecciona color —</option>
-<option value="#C8102E">🔴 Rojo</option>
-<option value="#FFFFFF">⚪ Blanco</option>
-<option value="#111111">⚫ Negro</option>
-<option value="#003DA5">🔵 Azul</option>
-<option value="#FFDD00">🟡 Amarillo</option>
-<option value="#00A651">🟢 Verde</option>
-<option value="#FF6B00">🟠 Naranja</option>
-<option value="#800080">🟣 Morado</option>
-</select></div>
-      <div class="form-field"><label>Pantalón *</label><select id="eq1Pantalon" required>
-<option value="">— Selecciona color —</option>
-<option value="#C8102E">🔴 Rojo</option>
-<option value="#FFFFFF">⚪ Blanco</option>
-<option value="#111111">⚫ Negro</option>
-<option value="#003DA5">🔵 Azul</option>
-<option value="#FFDD00">🟡 Amarillo</option>
-<option value="#00A651">🟢 Verde</option>
-<option value="#FF6B00">🟠 Naranja</option>
-<option value="#800080">🟣 Morado</option>
-</select></div>
     </div>
 
-
+    <!-- EQUIPACIÓN (obligatoria) -->
+    <div style="margin-top:16px;padding:14px;background:#f9f9f7;border-radius:10px;border:2px solid var(--rojo-suave);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:4px;">🎽 Equipación <span style="color:var(--rojo);">*</span></div>
+      <div style="font-size:11px;color:#888;margin-bottom:12px;">Obligatorio. Selecciona los colores de camiseta y pantalón.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:12px;display:block;margin-bottom:6px;">Color camiseta *</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="eq1CamisetaColor" oninput="actualizarPreviewEquipo()" value="#C8102E" style="width:44px;height:44px;border-radius:8px;border:2px solid var(--rojo);cursor:pointer;padding:2px;">
+            <span id="eq1CamisetaHex" style="font-size:12px;color:#666;">#C8102E</span>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px;display:block;margin-bottom:6px;">Color pantalón *</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="eq1PantaloonColor" oninput="actualizarPreviewEquipo()" value="#111111" style="width:44px;height:44px;border-radius:8px;border:2px solid var(--rojo);cursor:pointer;padding:2px;">
+            <span id="eq1PantaloonHex" style="font-size:12px;color:#666;">#111111</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div id="prev1Camiseta" style="width:36px;height:28px;border-radius:4px 4px 0 0;background:#C8102E;border:1px solid rgba(0,0,0,.1);"></div>
+          <div id="prev1Pantalon" style="width:28px;height:16px;border-radius:0 0 4px 4px;background:#111111;border:1px solid rgba(0,0,0,.1);"></div>
+        </div>
+        <span style="font-size:11px;color:#666;">Vista previa equipación</span>
+      </div>
+    </div>
 
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
       <button class="btn btn-outline" onclick="cerrarModal('modalEquipo')">Cancelar</button>
@@ -989,7 +993,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWdOem2IjJXAEdh-VOrPmAcHcggxTFifvyg6MVjddJ111ZcHVidzQp8WtzJXE4pO3f/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzla2KaLCXpwf1RD7xm0rY99fNSm1czgyFpk5DsdhN9aYXIT3ymls8Ols27yQn5TMA/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -1097,14 +1101,6 @@ function iniciarSesion(cred) {
   buildNav();
   activarTab(getDefaultTab());
   manualSync().then(() => renderAll()).catch(() => renderAll());
-}
-
-function limpiarCache() {
-  if (!confirm('¿Limpiar datos locales y recargar del servidor?')) return;
-  localStorage.removeItem('clubos_sfc');
-  DB = {competiciones:[],equipos:[],jugadores:[],partidos:[],actas:[],goleadores:[],noticias:[],sugerencias:[],patrocinadores:[],_deleted:{}};
-  manualSync().then(() => renderAll()).catch(() => renderAll());
-  toast('Caché limpiada. Datos recargados del servidor.');
 }
 
 function logout() {
@@ -1323,10 +1319,9 @@ function renderEquipos() {
     equipos.forEach(e => {
       const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
       html += `<div class="card-equipo">
-
-        <div style="display:flex;flex-direction:column;gap:2px;align-items:center;min-width:28px;">
-          <div style="width:20px;height:14px;border-radius:3px 3px 0 0;background:${e.eq1Camiseta||'#ccc'};border:1px solid rgba(0,0,0,.15);"></div>
-          <div style="width:16px;height:10px;border-radius:0 0 3px 3px;background:${e.eq1Pantalon||'#333'};border:1px solid rgba(0,0,0,.15);"></div>
+        <div class="ceq-kit">
+          <div class="ceq-camiseta" style="background:${e.eq1Camiseta||'#ccc'};"></div>
+          <div class="ceq-pantalon" style="background:${e.eq1Pantalon||'#333'};"></div>
         </div>
         <div class="ceq-info">
           <div class="ceq-nombre">${e.nombre}</div>
@@ -1354,7 +1349,7 @@ function renderEquipos() {
       </div>`;
       html += `<tr>
         <td><strong>${e.nombre}</strong></td>
-
+        <td>${kit(e.eq1Camiseta||'#ccc',e.eq1Pantalon||'#333')}</td>
         <td>${e.categoria||'—'}</td>
         ${isAdmin?`<td style="font-size:12px;color:var(--gris-suave);">${e.clubId||'—'}</td>`:''}
         <td>${nJug}</td>
@@ -1369,7 +1364,14 @@ function renderEquipos() {
   el.innerHTML = html;
 }
 
-function actualizarPreviewEquipo() {}
+function actualizarPreviewEquipo() {
+  const c1 = document.getElementById('eq1CamisetaColor')?.value || '#C8102E';
+  const p1 = document.getElementById('eq1PantaloonColor')?.value || '#111111';
+  const el = (id, v) => { const e = document.getElementById(id); if(e) e.style.background = v; };
+  el('prev1Camiseta', c1); el('prev1Pantalon', p1);
+  const hx = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  hx('eq1CamisetaHex', c1); hx('eq1PantaloonHex', p1);
+}
 
 function abrirModalEquipo() {
   editEquipoId = null;
@@ -1377,8 +1379,9 @@ function abrirModalEquipo() {
   document.getElementById('eqNombre').value    = '';
   document.getElementById('eqCategoria').value = '';
   document.getElementById('eqDelegado').value  = '';
-  document.getElementById('eq1Camiseta').value = '';
-  document.getElementById('eq1Pantalon').value = '';
+  document.getElementById('eq1CamisetaColor').value  = '#C8102E';
+  document.getElementById('eq1PantaloonColor').value = '#111111';
+  actualizarPreviewEquipo();
   // Populate competitions (active only for clubs, all for admin)
   const isAdmin = sesion.rol==='admin';
   const comps   = (DB.competiciones||[]).filter(c=>isAdmin||c.activa!==false);
@@ -1395,6 +1398,9 @@ function editarEquipo(id) {
   document.getElementById('eqNombre').value    = e.nombre    ||'';
   document.getElementById('eqCategoria').value = e.categoria ||'';
   document.getElementById('eqDelegado').value  = e.delegado  ||'';
+  document.getElementById('eq1CamisetaColor').value  = e.eq1Camiseta ||'#C8102E';
+  document.getElementById('eq1PantaloonColor').value = e.eq1Pantalon ||'#111111';
+  actualizarPreviewEquipo();
   const isAdmin = sesion.rol==='admin';
   const comps   = (DB.competiciones||[]).filter(c=>isAdmin||c.activa!==false);
   const sel     = document.getElementById('eqCompeticion');
@@ -1408,9 +1414,11 @@ function guardarEquipo() {
   if (!nombre) { alert('El nombre es obligatorio'); return; }
   const compId = document.getElementById('eqCompeticion').value;
   const comp   = (DB.competiciones||[]).find(c=>c.id===compId);
-  const eq1Camiseta = document.getElementById('eq1Camiseta').value;
-  const eq1Pantalon = document.getElementById('eq1Pantalon').value;
-  if (!eq1Camiseta || !eq1Pantalon) { alert('Selecciona el color de camiseta y pantalón'); return; }
+  const eq1Camiseta = document.getElementById('eq1CamisetaColor').value;
+  const eq1Pantalon = document.getElementById('eq1PantaloonColor').value;
+  if (!eq1Camiseta || eq1Camiseta === '#000000' && !confirm('El color de camiseta es negro. ¿Confirmas?')) {
+    // solo validamos que existan
+  }
   const rec = {
     id:             editEquipoId || ('eq_'+Date.now()),
     nombre:         nombre.toUpperCase(),
@@ -1421,7 +1429,6 @@ function guardarEquipo() {
     clubId:         sesion.rol==='admin' ? 'sfcadmin' : (sesion.user || ''),
     eq1Camiseta:    eq1Camiseta,
     eq1Pantalon:    eq1Pantalon,
-
   };
   if (!DB.equipos) DB.equipos = [];
   const idx = DB.equipos.findIndex(e=>e.id===editEquipoId);
