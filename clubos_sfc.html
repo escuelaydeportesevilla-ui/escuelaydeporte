@@ -1402,8 +1402,6 @@ function editarEquipo(id) {
   document.getElementById('eqDelegado').value  = e.delegado  ||'';
   document.getElementById('eq1CamisetaColor').value  = e.eq1Camiseta ||'#C8102E';
   document.getElementById('eq1PantaloonColor').value = e.eq1Pantalon ||'#111111';
-  document.getElementById('eq2CamisetaColor').value  = e.eq2Camiseta ||'#FFFFFF';
-  document.getElementById('eq2PantaloonColor').value = e.eq2Pantalon ||'#FFFFFF';
   actualizarPreviewEquipo();
   const isAdmin = sesion.rol==='admin';
   const comps   = (DB.competiciones||[]).filter(c=>isAdmin||c.activa!==false);
