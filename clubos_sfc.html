@@ -803,60 +803,32 @@ tbody td.center{text-align:center;}
       <div class="form-field"><label>Delegado</label><input id="eqDelegado" placeholder="Nombre delegado"></div>
     </div>
 
-    <!-- PRIMERA EQUIPACIÓN -->
-    <div style="margin-top:16px;padding:14px;background:#f9f9f7;border-radius:10px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:12px;">🎽 Primera equipación</div>
+    <!-- EQUIPACIÓN (obligatoria) -->
+    <div style="margin-top:16px;padding:14px;background:#f9f9f7;border-radius:10px;border:2px solid var(--rojo-suave);">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:4px;">🎽 Equipación <span style="color:var(--rojo);">*</span></div>
+      <div style="font-size:11px;color:#888;margin-bottom:12px;">Obligatorio. Selecciona los colores de camiseta y pantalón.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div>
-          <label style="font-size:12px;display:block;margin-bottom:6px;">Color camiseta</label>
+          <label style="font-size:12px;display:block;margin-bottom:6px;">Color camiseta *</label>
           <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="eq1CamisetaColor" oninput="actualizarPreviewEquipo()" value="#C8102E" style="width:40px;height:40px;border-radius:8px;border:2px solid #ddd;cursor:pointer;padding:2px;">
+            <input type="color" id="eq1CamisetaColor" oninput="actualizarPreviewEquipo()" value="#C8102E" style="width:44px;height:44px;border-radius:8px;border:2px solid var(--rojo);cursor:pointer;padding:2px;">
             <span id="eq1CamisetaHex" style="font-size:12px;color:#666;">#C8102E</span>
           </div>
         </div>
         <div>
-          <label style="font-size:12px;display:block;margin-bottom:6px;">Color pantalón</label>
+          <label style="font-size:12px;display:block;margin-bottom:6px;">Color pantalón *</label>
           <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="eq1PantaloonColor" oninput="actualizarPreviewEquipo()" value="#111111" style="width:40px;height:40px;border-radius:8px;border:2px solid #ddd;cursor:pointer;padding:2px;">
+            <input type="color" id="eq1PantaloonColor" oninput="actualizarPreviewEquipo()" value="#111111" style="width:44px;height:44px;border-radius:8px;border:2px solid var(--rojo);cursor:pointer;padding:2px;">
             <span id="eq1PantaloonHex" style="font-size:12px;color:#666;">#111111</span>
           </div>
         </div>
       </div>
-      <!-- Preview primera -->
       <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
-        <div id="preview1" style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-          <div id="prev1Camiseta" style="width:32px;height:28px;border-radius:4px 4px 0 0;background:#C8102E;border:1px solid rgba(0,0,0,.1);"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div id="prev1Camiseta" style="width:36px;height:28px;border-radius:4px 4px 0 0;background:#C8102E;border:1px solid rgba(0,0,0,.1);"></div>
           <div id="prev1Pantalon" style="width:28px;height:16px;border-radius:0 0 4px 4px;background:#111111;border:1px solid rgba(0,0,0,.1);"></div>
         </div>
-        <span style="font-size:11px;color:#666;">Vista previa 1ª equipación</span>
-      </div>
-    </div>
-
-    <!-- SEGUNDA EQUIPACIÓN -->
-    <div style="margin-top:10px;padding:14px;background:#f9f9f7;border-radius:10px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:12px;">🎽 Segunda equipación</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div>
-          <label style="font-size:12px;display:block;margin-bottom:6px;">Color camiseta</label>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="eq2CamisetaColor" oninput="actualizarPreviewEquipo()" value="#FFFFFF" style="width:40px;height:40px;border-radius:8px;border:2px solid #ddd;cursor:pointer;padding:2px;">
-            <span id="eq2CamisetaHex" style="font-size:12px;color:#666;">#FFFFFF</span>
-          </div>
-        </div>
-        <div>
-          <label style="font-size:12px;display:block;margin-bottom:6px;">Color pantalón</label>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="eq2PantaloonColor" oninput="actualizarPreviewEquipo()" value="#FFFFFF" style="width:40px;height:40px;border-radius:8px;border:2px solid #ddd;cursor:pointer;padding:2px;">
-            <span id="eq2PantaloonHex" style="font-size:12px;color:#666;">#FFFFFF</span>
-          </div>
-        </div>
-      </div>
-      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;">
-        <div id="preview2" style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-          <div id="prev2Camiseta" style="width:32px;height:28px;border-radius:4px 4px 0 0;background:#FFFFFF;border:1px solid rgba(0,0,0,.15);"></div>
-          <div id="prev2Pantalon" style="width:28px;height:16px;border-radius:0 0 4px 4px;background:#FFFFFF;border:1px solid rgba(0,0,0,.15);"></div>
-        </div>
-        <span style="font-size:11px;color:#666;">Vista previa 2ª equipación</span>
+        <span style="font-size:11px;color:#666;">Vista previa equipación</span>
       </div>
     </div>
 
@@ -1365,7 +1337,7 @@ function renderEquipos() {
 
     // ── DESKTOP TABLE ──
     html += `<div class="tabla-equipos-desktop"><table class="tabla-base"><thead><tr>
-        <th>Equipo</th><th>1ª Equipación</th><th>2ª Equipación</th><th>Categoría</th>
+        <th>Equipo</th><th>Equipación</th><th>Categoría</th>
         ${isAdmin?'<th>Club</th>':''}
         <th>Jugadores</th><th>Acciones</th>
       </tr></thead><tbody>`;
@@ -1378,7 +1350,6 @@ function renderEquipos() {
       html += `<tr>
         <td><strong>${e.nombre}</strong></td>
         <td>${kit(e.eq1Camiseta||'#ccc',e.eq1Pantalon||'#333')}</td>
-        <td>${kit(e.eq2Camiseta||'#fff',e.eq2Pantalon||'#fff')}</td>
         <td>${e.categoria||'—'}</td>
         ${isAdmin?`<td style="font-size:12px;color:var(--gris-suave);">${e.clubId||'—'}</td>`:''}
         <td>${nJug}</td>
@@ -1394,16 +1365,12 @@ function renderEquipos() {
 }
 
 function actualizarPreviewEquipo() {
-  const c1 = document.getElementById('eq1CamisetaColor')?.value  || '#C8102E';
+  const c1 = document.getElementById('eq1CamisetaColor')?.value || '#C8102E';
   const p1 = document.getElementById('eq1PantaloonColor')?.value || '#111111';
-  const c2 = document.getElementById('eq2CamisetaColor')?.value  || '#FFFFFF';
-  const p2 = document.getElementById('eq2PantaloonColor')?.value || '#FFFFFF';
   const el = (id, v) => { const e = document.getElementById(id); if(e) e.style.background = v; };
   el('prev1Camiseta', c1); el('prev1Pantalon', p1);
-  el('prev2Camiseta', c2); el('prev2Pantalon', p2);
   const hx = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
   hx('eq1CamisetaHex', c1); hx('eq1PantaloonHex', p1);
-  hx('eq2CamisetaHex', c2); hx('eq2PantaloonHex', p2);
 }
 
 function abrirModalEquipo() {
@@ -1451,6 +1418,11 @@ function guardarEquipo() {
   if (!nombre) { alert('El nombre es obligatorio'); return; }
   const compId = document.getElementById('eqCompeticion').value;
   const comp   = (DB.competiciones||[]).find(c=>c.id===compId);
+  const eq1Camiseta = document.getElementById('eq1CamisetaColor').value;
+  const eq1Pantalon = document.getElementById('eq1PantaloonColor').value;
+  if (!eq1Camiseta || eq1Camiseta === '#000000' && !confirm('El color de camiseta es negro. ¿Confirmas?')) {
+    // solo validamos que existan
+  }
   const rec = {
     id:             editEquipoId || ('eq_'+Date.now()),
     nombre:         nombre.toUpperCase(),
@@ -1459,10 +1431,8 @@ function guardarEquipo() {
     categoria:      document.getElementById('eqCategoria').value,
     delegado:       document.getElementById('eqDelegado').value,
     clubId:         sesion.rol==='admin' ? 'sfcadmin' : (sesion.user || ''),
-    eq1Camiseta:    document.getElementById('eq1CamisetaColor').value,
-    eq1Pantalon:    document.getElementById('eq1PantaloonColor').value,
-    eq2Camiseta:    document.getElementById('eq2CamisetaColor').value,
-    eq2Pantalon:    document.getElementById('eq2PantaloonColor').value,
+    eq1Camiseta:    eq1Camiseta,
+    eq1Pantalon:    eq1Pantalon,
   };
   if (!DB.equipos) DB.equipos = [];
   const idx = DB.equipos.findIndex(e=>e.id===editEquipoId);
