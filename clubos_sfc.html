@@ -1021,7 +1021,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJ6Vog-vzaqxQ6Ryk7xbi71hKDBaMN128fOej9_pmpjZUcVCCoWUKJFrekXyUje9k/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4WnOwClqinqfQE685l802cf6Pom3zJmaulrY4ZHdHt_41HXO1VnbJUkCH9gpsw186/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -2176,13 +2176,23 @@ console.log('Familias: acceso directo (sin contraseña)');
     } catch(e) { setSyncStatus('error'); }
   }
 
+  function jsonpFetch(url) {
+    return new Promise((resolve, reject) => {
+      const cb = 'cb_' + Date.now();
+      const script = document.createElement('script');
+      script.src = url + '&callback=' + cb;
+      window[cb] = (data) => { delete window[cb]; script.remove(); resolve(data); };
+      script.onerror = () => { delete window[cb]; script.remove(); reject(new Error('JSONP error')); };
+      document.head.appendChild(script);
+    });
+  }
+
   async function manualSync() {
     if (!SCRIPT_URL || !sesion) return;
     setSyncStatus('loading');
     try {
       const pwd = encodeURIComponent(sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'');
-      const r = await fetch(SCRIPT_URL + '?action=getAll&pwd=' + pwd, {mode:'cors', credentials:'omit'});
-      const j = await r.json();
+      const j = await jsonpFetch(SCRIPT_URL + '?action=getAll&pwd=' + pwd);
       if (j.ok && j.data) {
         const d   = j.data;
         const del = DB._deleted || {};
