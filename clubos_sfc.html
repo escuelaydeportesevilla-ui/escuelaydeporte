@@ -1033,7 +1033,7 @@ const CRED = {
   arb1:   { user: 'arbitro1',  pass: 'arb2627',  rol: 'arbitro', nombre: 'Árbitro Principal' },
 };
 
-let sesion = null;
+let sesion = JSON.parse(localStorage.getItem('clubos_sfc_sesion') || 'null');
 let DB = JSON.parse(localStorage.getItem('clubos_sfc') || JSON.stringify({
   competicion: null,
   competiciones: [],
@@ -1116,6 +1116,7 @@ function entrarDirecto(rol) {
 
 function iniciarSesion(cred) {
   sesion = cred;
+  localStorage.setItem('clubos_sfc_sesion', JSON.stringify(cred));
   document.getElementById('portada').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('rolBadge').textContent = cred.rol.charAt(0).toUpperCase() + cred.rol.slice(1);
@@ -1131,6 +1132,7 @@ function iniciarSesion(cred) {
 
 function logout() {
   sesion = null;
+  localStorage.removeItem('clubos_sfc_sesion');
   document.getElementById('app').style.display = 'none';
   document.getElementById('portada').style.display = 'flex';
   document.getElementById('portada').style.flexDirection = 'column';
@@ -2179,16 +2181,25 @@ console.log('Familias: acceso directo (sin contraseña)');
     setSyncStatus('loading');
     try {
       const pwd = encodeURIComponent(sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'');
-      const r = await fetch(SCRIPT_URL + '?action=getAll&pwd=' + pwd, {mode:'cors'});
+      const r = await fetch(SCRIPT_URL + '?action=getAll&pwd=' + pwd, {mode:'cors', credentials:'omit'});
       const j = await r.json();
       if (j.ok && j.data) {
         const d   = j.data;
         const del = DB._deleted || {};
         const merge = (local, remote) => {
           const map = {};
-          // Remote primero (base), local encima (tiene prioridad)
-          (remote||[]).forEach(x => { if (x?.id && !del[x.id]) map[x.id] = x; });
-          (local||[]).forEach(x  => { if (x?.id && !del[x.id]) map[x.id] = x; });
+          (remote||[]).forEach(x => { if (x?.id && !del[x.id]) map[x.id] = {...x}; });
+          (local||[]).forEach(x  => {
+            if (!x?.id || del[x.id]) return;
+            if (map[x.id]) {
+              // fusionar: local gana campo por campo si tiene valor
+              const merged = {...map[x.id]};
+              Object.keys(x).forEach(k => { if (x[k] !== '' && x[k] !== undefined && x[k] !== null) merged[k] = x[k]; });
+              map[x.id] = merged;
+            } else {
+              map[x.id] = {...x};
+            }
+          });
           Object.keys(del).forEach(k => delete map[k]);
           return Object.values(map);
         };
