@@ -655,7 +655,12 @@ tbody td.center{text-align:center;}
   margin-right:8px;display:flex;align-items:center;gap:6px;
   box-shadow:0 2px 8px rgba(0,0,0,.3);">
   <span style="font-size:16px;">🔄</span><span id="syncLabel">Actualizar</span>
-</button><button class="btn-logout" onclick="logout()">← Salir</button>
+</button>
+<button id="btnRecargaTotal" onclick="recargaCompleta()"
+  style="background:#fff;color:#888;border:1px solid var(--gris-linea);border-radius:8px;
+  padding:7px 10px;font-size:12px;cursor:pointer;margin-right:8px;display:none;"
+  title="Recarga completa desde el servidor">⟲</button>
+<button class="btn-logout" onclick="logout()">← Salir</button>
     </div>
   </div>
 
@@ -999,7 +1004,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqly5ZeBlnZFkXIMuKd8KUMmO-xAw_cnXDe_WYAcBVCBX_IhBq0Ci7tao7IMdF9yQ2/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPqPbsh_MjpYnPPPcIPQOT3BncjLp2CdEOj1bQA7-xHX_qP6_PSt76K6jHe6VhhEtD/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -1100,6 +1105,8 @@ function iniciarSesion(cred) {
   document.getElementById('app').style.display = 'block';
   document.getElementById('rolBadge').textContent = cred.rol.charAt(0).toUpperCase() + cred.rol.slice(1);
   document.getElementById('tbUserName').textContent = cred.nombre || '';
+  const btnRecarga = document.getElementById('btnRecargaTotal');
+  if (btnRecarga) btnRecarga.style.display = (cred.rol === 'admin') ? '' : 'none';
 
   const subtexts = { admin: 'SFC Academy · Admin', club: cred.nombre, familias: 'Consulta pública', arbitro: 'Panel Árbitro' };
   document.getElementById('tbSub').textContent = subtexts[cred.rol] || 'SFC Academy';
@@ -2417,6 +2424,31 @@ console.log('Familias: acceso directo (sin contraseña)');
         renderAll(); setSyncStatus('ok');
       } else { setSyncStatus('local'); }
     } catch(e) { setSyncStatus('error'); }
+  }
+
+  async function recargaCompleta() {
+    if (!confirm('⚠️ Recuerda sincronizar tus datos antes de continuar.\n\nEsta acción reemplazará los datos locales de este dispositivo por los del servidor. Cualquier cambio que aún no se haya sincronizado se perderá.\n\n¿Continuar?')) return;
+    if (!SCRIPT_URL || !sesion) return;
+    setSyncStatus('loading');
+    try {
+      const pwd = encodeURIComponent(sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'');
+      const j = await jsonpFetch(SCRIPT_URL + '?action=getAll&pwd=' + pwd);
+      if (j.ok && j.data) {
+        const d = j.data;
+        DB.competiciones = d.competiciones || [];
+        DB.equipos       = d.equipos       || [];
+        DB.jugadores     = d.jugadores     || [];
+        DB.partidos      = d.partidos      || [];
+        DB.actas         = d.actas         || [];
+        DB.noticias      = d.noticias      || [];
+        DB.goleadores    = d.goleadores    || [];
+        DB.sugerencias   = d.sugerencias   || DB.sugerencias || [];
+        // DB._deleted se conserva intacto para no resucitar borrados
+        delete DB.competicion;
+        localStorage.setItem('clubos_sfc', JSON.stringify(DB));
+        renderAll(); setSyncStatus('ok'); toast('Datos recargados desde el servidor');
+      } else { setSyncStatus('error'); toast('No se pudo recargar'); }
+    } catch(e) { setSyncStatus('error'); toast('Error al recargar'); }
   }
 
   async function _doSync() {
