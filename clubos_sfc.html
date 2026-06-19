@@ -844,6 +844,7 @@ tbody td.center{text-align:center;}
       <button class="modal-close" onclick="cerrarModal('modalPartido')">✕</button>
     </div>
     <div class="form-grid">
+      <div class="form-field"><label>Competición</label><select id="pCompeticion"></select></div>
       <div class="form-field"><label>Jornada</label><input id="pJornada" placeholder="Jornada 1" type="number" min="1"></div>
       <div class="form-field"><label>Fecha</label><input type="date" id="pFecha"></div>
       <div class="form-field"><label>Hora</label><input type="time" id="pHora"></div>
@@ -1286,6 +1287,164 @@ function eliminarCompeticion(id) {
   if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
   save(); renderAll();
+}
+
+// ══════════════════════════════════════════════════════
+//  GENERADOR AUTOMÁTICO DE CALENDARIO (round-robin)
+// ══════════════════════════════════════════════════════
+let genCompeticionId = null;
+
+function abrirGeneradorCalendario(compId) {
+  genCompeticionId = compId;
+  const hoy = new Date().toISOString().slice(0,10);
+  document.getElementById('genFechaIni').value = hoy;
+  document.getElementById('genFormato').value = 'liga1';
+  document.getElementById('genSegVuelta').checked = false;
+  document.getElementById('genPlayoff').value = 'no';
+  document.getElementById('genTercer').checked = false;
+  actualizarResumenGenerador();
+  abrirModal('modalGeneradorCalendario');
+}
+
+function _equiposDeCompeticion(compId) {
+  return (DB.equipos||[]).filter(e => e.competicionId === compId);
+}
+
+function _proximaFechaDia(fechaIniISO, diaSemana) {
+  // Devuelve la fecha ISO del primer día >= fechaIni que caiga en diaSemana (0=domingo..6=sábado)
+  const d = new Date(fechaIniISO + 'T00:00:00');
+  const target = parseInt(diaSemana);
+  let diff = (target - d.getDay() + 7) % 7;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().slice(0,10);
+}
+
+function _sumarDias(fechaISO, dias) {
+  const d = new Date(fechaISO + 'T00:00:00');
+  d.setDate(d.getDate() + dias);
+  return d.toISOString().slice(0,10);
+}
+
+// Algoritmo round-robin (método del círculo). Devuelve array de jornadas,
+// cada jornada un array de {localId, visitanteId} (o null si alguien descansa).
+function _generarRoundRobin(equipoIds) {
+  let ids = [...equipoIds];
+  const bye = ids.length % 2 !== 0;
+  if (bye) ids.push(null); // null = descanso rotativo
+  const n = ids.length;
+  const jornadas = [];
+  const fijos = ids[0];
+  let resto = ids.slice(1);
+  for (let j = 0; j < n - 1; j++) {
+    const ronda = [fijos, ...resto];
+    const partidos = [];
+    for (let i = 0; i < n / 2; i++) {
+      const a = ronda[i], b = ronda[n - 1 - i];
+      if (a !== null && b !== null) {
+        // alternar local/visitante para repartir algo de equidad
+        if (j % 2 === 0) partidos.push({localId: a, visitanteId: b});
+        else partidos.push({localId: b, visitanteId: a});
+      }
+    }
+    jornadas.push(partidos);
+    resto.push(resto.shift());
+  }
+  return jornadas;
+}
+
+function actualizarResumenGenerador() {
+  const el = document.getElementById('genResumen');
+  if (!genCompeticionId) { el.innerHTML = ''; return; }
+  const equipos = _equiposDeCompeticion(genCompeticionId);
+  const formato = document.getElementById('genFormato').value;
+  const segVuelta = document.getElementById('genSegVuelta').checked;
+  const diaSemana = document.getElementById('genDiaSemana').value;
+  const fechaIni = document.getElementById('genFechaIni').value || new Date().toISOString().slice(0,10);
+
+  if (equipos.length < 2) {
+    el.innerHTML = `<div class="info-box" style="background:#FDECEA;color:#9B0D22;">⚠️ Esta competición tiene ${equipos.length} equipo(s) inscrito(s). Hacen falta al menos 2 para generar un calendario.</div>`;
+    return;
+  }
+
+  let nJornadas, nPartidos;
+  if (formato === 'eliminatoria') {
+    el.innerHTML = `<div class="info-box">La eliminatoria directa se gestiona generando los cruces manualmente con "+ Nuevo partido" según avancen los resultados.</div>`;
+    return;
+  } else {
+    const base = equipos.length % 2 === 0 ? equipos.length - 1 : equipos.length;
+    nJornadas = formato === 'liga2' ? base * 2 : base;
+    nPartidos = Math.floor(equipos.length/2) * nJornadas;
+  }
+
+  const primeraFecha = _proximaFechaDia(fechaIni, diaSemana);
+  const ultimaFecha = _sumarDias(primeraFecha, (nJornadas-1)*7);
+
+  el.innerHTML = `<div class="info-box">
+    📋 <strong>${equipos.length}</strong> equipos inscritos · <strong>${nJornadas}</strong> jornadas · <strong>${nPartidos}</strong> partidos<br>
+    📅 Del <strong>${primeraFecha}</strong> al <strong>${ultimaFecha}</strong> (un partido por equipo cada semana)
+    ${equipos.length % 2 !== 0 ? '<br>⚖️ Nº impar de equipos: el descanso rota equitativamente cada jornada.' : ''}
+  </div>`;
+}
+
+function generarCalendarioFinal() {
+  if (!genCompeticionId) return;
+  const equipos = _equiposDeCompeticion(genCompeticionId);
+  if (equipos.length < 2) { toast('Hacen falta al menos 2 equipos inscritos'); return; }
+
+  const formato = document.getElementById('genFormato').value;
+  if (formato === 'eliminatoria') { toast('Usa "+ Nuevo partido" para crear los cruces de eliminatoria'); return; }
+
+  const yaExisten = (DB.partidos||[]).some(p => p.competicionId === genCompeticionId);
+  if (yaExisten) {
+    if (!confirm('Esta competición ya tiene partidos generados. Si continúas, se eliminarán los partidos existentes y se generará un calendario nuevo. ¿Continuar?')) return;
+  }
+
+  const segVuelta  = document.getElementById('genSegVuelta').checked;
+  const diaSemana  = document.getElementById('genDiaSemana').value;
+  const hora       = document.getElementById('genHora').value || '18:00';
+  const fechaIni   = document.getElementById('genFechaIni').value || new Date().toISOString().slice(0,10);
+
+  // Sorteo aleatorio del orden de equipos
+  let ids = equipos.map(e=>e.id);
+  for (let i = ids.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+  }
+
+  let jornadasIda = _generarRoundRobin(ids);
+  let todasJornadas = [...jornadasIda];
+  if (formato === 'liga2') {
+    const jornadasVuelta = jornadasIda.map(j => j.map(p => ({localId: p.visitanteId, visitanteId: p.localId})));
+    todasJornadas = [...jornadasIda, ...jornadasVuelta];
+  }
+
+  // Eliminar partidos previos de esta competición (marcando _deleted para que no resuciten)
+  if (!DB._deleted) DB._deleted = {};
+  (DB.partidos||[]).filter(p => p.competicionId === genCompeticionId).forEach(p => { DB._deleted[p.id] = Date.now(); });
+  DB.partidos = (DB.partidos||[]).filter(p => p.competicionId !== genCompeticionId);
+
+  let fechaJornada = _proximaFechaDia(fechaIni, diaSemana);
+  todasJornadas.forEach((partidos, idx) => {
+    partidos.forEach(p => {
+      DB.partidos.push({
+        id: uid(),
+        competicionId: genCompeticionId,
+        jornada: idx + 1,
+        localId: p.localId,
+        visitanteId: p.visitanteId,
+        fecha: fechaJornada,
+        hora: hora,
+        campo: '',
+        golesLocal: null,
+        golesVisitante: null,
+        estado: 'pendiente',
+        acta: ''
+      });
+    });
+    fechaJornada = _sumarDias(fechaJornada, 7);
+  });
+
+  save(); cerrarModal('modalGeneradorCalendario'); toast('Calendario generado correctamente'); renderAll(); _doSync();
 }
 
 function guardarComp() {
@@ -1867,11 +2026,18 @@ function renderCalendario() {
   }).join('');
 }
 
+function poblarSelectCompeticiones(selectId, selected) {
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = '<option value="">— Sin competición —</option>' +
+    (DB.competiciones||[]).map(c=>`<option value="${c.id}"${c.id===selected?' selected':''}>${c.nombre}</option>`).join('');
+}
+
 function abrirModalPartido() {
   editPartidoId = null;
   document.getElementById('modalPartidoTitle').textContent = 'Nuevo partido';
   ['pJornada','pFecha','pHora','pCampo','pGolesLocal','pGolesVisitante'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pEstado').value = 'pendiente';
+  poblarSelectCompeticiones('pCompeticion');
   poblarSelectEquipos('pLocal'); poblarSelectEquipos('pVisitante');
   abrirModal('modalPartido');
 }
@@ -1887,6 +2053,7 @@ function editarPartido(id) {
   document.getElementById('pGolesLocal').value     = p.golesLocal??'';;
   document.getElementById('pGolesVisitante').value = p.golesVisitante??'';;
   document.getElementById('pEstado').value         = p.estado||'pendiente';
+  poblarSelectCompeticiones('pCompeticion', p.competicionId);
   poblarSelectEquipos('pLocal', p.localId);
   poblarSelectEquipos('pVisitante', p.visitanteId);
   abrirModal('modalPartido');
@@ -1900,6 +2067,7 @@ function poblarSelectEquipos(selectId, selected) {
 
 function guardarPartido() {
   const datos = {
+    competicionId:  document.getElementById('pCompeticion').value || '',
     jornada:        parseInt(document.getElementById('pJornada').value)||1,
     fecha:          document.getElementById('pFecha').value,
     hora:           document.getElementById('pHora').value,
