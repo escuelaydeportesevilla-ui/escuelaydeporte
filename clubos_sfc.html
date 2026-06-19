@@ -754,7 +754,9 @@ tbody td.center{text-align:center;}
     <div class="tab-panel" id="panel-jugadores">
       <div class="section-header">
         <h2>👥 Mis jugadores</h2><div class="section-line"></div>
-        <button class="btn btn-rojo" onclick="abrirModalJugador()">+ Añadir jugador</button>
+        <input type="text" id="buscadorJugadoresGlobal" placeholder="🔎 Buscar jugador…" oninput="filtrarJugadoresGlobal(this.value)"
+               style="padding:8px 12px;border:1px solid var(--gris-linea);border-radius:8px;font-size:13px;width:200px;margin-right:8px;display:none;">
+        <button class="btn btn-rojo" id="btnAddJugador" onclick="abrirModalJugador()">+ Añadir jugador</button>
       </div>
       <div id="jugadoresContent"></div>
     </div>
@@ -1608,18 +1610,16 @@ function renderEquipos() {
     comps[key].push(e);
   });
 
-  let html = '';
-  Object.entries(comps).forEach(([compId, equipos]) => {
-    const comp = (DB.competiciones||[]).find(c=>c.id===compId);
-    const compNombre = comp?.nombre || (compId==='__none__'?'Sin competición asignada':'Competición desconocida');
-    html += `<div style="margin-bottom:24px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">${compNombre}</div>`;
+  const kitTabla = (c1,p1)=>`<div style="display:inline-flex;flex-direction:column;gap:1px;vertical-align:middle;">
+    <div style="width:20px;height:14px;border-radius:3px 3px 0 0;background:${c1};border:1px solid rgba(0,0,0,.15);"></div>
+    <div style="width:16px;height:8px;border-radius:0 0 3px 3px;background:${p1};border:1px solid rgba(0,0,0,.15);margin:0 2px;"></div>
+  </div>`;
 
-    // ── MOBILE CARDS ──
-    html += `<div class="cards-equipos">`;
+  const renderGrupoEquipos = (equipos) => {
+    let h = `<div class="cards-equipos">`;
     equipos.forEach(e => {
       const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
-      html += `<div class="card-equipo" data-nombre="${(e.nombre||'').toLowerCase()}">
+      h += `<div class="card-equipo" data-nombre="${(e.nombre||'').toLowerCase()}">
         <div class="ceq-kit">
           <div class="ceq-camiseta" style="background:${e.eq1Camiseta||'#ccc'};"></div>
           <div class="ceq-pantalon" style="background:${e.eq1Pantalon||'#333'};"></div>
@@ -1635,23 +1635,17 @@ function renderEquipos() {
         </div>
       </div>`;
     });
-    html += `</div>`;
-
-    // ── DESKTOP TABLE ──
-    html += `<div class="tabla-equipos-desktop"><table class="tabla-base"><thead><tr>
+    h += `</div>`;
+    h += `<div class="tabla-equipos-desktop"><table class="tabla-base"><thead><tr>
         <th>Equipo</th><th>Equipación</th><th>Categoría</th>
         ${isAdmin?'<th>Club</th>':''}
         <th>Jugadores</th><th>Acciones</th>
       </tr></thead><tbody>`;
     equipos.forEach(e => {
       const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
-      const kit = (c1,p1)=>`<div style="display:inline-flex;flex-direction:column;gap:1px;vertical-align:middle;">
-        <div style="width:20px;height:14px;border-radius:3px 3px 0 0;background:${c1};border:1px solid rgba(0,0,0,.15);"></div>
-        <div style="width:16px;height:8px;border-radius:0 0 3px 3px;background:${p1};border:1px solid rgba(0,0,0,.15);margin:0 2px;"></div>
-      </div>`;
-      html += `<tr data-nombre="${(e.nombre||'').toLowerCase()}">
+      h += `<tr data-nombre="${(e.nombre||'').toLowerCase()}">
         <td><strong style="cursor:pointer;" onclick="abrirFichaEquipo('${e.id}')">${e.nombre}</strong></td>
-        <td>${kit(e.eq1Camiseta||'#ccc',e.eq1Pantalon||'#333')}</td>
+        <td>${kitTabla(e.eq1Camiseta||'#ccc',e.eq1Pantalon||'#333')}</td>
         <td>${e.categoria||'—'}</td>
         ${isAdmin?`<td style="font-size:12px;color:var(--gris-suave);">${e.clubId||'—'}</td>`:''}
         <td>${nJug}</td>
@@ -1662,9 +1656,96 @@ function renderEquipos() {
         </td>
       </tr>`;
     });
-    html += '</tbody></table></div></div>';
-  });
+    h += '</tbody></table></div>';
+    return h;
+  };
+
+  let html = '';
+
+  if (isAdmin) {
+    // ── VISTA ADMIN: ACORDEÓN POR COMPETICIÓN ──
+    Object.entries(comps).forEach(([compId, equipos], idx) => {
+      const comp = (DB.competiciones||[]).find(c=>c.id===compId);
+      const compNombre = comp?.nombre || (compId==='__none__'?'Sin competición asignada':'Competición desconocida');
+      const contId = 'eqComp_' + idx;
+      html += `<div style="margin-bottom:14px;">
+        <div onclick="toggleAcordeon('${contId}')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+             font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);
+             padding:10px 14px;background:#fff;border-radius:8px;border:1px solid var(--rojo-suave);box-shadow:0 1px 4px rgba(0,0,0,.05);">
+          <span><span id="${contId}_icon">▶</span> ${compNombre} <span style="color:var(--gris-suave);font-weight:400;text-transform:none;letter-spacing:0;">(${equipos.length} equipos)</span></span>
+          <button class="btn btn-outline btn-xs" onclick="event.stopPropagation();exportarEquiposPDF('${compId}')">📄 Exportar</button>
+        </div>
+        <div id="${contId}" style="display:none;padding-top:12px;">
+          ${renderGrupoEquipos(equipos)}
+        </div>
+      </div>`;
+    });
+  } else {
+    // ── VISTA CLUB: SIN ACORDEÓN (sin cambios) ──
+    Object.entries(comps).forEach(([compId, equipos]) => {
+      const comp = (DB.competiciones||[]).find(c=>c.id===compId);
+      const compNombre = comp?.nombre || (compId==='__none__'?'Sin competición asignada':'Competición desconocida');
+      html += `<div style="margin-bottom:24px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">${compNombre}</div>
+        ${renderGrupoEquipos(equipos)}
+      </div>`;
+    });
+  }
+
   el.innerHTML = html;
+}
+
+function exportarEquiposPDF(soloCompId) {
+  const base = soloCompId ? (DB.equipos||[]).filter(e=>(e.competicionId||'__none__')===soloCompId) : (DB.equipos||[]);
+  if (!base.length) { toast('No hay equipos para exportar'); return; }
+  const compGroups = {};
+  base.forEach(e => {
+    const key = e.competicionId || '__none__';
+    if (!compGroups[key]) compGroups[key] = [];
+    compGroups[key].push(e);
+  });
+  const kitMini = (c1,p1) => `
+    <span style="display:inline-block;width:16px;height:16px;border-radius:50%;overflow:hidden;border:1px solid #ccc;vertical-align:middle;margin-right:4px;">
+      <span style="display:block;height:8px;background:${c1||'#ccc'};"></span>
+      <span style="display:block;height:8px;background:${p1||'#333'};"></span>
+    </span>`;
+  let body = Object.entries(compGroups).map(([compId, equipos]) => {
+    const comp = (DB.competiciones||[]).find(c=>c.id===compId);
+    const compNombre = comp?.nombre || 'Sin competición asignada';
+    return `<h2>${compNombre}</h2>
+    <table>
+      <thead><tr><th>Equipo</th><th>Equipación</th><th>Categoría</th><th>Club</th><th>Jugadores</th></tr></thead>
+      <tbody>
+        ${equipos.map(e => {
+          const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
+          return `<tr>
+            <td>${e.nombre}</td>
+            <td>${kitMini(e.eq1Camiseta,e.eq1Pantalon)}</td>
+            <td>${e.categoria||'—'}</td>
+            <td>${e.clubId||'—'}</td>
+            <td>${nJug}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+  }).join('');
+
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>Equipos · ClubOS</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:24px;color:#111;}
+      h1{font-size:20px;margin-bottom:18px;}
+      h2{font-size:16px;color:#C8102E;border-bottom:2px solid #FADBD8;padding-bottom:4px;margin-top:28px;}
+      table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+      th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;font-size:12px;}
+      th{background:#111;color:#fff;}
+    </style></head><body>
+    <h1>🏟️ Equipos · ClubOS SFC Academy</h1>
+    ${body}
+    </body></html>`);
+  w.document.close();
+  w.print();
 }
 
 const PALETA_COLORES = ['#C8102E','#1A56A0','#1A7A3C','#D4A017','#111111','#FFFFFF','#6E2C00','#4A235A'];
@@ -1818,6 +1899,18 @@ function filtrarEquiposGlobal(texto) {
       if (match) visibles++;
     });
     grupo.style.display = visibles > 0 ? '' : 'none';
+    // Si hay texto de búsqueda y coincidencias, desplegar automáticamente el acordeón (vista admin)
+    const contenidoAcordeon = grupo.querySelector('[id^="eqComp_"]');
+    if (contenidoAcordeon) {
+      const icon = document.getElementById(contenidoAcordeon.id + '_icon');
+      if (q && visibles > 0) {
+        contenidoAcordeon.style.display = '';
+        if (icon) icon.textContent = '▼';
+      } else if (!q) {
+        contenidoAcordeon.style.display = 'none';
+        if (icon) icon.textContent = '▶';
+      }
+    }
   });
 }
 
@@ -1923,6 +2016,8 @@ function renderJugadores() {
 
   const btnAdd = document.getElementById('btnAddJugador');
   if (btnAdd) btnAdd.style.display=(isAdmin||isClub)?'':'none';
+  const buscador = document.getElementById('buscadorJugadoresGlobal');
+  if (buscador) buscador.style.display = isAdmin ? '' : 'none';
 
   if (!lista.length) {
     el.innerHTML='<div class="empty-state"><div class="ei">👤</div><p>'+(isClub?'Añade tu primer jugador.':'No hay jugadores.')+'</p></div>'; return;
@@ -1931,22 +2026,12 @@ function renderJugadores() {
   const byEq={};
   lista.forEach(j=>{ const k=j.equipoId||'__none__'; if(!byEq[k])byEq[k]=[]; byEq[k].push(j); });
 
-  let out='';
-  Object.entries(byEq).forEach(([eid,jugs])=>{
-    const eq=(DB.equipos||[]).find(e=>e.id===eid);
-    const eNom=eq?.nombre||'Sin equipo';
-    const esPropio=eq?.clubId===sesion.user;
-    const puedeEditar=isAdmin||(isClub&&esPropio);
-
-    out+=`<div style="margin-bottom:20px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:8px;">${eNom}</div>`;
-
-    // ── MOBILE CARDS ──
-    out+=`<div class="cards-jugadores">`;
+  const renderGrupoJugadores = (jugs, puedeEditar) => {
+    let h = `<div class="cards-jugadores">`;
     jugs.sort((a,b)=>Number(a.dorsal||99)-Number(b.dorsal||99)).forEach(j=>{
       const activo    = j.activo!==false&&j.activo!=='false';
       const convocado = j.convocado===true||j.convocado==='true';
-      out+=`<div class="card-jugador" style="${!activo?'opacity:.5;':''}">
+      h+=`<div class="card-jugador" data-nombre="${(j.nombre+' '+(j.apellidos||'')).toLowerCase()}" style="${!activo?'opacity:.5;':''}">
         <div class="cj-dorsal">${j.dorsal||'—'}</div>
         <div class="cj-info">
           <div class="cj-nombre">${j.nombre}${j.apellidos?' '+j.apellidos:''}</div>
@@ -1966,16 +2051,15 @@ function renderJugadores() {
         </div>
       </div>`;
     });
-    out+=`</div>`;
+    h += `</div>`;
 
-    // ── DESKTOP TABLE ──
-    out+=`<div class="tabla-jugadores-desktop"><div style="overflow-x:auto;"><table class="tabla-base"><thead><tr>
+    h += `<div class="tabla-jugadores-desktop"><div style="overflow-x:auto;"><table class="tabla-base"><thead><tr>
         <th>#</th><th>Jugador</th><th>Pos.</th><th>Estado</th><th>Conv.</th><th></th>
       </tr></thead><tbody>`;
-    jugs.sort((a,b)=>Number(a.dorsal||99)-Number(b.dorsal||99)).forEach(j=>{
+    jugs.forEach(j=>{
       const activo    = j.activo!==false&&j.activo!=='false';
       const convocado = j.convocado===true||j.convocado==='true';
-      out+=`<tr style="${!activo?'opacity:.45;':''}">
+      h+=`<tr data-nombre="${(j.nombre+' '+(j.apellidos||'')).toLowerCase()}" style="${!activo?'opacity:.45;':''}">
         <td style="font-size:12px;">${j.dorsal||'—'}</td>
         <td><strong>${j.nombre}</strong>${j.apellidos?' '+j.apellidos:''}</td>
         <td style="font-size:12px;">${j.posicion||'—'}</td>
@@ -1993,9 +2077,116 @@ function renderJugadores() {
         </td>
       </tr>`;
     });
-    out+=`</tbody></table></div></div></div>`;
-  });
+    h += `</tbody></table></div></div>`;
+    return h;
+  };
+
+  let out = '';
+
+  if (isAdmin) {
+    // ── VISTA ADMIN: ACORDEÓN POR EQUIPO ──
+    Object.entries(byEq).forEach(([eid,jugs], idx)=>{
+      const eq=(DB.equipos||[]).find(e=>e.id===eid);
+      const eNom=eq?.nombre||'Sin equipo';
+      const contId = 'jugEq_' + idx;
+      out+=`<div style="margin-bottom:14px;">
+        <div onclick="toggleAcordeon('${contId}')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+             font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);
+             padding:10px 14px;background:#fff;border-radius:8px;border:1px solid var(--rojo-suave);box-shadow:0 1px 4px rgba(0,0,0,.05);">
+          <span><span id="${contId}_icon">▶</span> ${eNom} <span style="color:var(--gris-suave);font-weight:400;text-transform:none;letter-spacing:0;">(${jugs.length} jugadores)</span></span>
+          <button class="btn btn-outline btn-xs" onclick="event.stopPropagation();exportarJugadoresPDF('${eid}')">📄 Exportar</button>
+        </div>
+        <div id="${contId}" style="display:none;padding-top:12px;">
+          ${renderGrupoJugadores(jugs, true)}
+        </div>
+      </div>`;
+    });
+  } else {
+    // ── VISTA CLUB/ÁRBITRO: SIN ACORDEÓN (sin cambios) ──
+    Object.entries(byEq).forEach(([eid,jugs])=>{
+      const eq=(DB.equipos||[]).find(e=>e.id===eid);
+      const eNom=eq?.nombre||'Sin equipo';
+      const esPropio=eq?.clubId===sesion.user;
+      const puedeEditar=isClub&&esPropio;
+      out+=`<div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:8px;">${eNom}</div>
+        ${renderGrupoJugadores(jugs, puedeEditar)}
+      </div>`;
+    });
+  }
+
   el.innerHTML=out;
+}
+
+function exportarJugadoresPDF(soloEquipoId) {
+  const lista = soloEquipoId ? (DB.jugadores||[]).filter(j=>j.equipoId===soloEquipoId) : (DB.jugadores||[]);
+  if (!lista.length) { toast('No hay jugadores para exportar'); return; }
+  const byEq={};
+  lista.forEach(j=>{ const k=j.equipoId||'__none__'; if(!byEq[k])byEq[k]=[]; byEq[k].push(j); });
+  let body = Object.entries(byEq).map(([eid,jugs]) => {
+    const eq=(DB.equipos||[]).find(e=>e.id===eid);
+    const eNom=eq?.nombre||'Sin equipo';
+    return `<h2>${eNom}</h2>
+    <table>
+      <thead><tr><th>#</th><th>Jugador</th><th>Posición</th><th>Estado</th><th>Convocado</th></tr></thead>
+      <tbody>
+        ${jugs.sort((a,b)=>Number(a.dorsal||99)-Number(b.dorsal||99)).map(j => {
+          const activo = j.activo!==false&&j.activo!=='false';
+          const convocado = j.convocado===true||j.convocado==='true';
+          return `<tr>
+            <td>${j.dorsal||'—'}</td>
+            <td>${j.nombre}${j.apellidos?' '+j.apellidos:''}</td>
+            <td>${j.posicion||'—'}</td>
+            <td>${activo?'Activo':'Inactivo'}</td>
+            <td>${convocado?'Sí':'No'}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+  }).join('');
+
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>Jugadores · ClubOS</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:24px;color:#111;}
+      h1{font-size:20px;margin-bottom:18px;}
+      h2{font-size:16px;color:#C8102E;border-bottom:2px solid #FADBD8;padding-bottom:4px;margin-top:28px;}
+      table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+      th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;font-size:12px;}
+      th{background:#111;color:#fff;}
+    </style></head><body>
+    <h1>👤 Jugadores · ClubOS SFC Academy</h1>
+    ${body}
+    </body></html>`);
+  w.document.close();
+  w.print();
+}
+
+function filtrarJugadoresGlobal(texto) {
+  const q = (texto||'').toLowerCase().trim();
+  const el = document.getElementById('jugadoresContent');
+  if (!el) return;
+  el.querySelectorAll(':scope > div').forEach(grupo => {
+    let visibles = 0;
+    grupo.querySelectorAll('[data-nombre]').forEach(item => {
+      const match = !q || item.getAttribute('data-nombre').includes(q);
+      item.style.display = match ? '' : 'none';
+      if (match) visibles++;
+    });
+    grupo.style.display = visibles > 0 ? '' : 'none';
+    const contenidoAcordeon = grupo.querySelector('[id^="jugEq_"]');
+    if (contenidoAcordeon) {
+      const icon = document.getElementById(contenidoAcordeon.id + '_icon');
+      if (q && visibles > 0) {
+        contenidoAcordeon.style.display = '';
+        if (icon) icon.textContent = '▼';
+      } else if (!q) {
+        contenidoAcordeon.style.display = 'none';
+        if (icon) icon.textContent = '▶';
+      }
+    }
+  });
 }
 
 function abrirModalJugador() {
