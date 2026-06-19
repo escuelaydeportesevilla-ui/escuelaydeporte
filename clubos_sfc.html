@@ -2080,6 +2080,15 @@ function eliminarJugador(id) {
 //  CALENDARIO
 // ══════════════════════════════════════════════════════
 let editPartidoId = null;
+function toggleAcordeon(contId) {
+  const cont = document.getElementById(contId);
+  const icon = document.getElementById(contId + '_icon');
+  if (!cont) return;
+  const abierto = cont.style.display !== 'none';
+  cont.style.display = abierto ? 'none' : '';
+  if (icon) icon.textContent = abierto ? '▶' : '▼';
+}
+
 function renderCalendario() {
   const el = document.getElementById('calendarioContent');
   if (!DB.partidos.length) {
@@ -2087,12 +2096,6 @@ function renderCalendario() {
   }
   const esAdmin = sesion.rol==='admin';
   const esArb   = sesion.rol==='arbitro';
-
-  const kit = (camiseta, pantalon) => `
-    <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;border:2px solid rgba(0,0,0,.08);display:flex;flex-direction:column;flex-shrink:0;">
-      <div style="flex:1;background:${camiseta||'#ccc'};"></div>
-      <div style="flex:1;background:${pantalon||'#333'};"></div>
-    </div>`;
 
   // Agrupar partidos por competición
   const compGroups = {};
@@ -2102,63 +2105,79 @@ function renderCalendario() {
     compGroups[key].push(p);
   });
 
-  el.innerHTML = Object.entries(compGroups).map(([compId, partidosComp]) => {
+  el.innerHTML = Object.entries(compGroups).map(([compId, partidosComp], idx) => {
     const comp = (DB.competiciones||[]).find(c=>c.id===compId);
     const compNombre = comp?.nombre || (compId==='__none__'?'Sin competición asignada':'Competición desconocida');
     const jornadas = [...new Set(partidosComp.map(p=>p.jornada))].sort((a,b)=>a-b);
+    const contId = 'calComp_' + idx;
 
-    return `<div style="margin-bottom:28px;">
-      <div style="font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">${compNombre}</div>
-      ${jornadas.map(j => {
-        const partidos = partidosComp.filter(p=>p.jornada==j);
-        return `<div class="jornada-section">
-          <div class="jornada-title">Jornada ${j}</div>
-          ${partidos.map(p => {
-            const local = DB.equipos.find(e=>e.id===p.localId);
-            const visit = DB.equipos.find(e=>e.id===p.visitanteId);
-            const lNom = local ? local.nombre : '—';
-            const vNom = visit ? visit.nombre : '—';
-            return `<div class="partido-card">
-              <div class="equipo-col">
-                ${kit(local?.eq1Camiseta, local?.eq1Pantalon)}
-                <div class="equipo-nombre">${lNom}</div>
-              </div>
-              <div class="partido-centro">
-                ${p.estado==='jugado'
-                  ? `<div class="resultado-score">${p.golesLocal??''} – ${p.golesVisitante??''}</div>`
-                  : `<div class="resultado-vs">VS</div>`
-                }
-                <div class="partido-meta">
-                  ${p.fecha||''} ${p.hora||''}<br>📍 ${p.campo||'Lugar por confirmar'}
+    return `<div style="margin-bottom:14px;">
+      <div onclick="toggleAcordeon('${contId}')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+           font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);
+           padding:10px 14px;background:#fff;border-radius:8px;border:1px solid var(--rojo-suave);box-shadow:0 1px 4px rgba(0,0,0,.05);">
+        <span><span id="${contId}_icon">▶</span> ${compNombre} <span style="color:var(--gris-suave);font-weight:400;text-transform:none;letter-spacing:0;">(${partidosComp.length} partidos)</span></span>
+        ${esAdmin||true ? `<button class="btn btn-outline btn-xs" onclick="event.stopPropagation();exportarCalendarioPDF('${compId}')">📄 Exportar</button>` : ''}
+      </div>
+      <div id="${contId}" style="display:none;padding-top:12px;">
+        ${jornadas.map(j => {
+          const partidos = partidosComp.filter(p=>p.jornada==j);
+          return `<div class="jornada-section">
+            <div class="jornada-title">Jornada ${j}</div>
+            ${partidos.map(p => {
+              const local = DB.equipos.find(e=>e.id===p.localId);
+              const visit = DB.equipos.find(e=>e.id===p.visitanteId);
+              const lNom = local ? local.nombre : '—';
+              const vNom = visit ? visit.nombre : '—';
+              return `<div class="partido-card">
+                <div class="equipo-col">
+                  ${kitCirculo(local?.eq1Camiseta, local?.eq1Pantalon)}
+                  <div class="equipo-nombre">${lNom}</div>
                 </div>
-                <span class="badge badge-${p.estado||'pendiente'}">${p.estado||'Pendiente'}</span>
-                <div class="partido-actions">
-                  ${esAdmin ? `<button class="btn btn-outline btn-xs" onclick="editarPartido('${p.id}')">✏️ Editar</button>` : ''}
-                  ${(esAdmin||esArb) ? `<button class="btn btn-rojo btn-xs" onclick="abrirActaPartido('${p.id}')">📋 Acta</button>` : ''}
-                  ${esAdmin ? `<button class="btn btn-xs" style="background:var(--rojo-suave);color:var(--rojo)" onclick="eliminarPartido('${p.id}')">🗑️</button>` : ''}
+                <div class="partido-centro">
+                  ${p.estado==='jugado'
+                    ? `<div class="resultado-score">${p.golesLocal??''} – ${p.golesVisitante??''}</div>`
+                    : `<div class="resultado-vs">VS</div>`
+                  }
+                  <div class="partido-meta">
+                    ${p.fecha||''} ${p.hora||''}<br>📍 ${p.campo||'Lugar por confirmar'}
+                  </div>
+                  <span class="badge badge-${p.estado||'pendiente'}">${p.estado||'Pendiente'}</span>
+                  <div class="partido-actions">
+                    ${esAdmin ? `<button class="btn btn-outline btn-xs" onclick="editarPartido('${p.id}')">✏️ Editar</button>` : ''}
+                    ${(esAdmin||esArb) ? `<button class="btn btn-rojo btn-xs" onclick="abrirActaPartido('${p.id}')">📋 Acta</button>` : ''}
+                    ${esAdmin ? `<button class="btn btn-xs" style="background:var(--rojo-suave);color:var(--rojo)" onclick="eliminarPartido('${p.id}')">🗑️</button>` : ''}
+                  </div>
                 </div>
-              </div>
-              <div class="equipo-col visitante">
-                ${kit(visit?.eq1Camiseta, visit?.eq1Pantalon)}
-                <div class="equipo-nombre">${vNom}</div>
-              </div>
-            </div>`;
-          }).join('')}
-        </div>`;
-      }).join('')}
+                <div class="equipo-col visitante">
+                  ${kitCirculo(visit?.eq1Camiseta, visit?.eq1Pantalon)}
+                  <div class="equipo-nombre">${vNom}</div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>`;
+        }).join('')}
+      </div>
     </div>`;
   }).join('');
 }
 
-function exportarCalendarioPDF() {
-  if (!DB.partidos.length) { toast('No hay partidos para exportar'); return; }
+function kitCirculo(camiseta, pantalon) {
+  return `<div style="width:34px;height:34px;border-radius:50%;overflow:hidden;border:2px solid rgba(0,0,0,.08);display:flex;flex-direction:column;flex-shrink:0;">
+      <div style="flex:1;background:${camiseta||'#ccc'};"></div>
+      <div style="flex:1;background:${pantalon||'#333'};"></div>
+    </div>`;
+}
+
+function exportarCalendarioPDF(soloCompId) {
+  const partidosBase = soloCompId ? DB.partidos.filter(p=>(p.competicionId||'__none__')===soloCompId) : DB.partidos;
+  if (!partidosBase.length) { toast('No hay partidos para exportar'); return; }
   const kitMini = (camiseta, pantalon) => `
     <span style="display:inline-block;width:16px;height:16px;border-radius:50%;overflow:hidden;border:1px solid #ccc;vertical-align:middle;margin-right:4px;">
       <span style="display:block;height:8px;background:${camiseta||'#ccc'};"></span>
       <span style="display:block;height:8px;background:${pantalon||'#333'};"></span>
     </span>`;
   const compGroups = {};
-  DB.partidos.forEach(p => {
+  partidosBase.forEach(p => {
     const key = p.competicionId || '__none__';
     if (!compGroups[key]) compGroups[key] = [];
     compGroups[key].push(p);
@@ -2304,12 +2323,8 @@ function eliminarPartido(id) {
 // ══════════════════════════════════════════════════════
 //  CLASIFICACIÓN
 // ══════════════════════════════════════════════════════
-function renderClasificacion() {
-  const el = document.getElementById('clasificacionContent');
-  if (!DB.equipos.length) {
-    el.innerHTML = '<div class="empty-state"><div class="ei">📊</div><p>Sin equipos registrados.</p></div>'; return;
-  }
-  const tabla = DB.equipos.map(eq => {
+function _calcularClasificacion(equiposComp) {
+  return equiposComp.map(eq => {
     let pj=0,g=0,e=0,p=0,gf=0,gc=0;
     DB.partidos.filter(x=>x.estado==='jugado').forEach(x => {
       const esLocal = x.localId===eq.id;
@@ -2322,8 +2337,10 @@ function renderClasificacion() {
     });
     return { nombre:eq.nombre, pj, g, e, p, gf, gc, dg:gf-gc, pts:g*3+e };
   }).sort((a,b) => b.pts-a.pts || b.dg-a.dg || b.gf-a.gf);
+}
 
-  el.innerHTML = '<div class="tabla-wrap"><table><thead><tr>' +
+function _tablaClasificacionHTML(tabla) {
+  return '<div class="tabla-wrap"><table><thead><tr>' +
     '<th>Pos</th><th>Equipo</th><th class="center">PJ</th><th class="center">G</th><th class="center">E</th><th class="center">P</th><th class="center">GF</th><th class="center">GC</th><th class="center">DG</th><th class="center">Pts</th>' +
     '</tr></thead><tbody>' +
     tabla.map((t,i) => {
@@ -2338,6 +2355,82 @@ function renderClasificacion() {
         <td class="center"><strong>${t.pts}</strong></td>
       </tr>`;
     }).join('') + '</tbody></table></div>';
+}
+
+function renderClasificacion() {
+  const el = document.getElementById('clasificacionContent');
+  if (!DB.equipos.length) {
+    el.innerHTML = '<div class="empty-state"><div class="ei">📊</div><p>Sin equipos registrados.</p></div>'; return;
+  }
+  // Agrupar equipos por competición
+  const compGroups = {};
+  DB.equipos.forEach(eq => {
+    const key = eq.competicionId || '__none__';
+    if (!compGroups[key]) compGroups[key] = [];
+    compGroups[key].push(eq);
+  });
+
+  el.innerHTML = Object.entries(compGroups).map(([compId, equiposComp], idx) => {
+    const comp = (DB.competiciones||[]).find(c=>c.id===compId);
+    const compNombre = comp?.nombre || (compId==='__none__'?'Sin competición asignada':'Competición desconocida');
+    const contId = 'clasComp_' + idx;
+    const tabla = _calcularClasificacion(equiposComp);
+
+    return `<div style="margin-bottom:14px;">
+      <div onclick="toggleAcordeon('${contId}')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+           font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);
+           padding:10px 14px;background:#fff;border-radius:8px;border:1px solid var(--rojo-suave);box-shadow:0 1px 4px rgba(0,0,0,.05);">
+        <span><span id="${contId}_icon">▶</span> ${compNombre} <span style="color:var(--gris-suave);font-weight:400;text-transform:none;letter-spacing:0;">(${equiposComp.length} equipos)</span></span>
+        <button class="btn btn-outline btn-xs" onclick="event.stopPropagation();exportarClasificacionPDF('${compId}')">📄 Exportar</button>
+      </div>
+      <div id="${contId}" style="display:none;padding-top:12px;">
+        ${_tablaClasificacionHTML(tabla)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function exportarClasificacionPDF(soloCompId) {
+  const equiposBase = soloCompId ? DB.equipos.filter(e=>(e.competicionId||'__none__')===soloCompId) : DB.equipos;
+  if (!equiposBase.length) { toast('No hay equipos para exportar'); return; }
+  const compGroups = {};
+  equiposBase.forEach(eq => {
+    const key = eq.competicionId || '__none__';
+    if (!compGroups[key]) compGroups[key] = [];
+    compGroups[key].push(eq);
+  });
+  let body = Object.entries(compGroups).map(([compId, equiposComp]) => {
+    const comp = (DB.competiciones||[]).find(c=>c.id===compId);
+    const compNombre = comp?.nombre || 'Sin competición asignada';
+    const tabla = _calcularClasificacion(equiposComp);
+    return `<h2>${compNombre}</h2>
+    <table>
+      <thead><tr><th>Pos</th><th>Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead>
+      <tbody>
+        ${tabla.map((t,i) => `<tr>
+          <td>${i+1}</td><td>${t.nombre}</td><td>${t.pj}</td><td>${t.g}</td><td>${t.e}</td><td>${t.p}</td>
+          <td>${t.gf}</td><td>${t.gc}</td><td>${t.dg>0?'+'+t.dg:t.dg}</td><td><strong>${t.pts}</strong></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  }).join('');
+
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>Clasificación · ClubOS</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:24px;color:#111;}
+      h1{font-size:20px;margin-bottom:18px;}
+      h2{font-size:16px;color:#C8102E;border-bottom:2px solid #FADBD8;padding-bottom:4px;margin-top:28px;}
+      table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+      th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;font-size:12px;}
+      th{background:#111;color:#fff;}
+    </style></head><body>
+    <h1>📊 Clasificación · ClubOS SFC Academy</h1>
+    ${body}
+    </body></html>`);
+  w.document.close();
+  w.print();
 }
 
 // ══════════════════════════════════════════════════════
@@ -2405,20 +2498,87 @@ function renderActas() {
   if (!jugados.length) {
     el.innerHTML = '<div class="empty-state"><div class="ei">📋</div><p>No hay actas disponibles aún.</p></div>'; return;
   }
-  el.innerHTML = jugados.map(p => {
-    const local = DB.equipos.find(e=>e.id===p.localId);
-    const visit = DB.equipos.find(e=>e.id===p.visitanteId);
-    return `<div class="card" style="margin-bottom:14px">
-      <div class="acta-header">
-        <div class="acta-equipo">${local?local.nombre:'—'}</div>
-        <div class="acta-score">${p.golesLocal??'?'} – ${p.golesVisitante??'?'}</div>
-        <div class="acta-equipo" style="text-align:right">${visit?visit.nombre:'—'}</div>
+  const compGroups = {};
+  jugados.forEach(p => {
+    const key = p.competicionId || '__none__';
+    if (!compGroups[key]) compGroups[key] = [];
+    compGroups[key].push(p);
+  });
+
+  el.innerHTML = Object.entries(compGroups).map(([compId, partidosComp], idx) => {
+    const comp = (DB.competiciones||[]).find(c=>c.id===compId);
+    const compNombre = comp?.nombre || (compId==='__none__'?'Sin competición asignada':'Competición desconocida');
+    const contId = 'actasComp_' + idx;
+
+    return `<div style="margin-bottom:14px;">
+      <div onclick="toggleAcordeon('${contId}')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+           font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);
+           padding:10px 14px;background:#fff;border-radius:8px;border:1px solid var(--rojo-suave);box-shadow:0 1px 4px rgba(0,0,0,.05);">
+        <span><span id="${contId}_icon">▶</span> ${compNombre} <span style="color:var(--gris-suave);font-weight:400;text-transform:none;letter-spacing:0;">(${partidosComp.length} actas)</span></span>
+        <button class="btn btn-outline btn-xs" onclick="event.stopPropagation();exportarActasPDF('${compId}')">📄 Exportar</button>
       </div>
-      <div style="font-size:12px;color:var(--gris-suave);margin-bottom:10px">📅 ${p.fecha||'—'} ${p.hora?'· 🕐 '+p.hora:''} · ${p.campo||''}  · J${p.jornada}</div>
-      ${isFamilia ? '' : (p.acta ? `<div style="font-size:13px;color:var(--gris-texto);line-height:1.6;white-space:pre-line">${p.acta}</div>` : '<div class="info-box">Acta pendiente de redactar.</div>')}
-      ${(sesion.rol==='admin'||sesion.rol==='arbitro') ? `<div style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="abrirActaPartido('${p.id}')">✏️ Redactar / editar acta</button></div>` : ''}
+      <div id="${contId}" style="display:none;padding-top:12px;">
+        ${partidosComp.map(p => {
+          const local = DB.equipos.find(e=>e.id===p.localId);
+          const visit = DB.equipos.find(e=>e.id===p.visitanteId);
+          return `<div class="card" style="margin-bottom:14px">
+            <div class="acta-header">
+              <div class="acta-equipo">${local?local.nombre:'—'}</div>
+              <div class="acta-score">${p.golesLocal??'?'} – ${p.golesVisitante??'?'}</div>
+              <div class="acta-equipo" style="text-align:right">${visit?visit.nombre:'—'}</div>
+            </div>
+            <div style="font-size:12px;color:var(--gris-suave);margin-bottom:10px">📅 ${p.fecha||'—'} ${p.hora?'· 🕐 '+p.hora:''} · ${p.campo||''}  · J${p.jornada}</div>
+            ${isFamilia ? '' : (p.acta ? `<div style="font-size:13px;color:var(--gris-texto);line-height:1.6;white-space:pre-line">${p.acta}</div>` : '<div class="info-box">Acta pendiente de redactar.</div>')}
+            ${(sesion.rol==='admin'||sesion.rol==='arbitro') ? `<div style="margin-top:12px"><button class="btn btn-outline btn-sm" onclick="abrirActaPartido('${p.id}')">✏️ Redactar / editar acta</button></div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>
     </div>`;
   }).join('');
+}
+
+function exportarActasPDF(soloCompId) {
+  const isFamilia = sesion.rol === 'familias';
+  const jugados = DB.partidos.filter(p=>p.estado==='jugado'||p.acta);
+  const base = soloCompId ? jugados.filter(p=>(p.competicionId||'__none__')===soloCompId) : jugados;
+  if (!base.length) { toast('No hay actas para exportar'); return; }
+  const compGroups = {};
+  base.forEach(p => {
+    const key = p.competicionId || '__none__';
+    if (!compGroups[key]) compGroups[key] = [];
+    compGroups[key].push(p);
+  });
+  let body = Object.entries(compGroups).map(([compId, partidosComp]) => {
+    const comp = (DB.competiciones||[]).find(c=>c.id===compId);
+    const compNombre = comp?.nombre || 'Sin competición asignada';
+    return `<h2>${compNombre}</h2>` + partidosComp.map(p => {
+      const local = DB.equipos.find(e=>e.id===p.localId);
+      const visit = DB.equipos.find(e=>e.id===p.visitanteId);
+      return `<div class="acta-block">
+        <h3>J${p.jornada} · ${local?local.nombre:'—'} ${p.golesLocal??'?'} – ${p.golesVisitante??'?'} ${visit?visit.nombre:'—'}</h3>
+        <p class="meta">📅 ${p.fecha||'—'} ${p.hora?'· 🕐 '+p.hora:''} · ${p.campo||''}</p>
+        ${isFamilia ? '' : (p.acta ? `<p class="texto">${(p.acta||'').replace(/\n/g,'<br>')}</p>` : '<p class="texto">Acta pendiente de redactar.</p>')}
+      </div>`;
+    }).join('');
+  }).join('');
+
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>Actas · ClubOS</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:24px;color:#111;}
+      h1{font-size:20px;margin-bottom:18px;}
+      h2{font-size:16px;color:#C8102E;border-bottom:2px solid #FADBD8;padding-bottom:4px;margin-top:28px;}
+      .acta-block{border:1px solid #ccc;border-radius:6px;padding:12px;margin-bottom:12px;}
+      h3{font-size:13px;margin:0 0 4px 0;}
+      .meta{font-size:11px;color:#666;margin:0 0 8px 0;}
+      .texto{font-size:12px;line-height:1.6;white-space:pre-line;margin:0;}
+    </style></head><body>
+    <h1>📋 Actas · ClubOS SFC Academy</h1>
+    ${body}
+    </body></html>`);
+  w.document.close();
+  w.print();
 }
 
 function abrirActaPartido(partidoId) {
