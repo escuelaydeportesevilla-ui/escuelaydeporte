@@ -874,7 +874,7 @@ tbody td.center{text-align:center;}
       <button class="modal-close" onclick="cerrarModal('modalPartido')">✕</button>
     </div>
     <div class="form-grid">
-      <div class="form-field"><label>Competición</label><select id="pCompeticion"></select></div>
+      <div class="form-field"><label>Competición</label><select id="pCompeticion" onchange="actualizarEquiposPorCompeticion()"></select></div>
       <div class="form-field"><label>Jornada</label><input id="pJornada" placeholder="Jornada 1" type="number" min="1"></div>
       <div class="form-field"><label>Fecha</label><input type="date" id="pFecha"></div>
       <div class="form-field"><label>Hora</label><input type="time" id="pHora"></div>
@@ -2443,14 +2443,14 @@ function poblarSelectCompeticiones(selectId, selected) {
     (DB.competiciones||[]).map(c=>`<option value="${c.id}"${c.id===selected?' selected':''}>${c.nombre}</option>`).join('');
 }
 
-function abrirModalPartido() {
+function abrirModalPartido(compIdPreseleccionada) {
   editPartidoId = null;
   document.getElementById('modalPartidoTitle').textContent = 'Nuevo partido';
   ['pJornada','pFecha','pHora','pCampo','pGolesLocal','pGolesVisitante'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pEstado').value = 'pendiente';
-  poblarSelectCompeticiones('pCompeticion');
+  poblarSelectCompeticiones('pCompeticion', compIdPreseleccionada);
   poblarSelectSedes(); actualizarCamposSede();
-  poblarSelectEquipos('pLocal'); poblarSelectEquipos('pVisitante');
+  poblarSelectEquipos('pLocal', null, compIdPreseleccionada); poblarSelectEquipos('pVisitante', null, compIdPreseleccionada);
   abrirModal('modalPartido');
 }
 
@@ -2467,15 +2467,22 @@ function editarPartido(id) {
   document.getElementById('pEstado').value         = p.estado||'pendiente';
   poblarSelectCompeticiones('pCompeticion', p.competicionId);
   poblarSelectSedes(p.sedeId); actualizarCamposSede(p.campoNombre);
-  poblarSelectEquipos('pLocal', p.localId);
-  poblarSelectEquipos('pVisitante', p.visitanteId);
+  poblarSelectEquipos('pLocal', p.localId, p.competicionId);
+  poblarSelectEquipos('pVisitante', p.visitanteId, p.competicionId);
   abrirModal('modalPartido');
 }
 
-function poblarSelectEquipos(selectId, selected) {
+function poblarSelectEquipos(selectId, selected, compId) {
   const sel = document.getElementById(selectId);
+  const lista = compId ? DB.equipos.filter(e=>e.competicionId===compId) : DB.equipos;
   sel.innerHTML = '<option value="">— Seleccionar —</option>' +
-    DB.equipos.map(e=>`<option value="${e.id}"${e.id===selected?' selected':''}>` + e.nombre + '</option>').join('');
+    lista.map(e=>`<option value="${e.id}"${e.id===selected?' selected':''}>` + e.nombre + '</option>').join('');
+}
+
+function actualizarEquiposPorCompeticion() {
+  const compId = document.getElementById('pCompeticion').value;
+  poblarSelectEquipos('pLocal', document.getElementById('pLocal').value, compId);
+  poblarSelectEquipos('pVisitante', document.getElementById('pVisitante').value, compId);
 }
 
 function guardarPartido() {
