@@ -1205,6 +1205,10 @@ function renderCompeticion() {
     const nP   = (DB.partidos||[]).filter(p=>p.competicionId===c.id).length;
     const nJug = (DB.partidos||[]).filter(p=>p.competicionId===c.id && p.estado==='jugado').length;
     const activa = c.activa !== false;
+    const isFamilia = sesion.rol === 'familias';
+    const equiposComp = isFamilia
+      ? (DB.equipos||[]).filter(e=>e.competicionId===c.id).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''))
+      : [];
     return `<div class="comp-banner" style="margin-bottom:16px;${!activa?'opacity:.6;':''}">
       <div>
         <div class="comp-banner-title">${c.nombre}</div>
@@ -1220,12 +1224,25 @@ function renderCompeticion() {
         ` : ''}
       </div>
     </div>
-    <div class="stats-row" style="margin-bottom:24px;">
+    <div class="stats-row" style="margin-bottom:${isFamilia?'12px':'24px'};">
       <div class="stat-card"><div class="sv">${nEq}</div><div class="sl">Equipos</div></div>
       <div class="stat-card"><div class="sv">${nP}</div><div class="sl">Partidos</div></div>
       <div class="stat-card"><div class="sv">${nJug}</div><div class="sl">Jugados</div></div>
       <div class="stat-card"><div class="sv">${nP-nJug}</div><div class="sl">Pendientes</div></div>
-    </div>`;
+    </div>
+    ${isFamilia ? `
+    <div style="margin-bottom:24px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gris-suave);margin-bottom:8px;">🏟️ Equipos inscritos (${equiposComp.length})</div>
+      ${equiposComp.length ? `<div style="display:flex;flex-direction:column;gap:6px;">
+        ${equiposComp.map(e => {
+          const nJugEq = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
+          return `<div style="display:flex;justify-content:space-between;align-items:center;background:white;border-radius:8px;padding:10px 14px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+            <span style="font-weight:600;font-size:13px;">${e.nombre}</span>
+            <span style="font-size:11px;color:var(--gris-suave);">${e.categoria||'—'} · ${nJugEq} jugadores</span>
+          </div>`;
+        }).join('')}
+      </div>` : `<div style="font-size:12px;color:var(--gris-suave);">Aún no hay equipos inscritos en esta competición.</div>`}
+    </div>` : ''}`;
   }).join('');
 }
 
@@ -1306,19 +1323,11 @@ function renderEquipos() {
     return;
   }
 
-  // ── VISTA SIMPLIFICADA FAMILIAS ──────────────────────────
+  // ── VISTA FAMILIAS: SOLO BUSCADOR ────────────────────────
   if (isFamilia) {
-    let htmlFam = lista.map(e => {
-      const comp = (DB.competiciones||[]).find(c=>c.id===e.competicionId);
-      const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
-      return `<div class="card-equipo" data-nombre="${(e.nombre||'').toLowerCase()}">
-        <div class="ceq-info">
-          <div class="ceq-nombre">${e.nombre}</div>
-          <div class="ceq-meta">${comp?.nombre||'Sin competición'} · ${e.categoria||'—'} · ${nJug} jugadores</div>
-        </div>
-      </div>`;
-    }).join('');
-    el.innerHTML = `<div class="cards-equipos">${htmlFam}</div>`;
+    el.innerHTML = `
+      <div class="empty-state"><div class="ei">🔎</div><p>Escribe el nombre de un equipo arriba para buscarlo.</p></div>
+      <div id="resultadosFamiliaEquipos"></div>`;
     return;
   }
 
@@ -1494,6 +1503,42 @@ function eliminarEquipo(id) {
 // ── BUSCADOR DE EQUIPOS ──────────────────────────────────
 function filtrarEquiposGlobal(texto) {
   const q = (texto||'').toLowerCase().trim();
+
+  if (sesion.rol === 'familias') {
+    const resEl = document.getElementById('resultadosFamiliaEquipos');
+    const emptyEl = document.querySelector('#equiposContent .empty-state');
+    if (!resEl) return;
+    if (!q) {
+      resEl.innerHTML = '';
+      if (emptyEl) emptyEl.style.display = '';
+      return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+    const encontrados = (DB.equipos||[]).filter(e => (e.nombre||'').toLowerCase().includes(q));
+    if (!encontrados.length) {
+      resEl.innerHTML = '<div class="empty-state"><div class="ei">🔍</div><p>No se ha encontrado ningún equipo con ese nombre.</p></div>';
+      return;
+    }
+    resEl.innerHTML = `<div class="cards-equipos">${encontrados.map(e => {
+      const comp = (DB.competiciones||[]).find(c=>c.id===e.competicionId);
+      const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
+      return `<div class="card-equipo">
+        <div class="ceq-info">
+          <div class="ceq-nombre">${e.nombre}</div>
+          <div class="ceq-meta">${comp?.nombre||'Sin competición'} · ${e.categoria||'—'} · ${nJug} jugadores</div>
+        </div>
+      </div>`;
+    }).join('')}</div>
+    <div class="tabla-equipos-desktop"><table class="tabla-base"><thead><tr>
+        <th>Equipo</th><th>Competición</th><th>Categoría</th><th>Jugadores</th>
+      </tr></thead><tbody>${encontrados.map(e => {
+        const comp = (DB.competiciones||[]).find(c=>c.id===e.competicionId);
+        const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
+        return `<tr><td><strong>${e.nombre}</strong></td><td>${comp?.nombre||'—'}</td><td>${e.categoria||'—'}</td><td>${nJug}</td></tr>`;
+      }).join('')}</tbody></table></div>`;
+    return;
+  }
+
   const el = document.getElementById('equiposContent');
   if (!el) return;
   el.querySelectorAll(':scope > div').forEach(grupo => {
