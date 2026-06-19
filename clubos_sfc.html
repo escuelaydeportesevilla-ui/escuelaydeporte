@@ -696,6 +696,7 @@ tbody td.center{text-align:center;}
     <div class="tab-panel" id="panel-calendario">
       <div class="section-header">
         <h2>📅 Calendario</h2><div class="section-line"></div>
+        <button class="btn btn-outline" id="btnGestionSedes" onclick="abrirGestionSedes()" style="margin-right:6px;display:none">🏟️ Gestionar sedes</button>
         <button class="btn btn-outline" onclick="exportarCalendarioPDF()" style="margin-right:6px;">📄 Exportar PDF</button>
         <button class="btn btn-rojo" id="btnNuevoPartido"  onclick="abrirModalPartido()" style="display:none">+ Nuevo partido</button>
       </div>
@@ -837,6 +838,33 @@ tbody td.center{text-align:center;}
 </div>
 
 
+<div class="modal" id="modalSedes">
+  <div class="modal-box" style="max-width:620px;">
+    <div class="modal-header">
+      <h3>🏟️ Gestión de sedes</h3>
+      <button class="modal-close" onclick="cerrarModal('modalSedes')">✕</button>
+    </div>
+
+    <div style="background:#f9f9f7;border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div class="form-grid">
+        <div class="form-field"><label>Nombre de la sede</label><input id="sedeNombre" placeholder="Ciudad Deportiva SFC"></div>
+        <div class="form-field"><label>Campos (separados por coma)</label><input id="sedeCampos" placeholder="Campo 1, Campo 2, Pista cubierta"></div>
+      </div>
+      <input type="hidden" id="sedeEditId">
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+        <button class="btn btn-outline btn-sm" id="btnCancelarSede" onclick="cancelarEdicionSede()" style="display:none;">Cancelar edición</button>
+        <button class="btn btn-rojo btn-sm" onclick="guardarSede()">💾 Guardar sede</button>
+      </div>
+    </div>
+
+    <div id="listaSedesContent"></div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+      <button class="btn btn-outline" onclick="cerrarModal('modalSedes')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="modalPartido">
   <div class="modal-box">
     <div class="modal-header">
@@ -848,7 +876,9 @@ tbody td.center{text-align:center;}
       <div class="form-field"><label>Jornada</label><input id="pJornada" placeholder="Jornada 1" type="number" min="1"></div>
       <div class="form-field"><label>Fecha</label><input type="date" id="pFecha"></div>
       <div class="form-field"><label>Hora</label><input type="time" id="pHora"></div>
-      <div class="form-field"><label>Campo</label><input id="pCampo" placeholder="Ciudad Deportiva SFC"></div>
+      <div class="form-field"><label>Sede</label><select id="pSede" onchange="actualizarCamposSede()"></select></div>
+      <div class="form-field"><label>Campo</label><select id="pCampoSelect"></select></div>
+      <input type="hidden" id="pCampo">
       <div class="form-field"><label>Equipo local</label><select id="pLocal"></select></div>
       <div class="form-field"><label>Equipo visitante</label><select id="pVisitante"></select></div>
       <div class="form-field"><label>Goles local</label><input type="number" id="pGolesLocal" min="0" value=""></div>
@@ -1005,7 +1035,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPqPbsh_MjpYnPPPcIPQOT3BncjLp2CdEOj1bQA7-xHX_qP6_PSt76K6jHe6VhhEtD/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz_pbL3fPifEzMevuXA5hXLtIpT_4AotuM7_FDvgFExUhCw6JKqNMqYw_E_x3-75bm7/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -1031,6 +1061,7 @@ let DB = JSON.parse(localStorage.getItem('clubos_sfc') || JSON.stringify({
   ],
   sugerencias: [],
   jugadores: [],
+  sedes: [],
   actaEditId: null
 }));
 
@@ -1154,7 +1185,7 @@ function buildNav() {
   const esAdmin = sesion.rol === 'admin';
   const esClub  = sesion.rol === 'club';
   const esArb   = sesion.rol === 'arbitro';
-  ['btnNuevaComp','btnNuevoPartido','btnNuevaNoticia','btnNuevoPatr','btnNuevoGol'].forEach(id => {
+  ['btnNuevaComp','btnNuevoPartido','btnNuevaNoticia','btnNuevoPatr','btnNuevoGol','btnGestionSedes'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = esAdmin ? '' : 'none';
   });
@@ -1287,6 +1318,76 @@ function eliminarCompeticion(id) {
   if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
   save(); renderAll();
+}
+
+// ══════════════════════════════════════════════════════
+//  SEDES (gestión de instalaciones y campos)
+// ══════════════════════════════════════════════════════
+function abrirGestionSedes() {
+  cancelarEdicionSede();
+  renderListaSedes();
+  abrirModal('modalSedes');
+}
+
+function renderListaSedes() {
+  const el = document.getElementById('listaSedesContent');
+  const sedes = DB.sedes || [];
+  if (!sedes.length) {
+    el.innerHTML = '<div class="empty-state"><div class="ei">🏟️</div><p>Aún no hay sedes registradas.</p></div>';
+    return;
+  }
+  el.innerHTML = sedes.map(s => {
+    const campos = (s.campos||'').split(',').map(c=>c.trim()).filter(Boolean);
+    return `<div style="display:flex;justify-content:space-between;align-items:center;background:white;border-radius:8px;padding:10px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+      <div>
+        <div style="font-weight:600;font-size:13px;">${s.nombre}</div>
+        <div style="font-size:11px;color:var(--gris-suave);">${campos.length?campos.join(' · '):'Sin campos definidos'}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn-xs btn-outline" onclick="editarSede('${s.id}')">✏️</button>
+        <button class="btn-xs" style="background:#FADBD8;color:var(--rojo);border:none;border-radius:6px;" onclick="eliminarSede('${s.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function guardarSede() {
+  const nombre = document.getElementById('sedeNombre').value.trim();
+  const campos = document.getElementById('sedeCampos').value.trim();
+  if (!nombre) { toast('El nombre de la sede es obligatorio'); return; }
+  const editId = document.getElementById('sedeEditId').value;
+  if (!DB.sedes) DB.sedes = [];
+  if (editId) {
+    const idx = DB.sedes.findIndex(s=>s.id===editId);
+    if (idx>=0) DB.sedes[idx] = { ...DB.sedes[idx], nombre, campos };
+  } else {
+    DB.sedes.push({ id: uid(), nombre, campos });
+  }
+  cancelarEdicionSede();
+  save(); toast('Sede guardada'); renderListaSedes(); _doSync();
+}
+
+function editarSede(id) {
+  const s = (DB.sedes||[]).find(x=>x.id===id); if(!s) return;
+  document.getElementById('sedeNombre').value = s.nombre||'';
+  document.getElementById('sedeCampos').value = s.campos||'';
+  document.getElementById('sedeEditId').value = s.id;
+  document.getElementById('btnCancelarSede').style.display = '';
+}
+
+function cancelarEdicionSede() {
+  document.getElementById('sedeNombre').value = '';
+  document.getElementById('sedeCampos').value = '';
+  document.getElementById('sedeEditId').value = '';
+  document.getElementById('btnCancelarSede').style.display = 'none';
+}
+
+function eliminarSede(id) {
+  if (!confirm('¿Eliminar esta sede?')) return;
+  DB.sedes = (DB.sedes||[]).filter(x=>x.id!==id);
+  if (!DB._deleted) DB._deleted = {};
+  DB._deleted[id] = Date.now();
+  save(); toast('Sede eliminada'); renderListaSedes(); _doSync();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1435,6 +1536,8 @@ function generarCalendarioFinal() {
         fecha: fechaJornada,
         hora: hora,
         campo: '',
+        sedeId: '',
+        campoNombre: '',
         golesLocal: null,
         golesVisitante: null,
         estado: 'pendiente',
@@ -1982,48 +2085,146 @@ function renderCalendario() {
   if (!DB.partidos.length) {
     el.innerHTML = '<div class="empty-state"><div class="ei">📅</div><p>No hay partidos programados aún.</p></div>'; return;
   }
-  const jornadas = [...new Set(DB.partidos.map(p=>p.jornada))].sort((a,b)=>a-b);
-  el.innerHTML = jornadas.map(j => {
-    const partidos = DB.partidos.filter(p=>p.jornada==j);
-    return `<div class="jornada-section">
-      <div class="jornada-title">Jornada ${j}</div>
-      ${partidos.map(p => {
-        const local = DB.equipos.find(e=>e.id===p.localId);
-        const visit = DB.equipos.find(e=>e.id===p.visitanteId);
-        const lNom = local ? local.nombre : '—';
-        const vNom = visit ? visit.nombre : '—';
-        const lIni = lNom.slice(0,2).toUpperCase();
-        const vIni = vNom.slice(0,2).toUpperCase();
-        const esAdmin = sesion.rol==='admin';
-        const esArb   = sesion.rol==='arbitro';
-        return `<div class="partido-card">
-          <div class="equipo-col">
-            <div class="equipo-escudo">${lIni}</div>
-            <div class="equipo-nombre">${lNom}</div>
-          </div>
-          <div class="partido-centro">
-            ${p.estado==='jugado'
-              ? `<div class="resultado-score">${p.golesLocal??''} – ${p.golesVisitante??''}</div>`
-              : `<div class="resultado-vs">VS</div>`
-            }
-            <div class="partido-meta">
-              ${p.fecha||''} ${p.hora||''}<br>${p.campo||''}
-            </div>
-            <span class="badge badge-${p.estado||'pendiente'}">${p.estado||'Pendiente'}</span>
-            <div class="partido-actions">
-              ${esAdmin ? `<button class="btn btn-outline btn-xs" onclick="editarPartido('${p.id}')">✏️ Editar</button>` : ''}
-              ${(esAdmin||esArb) ? `<button class="btn btn-rojo btn-xs" onclick="abrirActaPartido('${p.id}')">📋 Acta</button>` : ''}
-              ${esAdmin ? `<button class="btn btn-xs" style="background:var(--rojo-suave);color:var(--rojo)" onclick="eliminarPartido('${p.id}')">🗑️</button>` : ''}
-            </div>
-          </div>
-          <div class="equipo-col visitante">
-            <div class="equipo-escudo">${vIni}</div>
-            <div class="equipo-nombre">${vNom}</div>
-          </div>
+  const esAdmin = sesion.rol==='admin';
+  const esArb   = sesion.rol==='arbitro';
+
+  const kit = (camiseta, pantalon) => `
+    <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;border:2px solid rgba(0,0,0,.08);display:flex;flex-direction:column;flex-shrink:0;">
+      <div style="flex:1;background:${camiseta||'#ccc'};"></div>
+      <div style="flex:1;background:${pantalon||'#333'};"></div>
+    </div>`;
+
+  // Agrupar partidos por competición
+  const compGroups = {};
+  DB.partidos.forEach(p => {
+    const key = p.competicionId || '__none__';
+    if (!compGroups[key]) compGroups[key] = [];
+    compGroups[key].push(p);
+  });
+
+  el.innerHTML = Object.entries(compGroups).map(([compId, partidosComp]) => {
+    const comp = (DB.competiciones||[]).find(c=>c.id===compId);
+    const compNombre = comp?.nombre || (compId==='__none__'?'Sin competición asignada':'Competición desconocida');
+    const jornadas = [...new Set(partidosComp.map(p=>p.jornada))].sort((a,b)=>a-b);
+
+    return `<div style="margin-bottom:28px;">
+      <div style="font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rojo);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--rojo-suave);">${compNombre}</div>
+      ${jornadas.map(j => {
+        const partidos = partidosComp.filter(p=>p.jornada==j);
+        return `<div class="jornada-section">
+          <div class="jornada-title">Jornada ${j}</div>
+          ${partidos.map(p => {
+            const local = DB.equipos.find(e=>e.id===p.localId);
+            const visit = DB.equipos.find(e=>e.id===p.visitanteId);
+            const lNom = local ? local.nombre : '—';
+            const vNom = visit ? visit.nombre : '—';
+            return `<div class="partido-card">
+              <div class="equipo-col">
+                ${kit(local?.eq1Camiseta, local?.eq1Pantalon)}
+                <div class="equipo-nombre">${lNom}</div>
+              </div>
+              <div class="partido-centro">
+                ${p.estado==='jugado'
+                  ? `<div class="resultado-score">${p.golesLocal??''} – ${p.golesVisitante??''}</div>`
+                  : `<div class="resultado-vs">VS</div>`
+                }
+                <div class="partido-meta">
+                  ${p.fecha||''} ${p.hora||''}<br>📍 ${p.campo||'Lugar por confirmar'}
+                </div>
+                <span class="badge badge-${p.estado||'pendiente'}">${p.estado||'Pendiente'}</span>
+                <div class="partido-actions">
+                  ${esAdmin ? `<button class="btn btn-outline btn-xs" onclick="editarPartido('${p.id}')">✏️ Editar</button>` : ''}
+                  ${(esAdmin||esArb) ? `<button class="btn btn-rojo btn-xs" onclick="abrirActaPartido('${p.id}')">📋 Acta</button>` : ''}
+                  ${esAdmin ? `<button class="btn btn-xs" style="background:var(--rojo-suave);color:var(--rojo)" onclick="eliminarPartido('${p.id}')">🗑️</button>` : ''}
+                </div>
+              </div>
+              <div class="equipo-col visitante">
+                ${kit(visit?.eq1Camiseta, visit?.eq1Pantalon)}
+                <div class="equipo-nombre">${vNom}</div>
+              </div>
+            </div>`;
+          }).join('')}
         </div>`;
       }).join('')}
     </div>`;
   }).join('');
+}
+
+function exportarCalendarioPDF() {
+  if (!DB.partidos.length) { toast('No hay partidos para exportar'); return; }
+  const kitMini = (camiseta, pantalon) => `
+    <span style="display:inline-block;width:16px;height:16px;border-radius:50%;overflow:hidden;border:1px solid #ccc;vertical-align:middle;margin-right:4px;">
+      <span style="display:block;height:8px;background:${camiseta||'#ccc'};"></span>
+      <span style="display:block;height:8px;background:${pantalon||'#333'};"></span>
+    </span>`;
+  const compGroups = {};
+  DB.partidos.forEach(p => {
+    const key = p.competicionId || '__none__';
+    if (!compGroups[key]) compGroups[key] = [];
+    compGroups[key].push(p);
+  });
+  let body = Object.entries(compGroups).map(([compId, partidosComp]) => {
+    const comp = (DB.competiciones||[]).find(c=>c.id===compId);
+    const compNombre = comp?.nombre || 'Sin competición asignada';
+    const jornadas = [...new Set(partidosComp.map(p=>p.jornada))].sort((a,b)=>a-b);
+    return `<h2>${compNombre}</h2>` + jornadas.map(j => {
+      const partidos = partidosComp.filter(p=>p.jornada==j);
+      return `<h3>Jornada ${j}</h3>
+      <table>
+        <thead><tr><th>Local</th><th>Resultado</th><th>Visitante</th><th>Fecha</th><th>Hora</th><th>Lugar</th></tr></thead>
+        <tbody>
+          ${partidos.map(p => {
+            const local = DB.equipos.find(e=>e.id===p.localId);
+            const visit = DB.equipos.find(e=>e.id===p.visitanteId);
+            const resultado = p.estado==='jugado' ? `${p.golesLocal??''} - ${p.golesVisitante??''}` : 'vs';
+            return `<tr>
+              <td>${kitMini(local?.eq1Camiseta, local?.eq1Pantalon)}${local?local.nombre:'—'}</td>
+              <td style="text-align:center;">${resultado}</td>
+              <td>${kitMini(visit?.eq1Camiseta, visit?.eq1Pantalon)}${visit?visit.nombre:'—'}</td>
+              <td>${p.fecha||''}</td>
+              <td>${p.hora||''}</td>
+              <td>${p.campo||'—'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+    }).join('');
+  }).join('');
+
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>Calendario · ClubOS</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:24px;color:#111;}
+      h1{font-size:20px;margin-bottom:18px;}
+      h2{font-size:16px;color:#C8102E;border-bottom:2px solid #FADBD8;padding-bottom:4px;margin-top:28px;}
+      h3{font-size:13px;color:#555;margin-top:14px;margin-bottom:6px;}
+      table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+      th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;font-size:12px;}
+      th{background:#111;color:#fff;}
+    </style></head><body>
+    <h1>📅 Calendario de competiciones · ClubOS SFC Academy</h1>
+    ${body}
+    </body></html>`);
+  w.document.close();
+  w.print();
+}
+
+function poblarSelectSedes(selectedSede) {
+  const sel = document.getElementById('pSede');
+  const sedes = DB.sedes || [];
+  sel.innerHTML = '<option value="">— Sin sede —</option>' +
+    sedes.map(s=>`<option value="${s.id}"${s.id===selectedSede?' selected':''}>${s.nombre}</option>`).join('');
+}
+
+function actualizarCamposSede(selectedCampo) {
+  const sedeId = document.getElementById('pSede').value;
+  const sel = document.getElementById('pCampoSelect');
+  const sede = (DB.sedes||[]).find(s=>s.id===sedeId);
+  const campos = sede ? (sede.campos||'').split(',').map(c=>c.trim()).filter(Boolean) : [];
+  sel.innerHTML = campos.length
+    ? campos.map(c=>`<option value="${c}"${c===selectedCampo?' selected':''}>${c}</option>`).join('')
+    : '<option value="">—</option>';
 }
 
 function poblarSelectCompeticiones(selectId, selected) {
@@ -2038,6 +2239,7 @@ function abrirModalPartido() {
   ['pJornada','pFecha','pHora','pCampo','pGolesLocal','pGolesVisitante'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pEstado').value = 'pendiente';
   poblarSelectCompeticiones('pCompeticion');
+  poblarSelectSedes(); actualizarCamposSede();
   poblarSelectEquipos('pLocal'); poblarSelectEquipos('pVisitante');
   abrirModal('modalPartido');
 }
@@ -2054,6 +2256,7 @@ function editarPartido(id) {
   document.getElementById('pGolesVisitante').value = p.golesVisitante??'';;
   document.getElementById('pEstado').value         = p.estado||'pendiente';
   poblarSelectCompeticiones('pCompeticion', p.competicionId);
+  poblarSelectSedes(p.sedeId); actualizarCamposSede(p.campoNombre);
   poblarSelectEquipos('pLocal', p.localId);
   poblarSelectEquipos('pVisitante', p.visitanteId);
   abrirModal('modalPartido');
@@ -2066,12 +2269,18 @@ function poblarSelectEquipos(selectId, selected) {
 }
 
 function guardarPartido() {
+  const sedeId      = document.getElementById('pSede').value || '';
+  const campoNombre = document.getElementById('pCampoSelect').value || '';
+  const sede        = (DB.sedes||[]).find(s=>s.id===sedeId);
+  const campoTexto  = sede ? (sede.nombre + (campoNombre ? ' · ' + campoNombre : '')) : '';
   const datos = {
     competicionId:  document.getElementById('pCompeticion').value || '',
     jornada:        parseInt(document.getElementById('pJornada').value)||1,
     fecha:          document.getElementById('pFecha').value,
     hora:           document.getElementById('pHora').value,
-    campo:          document.getElementById('pCampo').value.trim(),
+    sedeId:         sedeId,
+    campoNombre:    campoNombre,
+    campo:          campoTexto,
     localId:        document.getElementById('pLocal').value,
     visitanteId:    document.getElementById('pVisitante').value,
     golesLocal:     document.getElementById('pGolesLocal').value !== '' ? parseInt(document.getElementById('pGolesLocal').value) : null,
@@ -2587,6 +2796,8 @@ console.log('Familias: acceso directo (sin contraseña)');
         if (d.noticias?.length)      DB.noticias      = merge(DB.noticias,      d.noticias);
         if (d.goleadores?.length)    DB.goleadores    = merge(DB.goleadores,    d.goleadores);
         if (d.sugerencias?.length)   DB.sugerencias   = merge(DB.sugerencias,   d.sugerencias);
+        if (d.patrocinadores?.length) DB.patrocinadores = merge(DB.patrocinadores, d.patrocinadores);
+        if (d.sedes?.length)         DB.sedes         = merge(DB.sedes,         d.sedes);
         delete DB.competicion;
         localStorage.setItem('clubos_sfc', JSON.stringify(DB));
         renderAll(); setSyncStatus('ok');
@@ -2611,6 +2822,8 @@ console.log('Familias: acceso directo (sin contraseña)');
         DB.noticias      = d.noticias      || [];
         DB.goleadores    = d.goleadores    || [];
         DB.sugerencias   = d.sugerencias   || DB.sugerencias || [];
+        DB.patrocinadores = d.patrocinadores || DB.patrocinadores || [];
+        DB.sedes         = d.sedes         || [];
         // DB._deleted se conserva intacto para no resucitar borrados
         delete DB.competicion;
         localStorage.setItem('clubos_sfc', JSON.stringify(DB));
@@ -2629,7 +2842,7 @@ console.log('Familias: acceso directo (sin contraseña)');
         sesion.rol==='arbitro' ? 'arb2627'  : ''
       );
       // saveCollection espera: ?action=saveCollection&pwd=X&col=Y&data=[...array...]
-      const cols = ['competiciones','equipos','jugadores','partidos','actas','noticias','goleadores','sugerencias','patrocinadores'];
+      const cols = ['competiciones','equipos','jugadores','partidos','actas','noticias','goleadores','sugerencias','patrocinadores','sedes'];
       for (const col of cols) {
         const items = DB[col];
         if (!items || !items.length) continue;
