@@ -3356,20 +3356,17 @@ console.log('Familias: acceso directo (sin contraseña)');
 </div>
 
 <script>
+  // Limpieza única: desregistra cualquier service worker antiguo y borra sus cachés.
+  // Ya no se vuelve a registrar ningún service worker nuevo.
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
       try {
-        // Desregistrar cualquier service worker viejo/atascado antes de instalar el correcto
         const regs = await navigator.serviceWorker.getRegistrations();
         for (const r of regs) { await r.unregister(); }
-        // Limpiar también cualquier caché vieja que pudiera quedar de versiones anteriores
         if (window.caches) {
           const keys = await caches.keys();
           for (const k of keys) { await caches.delete(k); }
         }
-        // Registrar la versión correcta y actual
-        const reg = await navigator.serviceWorker.register('sw.js');
-        reg.update();
       } catch (e) {}
     });
   }
