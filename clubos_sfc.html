@@ -3357,10 +3357,20 @@ console.log('Familias: acceso directo (sin contraseña)');
 
 <script>
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').then((reg) => {
-        reg.update(); // comprobar si hay versión nueva cada vez que se abre la app
-      }).catch(() => {});
+    window.addEventListener('load', async () => {
+      try {
+        // Desregistrar cualquier service worker viejo/atascado antes de instalar el correcto
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) { await r.unregister(); }
+        // Limpiar también cualquier caché vieja que pudiera quedar de versiones anteriores
+        if (window.caches) {
+          const keys = await caches.keys();
+          for (const k of keys) { await caches.delete(k); }
+        }
+        // Registrar la versión correcta y actual
+        const reg = await navigator.serviceWorker.register('sw.js');
+        reg.update();
+      } catch (e) {}
     });
   }
 </script>
