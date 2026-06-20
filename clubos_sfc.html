@@ -2949,6 +2949,13 @@ const LOGOS_PATR = {
   remax: REMAX_IMG,
   dental: DENTAL_IMG,
 };
+function _detectarLogoPatr(p) {
+  if (LOGOS_PATR[p.logo]) return LOGOS_PATR[p.logo];
+  const n = (p.nombre||'').toLowerCase();
+  if (n.includes('remax') || n.includes('re/max')) return REMAX_IMG;
+  if (n.includes('piñero') || n.includes('pinero') || n.includes('dental')) return DENTAL_IMG;
+  return '';
+}
 let editPatrId = null;
 function renderPatrocinadores() {
   const el = document.getElementById('patrocinadorContent');
@@ -2956,7 +2963,7 @@ function renderPatrocinadores() {
     el.innerHTML = '<div class="empty-state"><div class="ei">🤝</div><p>No hay patrocinadores registrados.</p></div>'; return;
   }
   el.innerHTML = '<div class="patr-grid">' + DB.patrocinadores.map(p => {
-    const imgSrc = LOGOS_PATR[p.logo] || '';
+    const imgSrc = _detectarLogoPatr(p);
     return `<div class="patr-card">
       ${imgSrc ? `<img src="${imgSrc}" alt="${p.nombre}">` : `<div style="height:60px;display:flex;align-items:center;justify-content:center;font-size:2rem">🤝</div>`}
       <div class="patr-nombre">${p.nombre}</div>
