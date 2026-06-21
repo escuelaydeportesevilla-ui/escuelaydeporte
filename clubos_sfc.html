@@ -1052,7 +1052,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx32FWMvXP7vlRWxmfrq1oDuvLqAtbV3_QhJou6O-fX6v7jly7qzerpJRc36GQ6t0TR/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwoigqECNfhtc2gcy2h8SdJGMZ6IEiTw6rlZ6QzfqadweuhrfqGTIX-N022IDBrm5r6/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -1414,7 +1414,7 @@ let genCompeticionId = null;
 
 function abrirGeneradorCalendario(compId) {
   genCompeticionId = compId;
-  const hoy = new Date().toISOString().slice(0,10);
+  const hoy = _hoyLocal();
   document.getElementById('genFechaIni').value = hoy;
   document.getElementById('genFormato').value = 'liga1';
   document.getElementById('genSegVuelta').checked = false;
@@ -1428,19 +1428,36 @@ function _equiposDeCompeticion(compId) {
   return (DB.equipos||[]).filter(e => e.competicionId === compId);
 }
 
+// Helpers de fecha en LOCAL (sin pasar por UTC), para evitar que una fecha se desplace
+// un día según el huso horario del navegador (p.ej. "2026-06-23" convirtiéndose en "2026-06-22").
+function _hoyLocal() {
+  const d = new Date();
+  return _formatearFechaISO(d);
+}
+function _parsearFechaISO(fechaISO) {
+  const [y, m, d] = fechaISO.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function _formatearFechaISO(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
 function _proximaFechaDia(fechaIniISO, diaSemana) {
   // Devuelve la fecha ISO del primer día >= fechaIni que caiga en diaSemana (0=domingo..6=sábado)
-  const d = new Date(fechaIniISO + 'T00:00:00');
+  const d = _parsearFechaISO(fechaIniISO);
   const target = parseInt(diaSemana);
   let diff = (target - d.getDay() + 7) % 7;
   d.setDate(d.getDate() + diff);
-  return d.toISOString().slice(0,10);
+  return _formatearFechaISO(d);
 }
 
 function _sumarDias(fechaISO, dias) {
-  const d = new Date(fechaISO + 'T00:00:00');
+  const d = _parsearFechaISO(fechaISO);
   d.setDate(d.getDate() + dias);
-  return d.toISOString().slice(0,10);
+  return _formatearFechaISO(d);
 }
 
 // Algoritmo round-robin (método del círculo). Devuelve array de jornadas,
@@ -1477,7 +1494,7 @@ function actualizarResumenGenerador() {
   const formato = document.getElementById('genFormato').value;
   const segVuelta = document.getElementById('genSegVuelta').checked;
   const diaSemana = document.getElementById('genDiaSemana').value;
-  const fechaIni = document.getElementById('genFechaIni').value || new Date().toISOString().slice(0,10);
+  const fechaIni = document.getElementById('genFechaIni').value || _hoyLocal();
 
   if (equipos.length < 2) {
     el.innerHTML = `<div class="info-box" style="background:#FDECEA;color:#9B0D22;">⚠️ Esta competición tiene ${equipos.length} equipo(s) inscrito(s). Hacen falta al menos 2 para generar un calendario.</div>`;
@@ -1520,7 +1537,7 @@ function generarCalendarioFinal() {
   const segVuelta  = document.getElementById('genSegVuelta').checked;
   const diaSemana  = document.getElementById('genDiaSemana').value;
   const hora       = document.getElementById('genHora').value || '18:00';
-  const fechaIni   = document.getElementById('genFechaIni').value || new Date().toISOString().slice(0,10);
+  const fechaIni   = document.getElementById('genFechaIni').value || _hoyLocal();
 
   // Sorteo aleatorio del orden de equipos
   let ids = equipos.map(e=>e.id);
@@ -2543,6 +2560,18 @@ function guardarPartido() {
   const campoNombre = document.getElementById('pCampoSelect').value || '';
   const sede        = (DB.sedes||[]).find(s=>s.id===sedeId);
   const campoTexto  = sede ? (sede.nombre + (campoNombre ? ' · ' + campoNombre : '')) : '';
+  const gl = document.getElementById('pGolesLocal').value !== '' ? parseInt(document.getElementById('pGolesLocal').value) : null;
+  const gv = document.getElementById('pGolesVisitante').value !== '' ? parseInt(document.getElementById('pGolesVisitante').value) : null;
+
+  // El estado debe ser coherente con si hay resultado o no, para que el cómputo de
+  // jugados/pendientes de la portada siempre refleje la realidad.
+  let estado = document.getElementById('pEstado').value;
+  if (gl !== null && gv !== null) {
+    estado = 'jugado'; // hay resultado completo: se ha disputado, aunque no se haya tocado el desplegable
+  } else if (estado === 'jugado') {
+    estado = 'pendiente'; // se ha quitado el resultado: ya no se considera disputado
+  }
+
   const datos = {
     competicionId:  document.getElementById('pCompeticion').value || '',
     jornada:        parseInt(document.getElementById('pJornada').value)||1,
@@ -2553,9 +2582,9 @@ function guardarPartido() {
     campo:          campoTexto,
     localId:        document.getElementById('pLocal').value,
     visitanteId:    document.getElementById('pVisitante').value,
-    golesLocal:     document.getElementById('pGolesLocal').value !== '' ? parseInt(document.getElementById('pGolesLocal').value) : null,
-    golesVisitante: document.getElementById('pGolesVisitante').value !== '' ? parseInt(document.getElementById('pGolesVisitante').value) : null,
-    estado:         document.getElementById('pEstado').value,
+    golesLocal:     gl,
+    golesVisitante: gv,
+    estado:         estado,
   };
   if (editPartidoId) {
     const idx = DB.partidos.findIndex(p=>p.id===editPartidoId);
@@ -2563,7 +2592,7 @@ function guardarPartido() {
   } else {
     DB.partidos.push({ id: uid(), acta: '', ...datos });
   }
-  save(); cerrarModal('modalPartido'); toast('Partido guardado'); renderAll();
+  save(); cerrarModal('modalPartido'); toast('Partido guardado'); renderAll(); _doSync();
 }
 
 function eliminarPartido(id) {
@@ -3083,7 +3112,7 @@ function renderNoticias() {
       <div class="noticia-body">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
           <span style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:10px;background:${catBadge[n.categoria]||'#eee'};color:${catColor[n.categoria]||'#333'}">${n.categoria||'general'}</span>
-          <span class="noticia-fecha">${n.fecha||''}</span>
+          <span class="noticia-fecha">${_limpiarFecha(n.fecha)||''}</span>
         </div>
         <div class="noticia-titulo">${n.titulo}</div>
         <div class="noticia-texto">${n.texto}</div>
@@ -3099,7 +3128,7 @@ function abrirModalNoticia() {
   editNoticiaId = null;
   document.getElementById('modalNoticiaTitle').textContent = 'Nueva noticia';
   ['nTitulo','nTexto'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('nFecha').value = new Date().toISOString().slice(0,10);
+  document.getElementById('nFecha').value = _hoyLocal();
   document.getElementById('nCategoria').value = 'general';
   abrirModal('modalNoticia');
 }
