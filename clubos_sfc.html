@@ -950,6 +950,7 @@ tbody td.center{text-align:center;}
       <div class="form-field form-full"><label>Nombre</label><input id="patrNombre" placeholder="Nombre del patrocinador"></div>
       <div class="form-field"><label>Nivel</label><select id="patrNivel"><option value="oro">Oro</option><option value="plata">Plata</option><option value="bronce">Bronce</option></select></div>
       <div class="form-field"><label>Web</label><input id="patrWeb" placeholder="https://…"></div>
+      <div class="form-field form-full"><label>URL del logo</label><input id="patrLogoUrl" placeholder="https://…/logo.jpg"></div>
       <div class="form-field form-full"><label>Descripción</label><input id="patrDesc" placeholder="Breve descripción"></div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -1044,7 +1045,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwU8mVeIcwi1DZe2AmS1fDfxn6XqJ953OeZt0syaYn4zqPdc8ebH1T-3SjdiZ4kkeIz/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQYpFL-2ZvYOt8HU_TCnri3I2VVwCkxjEmJBYGDfg00jY4XxxEVIoYHqsSKCo6aDx5/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -2950,6 +2951,7 @@ const LOGOS_PATR = {
   dental: DENTAL_IMG,
 };
 function _detectarLogoPatr(p) {
+  if (p.logoUrl) return p.logoUrl;
   if (LOGOS_PATR[p.logo]) return LOGOS_PATR[p.logo];
   const n = (p.nombre||'').toLowerCase();
   if (n.includes('remax') || n.includes('re/max')) return REMAX_IMG;
@@ -2982,7 +2984,7 @@ function renderPatrocinadores() {
 function abrirModalPatr() {
   editPatrId = null;
   document.getElementById('modalPatrTitle').textContent = 'Añadir patrocinador';
-  ['patrNombre','patrWeb','patrDesc'].forEach(id=>document.getElementById(id).value='');
+  ['patrNombre','patrWeb','patrDesc','patrLogoUrl'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('patrNivel').value = 'oro';
   abrirModal('modalPatr');
 }
@@ -2994,6 +2996,7 @@ function editarPatr(id) {
   document.getElementById('patrNombre').value = p.nombre||'';
   document.getElementById('patrNivel').value  = p.nivel||'oro';
   document.getElementById('patrWeb').value    = p.web||'';
+  document.getElementById('patrLogoUrl').value = p.logoUrl||'';
   document.getElementById('patrDesc').value   = p.desc||'';
   abrirModal('modalPatr');
 }
@@ -3003,6 +3006,7 @@ function guardarPatr() {
     nombre: document.getElementById('patrNombre').value.trim(),
     nivel:  document.getElementById('patrNivel').value,
     web:    document.getElementById('patrWeb').value.trim(),
+    logoUrl: document.getElementById('patrLogoUrl').value.trim(),
     desc:   document.getElementById('patrDesc').value.trim(),
   };
   if (!datos.nombre) { toast('El nombre es obligatorio'); return; }
