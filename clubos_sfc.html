@@ -1260,7 +1260,7 @@ function renderCompeticion() {
     const nP   = (DB.partidos||[]).filter(p=>p.competicionId===c.id).length;
     const nJug = (DB.partidos||[]).filter(p=>p.competicionId===c.id && p.estado==='jugado').length;
     const activa = c.activa !== false;
-    const isFamilia = sesion.rol === 'familias' || sesion.rol === 'club';
+    const isFamilia = sesion.rol === 'familias' || sesion.rol === 'club' || sesion.rol === 'arbitro';
     const equiposComp = isFamilia
       ? (DB.equipos||[]).filter(e=>e.competicionId===c.id).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''))
       : [];
@@ -1595,10 +1595,11 @@ function renderEquipos() {
   const isAdmin   = sesion.rol === 'admin';
   const isClub    = sesion.rol === 'club';
   const isFamilia = sesion.rol === 'familias';
+  const isArbitro = sesion.rol === 'arbitro';
   if (!DB.equipos) DB.equipos = [];
 
-  // Admin sees all, club sees only their own, familias sees all (simplified view)
-  let lista = (isAdmin || isFamilia) ? DB.equipos : DB.equipos.filter(e=>e.clubId===sesion.user);
+  // Admin/Familias/Árbitro ven todos, club solo los suyos
+  let lista = (isAdmin || isFamilia || isArbitro) ? DB.equipos : DB.equipos.filter(e=>e.clubId===sesion.user);
 
   const btnAdd = document.getElementById('btnNuevoEquipo');
   if (btnAdd) btnAdd.style.display = (isAdmin||isClub) ? '' : 'none';
@@ -2032,7 +2033,7 @@ function renderJugadores() {
   const btnAdd = document.getElementById('btnAddJugador');
   if (btnAdd) btnAdd.style.display=(isAdmin||isClub)?'':'none';
   const buscador = document.getElementById('buscadorJugadoresGlobal');
-  if (buscador) buscador.style.display = (isAdmin||isClub) ? '' : 'none';
+  if (buscador) buscador.style.display = (isAdmin||isClub||isArbitro) ? '' : 'none';
 
   if (!lista.length) {
     el.innerHTML='<div class="empty-state"><div class="ei">👤</div><p>'+(isClub?'Añade tu primer jugador.':'No hay jugadores.')+'</p></div>'; return;
@@ -2098,8 +2099,8 @@ function renderJugadores() {
 
   let out = '';
 
-  if (isAdmin) {
-    // ── VISTA ADMIN: ACORDEÓN POR EQUIPO ──
+  if (isAdmin || isArbitro) {
+    // ── VISTA ADMIN/ÁRBITRO: ACORDEÓN POR EQUIPO ──
     Object.entries(byEq).forEach(([eid,jugs], idx)=>{
       const eq=(DB.equipos||[]).find(e=>e.id===eid);
       const eNom=eq?.nombre||'Sin equipo';
@@ -2112,12 +2113,12 @@ function renderJugadores() {
           <button class="btn btn-outline btn-xs" onclick="event.stopPropagation();exportarJugadoresPDF('${eid}')">📄 Exportar</button>
         </div>
         <div id="${contId}" style="display:none;padding-top:12px;">
-          ${renderGrupoJugadores(jugs, true)}
+          ${renderGrupoJugadores(jugs, isAdmin)}
         </div>
       </div>`;
     });
   } else {
-    // ── VISTA CLUB/ÁRBITRO: SIN ACORDEÓN (sin cambios) ──
+    // ── VISTA CLUB: SIN ACORDEÓN (sin cambios) ──
     Object.entries(byEq).forEach(([eid,jugs])=>{
       const eq=(DB.equipos||[]).find(e=>e.id===eid);
       const eNom=eq?.nombre||'Sin equipo';
@@ -2715,11 +2716,12 @@ function renderGoleadores() {
     }).join('') + '</div>';
 }
 
-function abrirModalGol() {
+function abrirModalGol(equipoFijo) {
   document.getElementById('golJugador').value = '';
   document.getElementById('golNum').value = '1';
   const sel = document.getElementById('golEquipo');
   sel.innerHTML = DB.equipos.map(e=>`<option value="${e.id}">${e.nombre}</option>`).join('');
+  if (equipoFijo) { sel.value = equipoFijo; sel.disabled = true; } else { sel.disabled = false; }
   abrirModal('modalGol');
 }
 
@@ -2837,11 +2839,30 @@ function abrirActaPartido(partidoId) {
   const p = DB.partidos.find(x=>x.id===partidoId); if (!p) return;
   const local = DB.equipos.find(e=>e.id===p.localId);
   const visit = DB.equipos.find(e=>e.id===p.visitanteId);
+
+  const listaConvocados = (equipo) => {
+    if (!equipo) return '<div style="font-size:12px;color:var(--gris-suave);">—</div>';
+    const jugs = (DB.jugadores||[]).filter(j=>j.equipoId===equipo.id
+      && j.activo!==false && j.activo!=='false'
+      && (j.convocado===true||j.convocado==='true'));
+    return `<div style="margin-top:6px;margin-bottom:4px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gris-suave);margin-bottom:4px;">${equipo.nombre} · Convocados (${jugs.length})</div>
+      ${jugs.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+        ${jugs.map(j=>`<span style="font-size:11px;background:#F2F3F4;padding:3px 8px;border-radius:6px;">${j.dorsal?'#'+j.dorsal+' ':''}${j.nombre} ${j.apellidos||''}</span>`).join('')}
+      </div>` : `<div style="font-size:12px;color:var(--gris-suave);margin-bottom:6px;">Sin jugadores convocados.</div>`}
+      <button class="btn btn-outline btn-xs" onclick="abrirModalGol('${equipo.id}')">⚽ Añadir goleador</button>
+    </div>`;
+  };
+
   document.getElementById('modalActaContent').innerHTML = `
     <div class="acta-header" style="margin-bottom:16px">
       <div class="acta-equipo">${local?local.nombre:'—'}</div>
       <div class="acta-score">${p.golesLocal??'?'} – ${p.golesVisitante??'?'}</div>
       <div class="acta-equipo" style="text-align:right">${visit?visit.nombre:'—'}</div>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
+      <div style="flex:1;min-width:200px;">${listaConvocados(local)}</div>
+      <div style="flex:1;min-width:200px;">${listaConvocados(visit)}</div>
     </div>
     <div class="form-field">
       <label>Texto del acta</label>
@@ -3103,7 +3124,7 @@ function renderSugerencias() {
   const el = document.getElementById('sugerenciasContent');
   const esAdmin    = sesion.rol==='admin';
   const esFamilias = sesion.rol==='familias';
-  const puedeEnviarForm = esFamilias || sesion.rol==='club';
+  const puedeEnviarForm = esFamilias || sesion.rol==='club' || sesion.rol==='arbitro';
   // Añadir sugerencias/comentarios a tabs para todos
   const puedeEnviar = true; // Todos pueden enviar
   const puedeVer    = esAdmin; // Solo admin ve los de otros
