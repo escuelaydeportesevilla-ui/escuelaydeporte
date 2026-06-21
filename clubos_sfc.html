@@ -1170,8 +1170,8 @@ function logout() {
 // ══════════════════════════════════════════════════════
 const TABS_POR_ROL = {
   admin:    ['competicion','equipos','jugadores','calendario','clasificacion','goleadores','actas','noticias','patrocinadores','sugerencias'],
-  club:     ['competicion','equipos','jugadores','calendario','clasificacion','goleadores','noticias','sugerencias'],
-  familias: ['competicion','equipos','calendario','clasificacion','goleadores','actas','noticias','patrocinadores','sugerencias'],
+  club:     ['competicion','equipos','jugadores','calendario','clasificacion','goleadores','actas','noticias','patrocinadores','sugerencias'],
+  familias: ['competicion','equipos','calendario','clasificacion','goleadores','noticias','patrocinadores','sugerencias'],
   arbitro:  ['competicion','calendario','equipos','jugadores','actas','noticias','patrocinadores','sugerencias'],
 };
 const TAB_LABELS = {
@@ -1253,7 +1253,7 @@ function renderCompeticion() {
     const nP   = (DB.partidos||[]).filter(p=>p.competicionId===c.id).length;
     const nJug = (DB.partidos||[]).filter(p=>p.competicionId===c.id && p.estado==='jugado').length;
     const activa = c.activa !== false;
-    const isFamilia = sesion.rol === 'familias';
+    const isFamilia = sesion.rol === 'familias' || sesion.rol === 'club';
     const equiposComp = isFamilia
       ? (DB.equipos||[]).filter(e=>e.competicionId===c.id).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||''))
       : [];
@@ -2025,7 +2025,7 @@ function renderJugadores() {
   const btnAdd = document.getElementById('btnAddJugador');
   if (btnAdd) btnAdd.style.display=(isAdmin||isClub)?'':'none';
   const buscador = document.getElementById('buscadorJugadoresGlobal');
-  if (buscador) buscador.style.display = isAdmin ? '' : 'none';
+  if (buscador) buscador.style.display = (isAdmin||isClub) ? '' : 'none';
 
   if (!lista.length) {
     el.innerHTML='<div class="empty-state"><div class="ei">👤</div><p>'+(isClub?'Añade tu primer jugador.':'No hay jugadores.')+'</p></div>'; return;
@@ -3030,12 +3030,13 @@ function renderSugerencias() {
   const el = document.getElementById('sugerenciasContent');
   const esAdmin    = sesion.rol==='admin';
   const esFamilias = sesion.rol==='familias';
+  const puedeEnviarForm = esFamilias || sesion.rol==='club';
   // Añadir sugerencias/comentarios a tabs para todos
   const puedeEnviar = true; // Todos pueden enviar
   const puedeVer    = esAdmin; // Solo admin ve los de otros
 
   let html = '';
-  if (esFamilias) {
+  if (puedeEnviarForm) {
     html += `<div class="card" style="margin-bottom:20px">
       <div class="card-header"><h3 style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;text-transform:uppercase">Envía tu sugerencia</h3></div>
       <p style="font-size:13px;color:var(--gris-suave);margin-bottom:12px">¿Tienes alguna idea o comentario para mejorar la competición? ¡Escríbenos!</p>
@@ -3044,7 +3045,7 @@ function renderSugerencias() {
   }
 
   if (!DB.sugerencias.length) {
-    if (!esFamilias) html += '<div class="empty-state"><div class="ei">💬</div><p>No hay sugerencias recibidas aún.</p></div>';
+    if (!puedeEnviarForm) html += '<div class="empty-state"><div class="ei">💬</div><p>No hay sugerencias recibidas aún.</p></div>';
   } else if (esAdmin) {
     html += [...DB.sugerencias].reverse().map(s => `
       <div class="sug-card">
@@ -3054,7 +3055,7 @@ function renderSugerencias() {
           <button class="btn btn-xs" style="background:var(--rojo-suave);color:var(--rojo)" onclick="eliminarSug('${s.id}')">🗑️ Eliminar</button>
         </div>
       </div>`).join('');
-  } else if (esFamilias && window._sugEnviada) {
+  } else if (puedeEnviarForm && window._sugEnviada) {
     html += '<div class="success-box">Tu sugerencia ha sido recibida. ¡Gracias!</div>';
   }
   el.innerHTML = html;
