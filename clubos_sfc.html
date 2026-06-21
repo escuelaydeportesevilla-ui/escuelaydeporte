@@ -950,7 +950,13 @@ tbody td.center{text-align:center;}
       <div class="form-field form-full"><label>Nombre</label><input id="patrNombre" placeholder="Nombre del patrocinador"></div>
       <div class="form-field"><label>Nivel</label><select id="patrNivel"><option value="oro">Oro</option><option value="plata">Plata</option><option value="bronce">Bronce</option></select></div>
       <div class="form-field"><label>Web</label><input id="patrWeb" placeholder="https://…"></div>
-      <div class="form-field form-full"><label>URL del logo</label><input id="patrLogoUrl" placeholder="https://…/logo.jpg"></div>
+      <div class="form-field form-full"><label>Logo</label>
+        <input type="file" id="patrLogoFile" accept="image/*" onchange="previewPatrLogo(this)">
+        <div id="patrLogoPreviewWrap" style="display:none;margin-top:8px;">
+          <img id="patrLogoPreview" style="max-height:60px;max-width:160px;border-radius:6px;">
+        </div>
+        <input type="hidden" id="patrLogoUrl">
+      </div>
       <div class="form-field form-full"><label>Descripción</label><input id="patrDesc" placeholder="Breve descripción"></div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -1045,7 +1051,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQYpFL-2ZvYOt8HU_TCnri3I2VVwCkxjEmJBYGDfg00jY4XxxEVIoYHqsSKCo6aDx5/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEW-aogk4N7tY0UF6EFgOXTb0NO0Gg2Fn-t-WVAPawg9UXSzrEVJh2zAQSnb64Fily/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -2985,6 +2991,9 @@ function abrirModalPatr() {
   editPatrId = null;
   document.getElementById('modalPatrTitle').textContent = 'Añadir patrocinador';
   ['patrNombre','patrWeb','patrDesc','patrLogoUrl'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('patrLogoFile').value = '';
+  document.getElementById('patrLogoPreviewWrap').style.display = 'none';
+  window._patrLogoFile = null;
   document.getElementById('patrNivel').value = 'oro';
   abrirModal('modalPatr');
 }
@@ -2998,10 +3007,58 @@ function editarPatr(id) {
   document.getElementById('patrWeb').value    = p.web||'';
   document.getElementById('patrLogoUrl').value = p.logoUrl||'';
   document.getElementById('patrDesc').value   = p.desc||'';
+  document.getElementById('patrLogoFile').value = '';
+  window._patrLogoFile = null;
+  const wrap = document.getElementById('patrLogoPreviewWrap');
+  if (p.logoUrl) {
+    document.getElementById('patrLogoPreview').src = p.logoUrl;
+    wrap.style.display = '';
+  } else {
+    wrap.style.display = 'none';
+  }
   abrirModal('modalPatr');
 }
 
-function guardarPatr() {
+function previewPatrLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  window._patrLogoFile = file;
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById('patrLogoPreview').src = reader.result;
+    document.getElementById('patrLogoPreviewWrap').style.display = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function subirLogoPatrocinador(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const base64 = reader.result.split(',')[1];
+        const pwd = sesion.rol==='admin' ? 'sfc2627' : sesion.rol==='club' ? sesion.user : sesion.rol==='arbitro' ? 'arb2627' : '';
+        const resp = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'uploadLogo',
+            pwd: pwd,
+            imageBase64: base64,
+            mimeType: file.type || 'image/jpeg',
+            fileName: file.name || 'logo'
+          })
+        });
+        const j = await resp.json();
+        if (j.ok) resolve(j.fileId); else reject(new Error(j.error || 'Error al subir'));
+      } catch (err) { reject(err); }
+    };
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function guardarPatr() {
   const datos = {
     nombre: document.getElementById('patrNombre').value.trim(),
     nivel:  document.getElementById('patrNivel').value,
@@ -3010,12 +3067,24 @@ function guardarPatr() {
     desc:   document.getElementById('patrDesc').value.trim(),
   };
   if (!datos.nombre) { toast('El nombre es obligatorio'); return; }
+
+  if (window._patrLogoFile) {
+    toast('Subiendo logo…');
+    try {
+      const fileId = await subirLogoPatrocinador(window._patrLogoFile);
+      datos.logoUrl = SCRIPT_URL + '?action=logo&id=' + fileId;
+    } catch (err) {
+      toast('No se pudo subir el logo, se guarda el resto de datos');
+    }
+  }
+
   if (editPatrId) {
     const idx = DB.patrocinadores.findIndex(p=>p.id===editPatrId);
     if (idx>=0) DB.patrocinadores[idx] = { ...DB.patrocinadores[idx], ...datos };
   } else {
     DB.patrocinadores.push({ id: uid(), logo: '', ...datos });
   }
+  window._patrLogoFile = null;
   save(); cerrarModal('modalPatr'); toast('Patrocinador guardado'); renderPatrocinadores(); _doSync();
 }
 
