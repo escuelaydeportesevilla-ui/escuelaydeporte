@@ -2568,7 +2568,10 @@ function guardarPartido() {
 
 function eliminarPartido(id) {
   if (!confirm('¿Eliminar partido?')) return;
-  DB.partidos = DB.partidos.filter(p=>p.id!==id); save(); toast('Partido eliminado'); renderAll();
+  DB.partidos = DB.partidos.filter(p=>p.id!==id);
+  if (!DB._deleted) DB._deleted = {};
+  DB._deleted[id] = Date.now();
+  save(); toast('Partido eliminado'); renderAll(); _doSync();
 }
 
 // ══════════════════════════════════════════════════════
