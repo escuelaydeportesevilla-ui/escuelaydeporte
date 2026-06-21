@@ -973,7 +973,7 @@ tbody td.center{text-align:center;}
       <button class="modal-close" onclick="cerrarModal('modalGol')">✕</button>
     </div>
     <div class="form-grid">
-      <div class="form-field form-full"><label>Jugador</label><input id="golJugador" placeholder="Nombre del goleador"></div>
+      <div class="form-field form-full" id="golJugadorWrap"><label>Jugador</label><input id="golJugador" placeholder="Nombre del goleador"></div>
       <div class="form-field"><label>Equipo</label><select id="golEquipo"></select></div>
       <div class="form-field"><label>Goles a sumar</label><input type="number" id="golNum" min="1" value="1"></div>
     </div>
@@ -1051,7 +1051,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEW-aogk4N7tY0UF6EFgOXTb0NO0Gg2Fn-t-WVAPawg9UXSzrEVJh2zAQSnb64Fily/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmUuVjEFv21tmAEH7Jr20xnqt-p8jUMFYsrqoxCwwWKuEc2SdNmMPxvYVDa0Y3vGIs/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -2717,11 +2717,28 @@ function renderGoleadores() {
 }
 
 function abrirModalGol(equipoFijo) {
-  document.getElementById('golJugador').value = '';
   document.getElementById('golNum').value = '1';
   const sel = document.getElementById('golEquipo');
   sel.innerHTML = DB.equipos.map(e=>`<option value="${e.id}">${e.nombre}</option>`).join('');
-  if (equipoFijo) { sel.value = equipoFijo; sel.disabled = true; } else { sel.disabled = false; }
+  const wrap = document.getElementById('golJugadorWrap');
+
+  if (equipoFijo) {
+    sel.value = equipoFijo; sel.disabled = true;
+    const jugs = (DB.jugadores||[]).filter(j=>j.equipoId===equipoFijo
+      && j.activo!==false && j.activo!=='false'
+      && (j.convocado===true||j.convocado==='true'))
+      .sort((a,b)=>Number(a.dorsal||99)-Number(b.dorsal||99));
+    if (jugs.length) {
+      wrap.innerHTML = `<label>Jugador</label><select id="golJugador">
+        ${jugs.map(j=>`<option value="${j.nombre}${j.apellidos?' '+j.apellidos:''}">${j.dorsal?'#'+j.dorsal+' ':''}${j.nombre} ${j.apellidos||''}</option>`).join('')}
+      </select>`;
+    } else {
+      wrap.innerHTML = `<label>Jugador</label><input id="golJugador" placeholder="Nombre del goleador">`;
+    }
+  } else {
+    sel.disabled = false;
+    wrap.innerHTML = `<label>Jugador</label><input id="golJugador" placeholder="Nombre del goleador">`;
+  }
   abrirModal('modalGol');
 }
 
@@ -3014,7 +3031,7 @@ function abrirModalPatr() {
   ['patrNombre','patrWeb','patrDesc','patrLogoUrl'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('patrLogoFile').value = '';
   document.getElementById('patrLogoPreviewWrap').style.display = 'none';
-  window._patrLogoFile = null;
+  window._patrLogoChanged = false;
   document.getElementById('patrNivel').value = 'oro';
   abrirModal('modalPatr');
 }
@@ -3029,7 +3046,7 @@ function editarPatr(id) {
   document.getElementById('patrLogoUrl').value = p.logoUrl||'';
   document.getElementById('patrDesc').value   = p.desc||'';
   document.getElementById('patrLogoFile').value = '';
-  window._patrLogoFile = null;
+  window._patrLogoChanged = false;
   const wrap = document.getElementById('patrLogoPreviewWrap');
   if (p.logoUrl) {
     document.getElementById('patrLogoPreview').src = p.logoUrl;
@@ -3040,43 +3057,45 @@ function editarPatr(id) {
   abrirModal('modalPatr');
 }
 
+// Comprime y redimensiona la imagen en el propio navegador y la deja lista como data URI
+// (no depende de Drive ni de ningún enlace externo: el navegador la pinta directamente).
 function previewPatrLogo(input) {
   const file = input.files[0];
   if (!file) return;
-  window._patrLogoFile = file;
   const reader = new FileReader();
-  reader.onload = () => {
-    document.getElementById('patrLogoPreview').src = reader.result;
-    document.getElementById('patrLogoPreviewWrap').style.display = '';
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = 200;
+      let w = img.width, h = img.height;
+      if (w >= h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+      else if (h > w && h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      document.getElementById('patrLogoUrl').value = dataUrl;
+      document.getElementById('patrLogoPreview').src = dataUrl;
+      document.getElementById('patrLogoPreviewWrap').style.display = '';
+      window._patrLogoChanged = true;
+    };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 }
 
-function subirLogoPatrocinador(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const base64 = reader.result.split(',')[1];
-        const pwd = sesion.rol==='admin' ? 'sfc2627' : sesion.rol==='club' ? sesion.user : sesion.rol==='arbitro' ? 'arb2627' : '';
-        const resp = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'uploadLogo',
-            pwd: pwd,
-            imageBase64: base64,
-            mimeType: file.type || 'image/jpeg',
-            fileName: file.name || 'logo'
-          })
-        });
-        const j = await resp.json();
-        if (j.ok) resolve(j.fileId); else reject(new Error(j.error || 'Error al subir'));
-      } catch (err) { reject(err); }
-    };
-    reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
-    reader.readAsDataURL(file);
-  });
+// Envío aparte y ligero del logo: no pasa por la sincronización general (saveCollection),
+// así esta no se hace pesada cada vez que se guarda cualquier otra cosa en la app.
+async function syncLogoPatrocinador(id, logoDataUri) {
+  try {
+    const pwd = sesion.rol==='admin' ? 'sfc2627' : sesion.rol==='club' ? sesion.user : sesion.rol==='arbitro' ? 'arb2627' : '';
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'setLogo', pwd, patrocinadorId: id, logoDataUri })
+    });
+  } catch (err) { /* fire-and-forget */ }
 }
 
 async function guardarPatr() {
@@ -3089,24 +3108,20 @@ async function guardarPatr() {
   };
   if (!datos.nombre) { toast('El nombre es obligatorio'); return; }
 
-  if (window._patrLogoFile) {
-    toast('Subiendo logo…');
-    try {
-      const fileId = await subirLogoPatrocinador(window._patrLogoFile);
-      datos.logoUrl = SCRIPT_URL + '?action=logo&id=' + fileId;
-    } catch (err) {
-      toast('No se pudo subir el logo, se guarda el resto de datos');
-    }
-  }
-
+  const logoCambiado = !!window._patrLogoChanged;
+  let id;
   if (editPatrId) {
+    id = editPatrId;
     const idx = DB.patrocinadores.findIndex(p=>p.id===editPatrId);
     if (idx>=0) DB.patrocinadores[idx] = { ...DB.patrocinadores[idx], ...datos };
   } else {
-    DB.patrocinadores.push({ id: uid(), logo: '', ...datos });
+    id = uid();
+    DB.patrocinadores.push({ id, logo: '', ...datos });
   }
-  window._patrLogoFile = null;
-  save(); cerrarModal('modalPatr'); toast('Patrocinador guardado'); renderPatrocinadores(); _doSync();
+  window._patrLogoChanged = false;
+  save(); cerrarModal('modalPatr'); toast('Patrocinador guardado'); renderPatrocinadores();
+  await _doSync();
+  if (logoCambiado) await syncLogoPatrocinador(id, datos.logoUrl);
 }
 
 function eliminarPatr(id) {
@@ -3355,11 +3370,16 @@ console.log('Familias: acceso directo (sin contraseña)');
       for (const col of cols) {
         const items = DB[col];
         if (!items || !items.length) continue;
+        // logoUrl puede contener una imagen en base64: se manda aparte (syncLogoPatrocinador)
+        // para no engordar este envío masivo, que se dispara en cada guardado de la app.
+        const payloadItems = (col === 'patrocinadores')
+          ? items.map(p => { const { logoUrl, ...resto } = p; return resto; })
+          : items;
         const url = SCRIPT_URL
           + '?action=saveCollection'
           + '&pwd=' + pwd
           + '&col=' + col
-          + '&data=' + encodeURIComponent(JSON.stringify(items));
+          + '&data=' + encodeURIComponent(JSON.stringify(payloadItems));
         await fetch(url, {mode:'no-cors'});
       }
       // enviar _deleted via deleteIds
