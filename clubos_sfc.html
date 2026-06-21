@@ -2937,7 +2937,7 @@ function actualizarLiveGolesActa() {
           return `<span style="font-size:11px;padding:3px 8px;border-radius:6px;
               background:${goles>0?'#D5F5E3':'#F2F3F4'};
               color:${goles>0?'#1E8449':'inherit'};
-              font-weight:${goles>0?'700':'400'};">${j.dorsal?'#'+j.dorsal+' ':''}${nombreCompleto}${goles>0?' ⚽'+(goles>1?'×'+goles:''):''}</span>`;
+              font-weight:${goles>0?'700':'400'};">${j.dorsal?'#'+j.dorsal+' ':''}${nombreCompleto}${goles>0?' ('+goles+(goles===1?' gol':' goles')+')':''}</span>`;
         }).join('')}
       </div>` : `<div style="font-size:12px;color:var(--gris-suave);margin-bottom:6px;">Sin jugadores convocados.</div>`}
       <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:${colorContador};">
