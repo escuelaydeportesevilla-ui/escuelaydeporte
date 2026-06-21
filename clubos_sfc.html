@@ -720,6 +720,7 @@ tbody td.center{text-align:center;}
     <div class="tab-panel" id="panel-goleadores">
       <div class="section-header">
         <h2>⚽ Goleadores</h2><div class="section-line"></div>
+        <button class="btn btn-outline" id="btnRecalcularGoleadores" onclick="recalcularGoleadoresDesdeActas()" style="display:none">🔄 Recalcular desde actas</button>
         <button class="btn btn-rojo" id="btnNuevoGol" onclick="abrirModalGol()" style="display:none">+ Registrar gol</button>
       </div>
       <div id="goleadoresContent"></div>
@@ -1051,7 +1052,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxmUuVjEFv21tmAEH7Jr20xnqt-p8jUMFYsrqoxCwwWKuEc2SdNmMPxvYVDa0Y3vGIs/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx32FWMvXP7vlRWxmfrq1oDuvLqAtbV3_QhJou6O-fX6v7jly7qzerpJRc36GQ6t0TR/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -1201,7 +1202,7 @@ function buildNav() {
   const esAdmin = sesion.rol === 'admin';
   const esClub  = sesion.rol === 'club';
   const esArb   = sesion.rol === 'arbitro';
-  ['btnNuevaComp','btnNuevoPartido','btnNuevaNoticia','btnNuevoPatr','btnNuevoGol','btnGestionSedes'].forEach(id => {
+  ['btnNuevaComp','btnNuevoPartido','btnNuevaNoticia','btnNuevoPatr','btnNuevoGol','btnGestionSedes','btnRecalcularGoleadores'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = esAdmin ? '' : 'none';
   });
@@ -2716,6 +2717,48 @@ function renderGoleadores() {
     }).join('') + '</div>';
 }
 
+// Reconstruye la tabla de Goleadores únicamente a partir de lo asignado en actas de partidos
+// (golesAsignados). Cualquier gol añadido a mano sin pasar por un acta se pierde: es la fuente
+// de verdad que se quiere mantener.
+function recalcularGoleadoresDesdeActas() {
+  if (!confirm('Esto recalculará la tabla de Goleadores solo con los goles asignados en actas de partidos. Cualquier gol añadido a mano sin estar ligado a un partido se eliminará.\n\n¿Continuar?')) return;
+
+  const totales = {};
+  (DB.partidos||[]).forEach(p => {
+    if (!p.golesAsignados) return;
+    let lista;
+    try { lista = JSON.parse(p.golesAsignados); } catch(e) { return; }
+    if (!Array.isArray(lista)) return;
+    lista.forEach(g => {
+      if (!g || !g.jugador || !g.equipoId) return;
+      const key = g.equipoId + '|' + g.jugador.toLowerCase();
+      if (!totales[key]) totales[key] = { jugador: g.jugador, equipoId: g.equipoId, goles: 0 };
+      totales[key].goles += (g.goles||0);
+    });
+  });
+
+  const nuevos = [];
+  const idsConservados = new Set();
+  Object.values(totales).forEach(t => {
+    if (t.goles <= 0) return;
+    const existente = (DB.goleadores||[]).find(x=>x.equipoId===t.equipoId && x.jugador.toLowerCase()===t.jugador.toLowerCase());
+    if (existente) {
+      nuevos.push({ ...existente, goles: t.goles });
+      idsConservados.add(existente.id);
+    } else {
+      nuevos.push({ id: uid(), jugador: t.jugador, equipoId: t.equipoId, goles: t.goles });
+    }
+  });
+
+  if (!DB._deleted) DB._deleted = {};
+  (DB.goleadores||[]).forEach(g => {
+    if (!idsConservados.has(g.id)) DB._deleted[g.id] = Date.now();
+  });
+
+  DB.goleadores = nuevos;
+  save(); renderGoleadores(); toast('Goleadores recalculados desde las actas'); _doSync();
+}
+
 function abrirModalGol(equipoFijo) {
   document.getElementById('golNum').value = '1';
   const sel = document.getElementById('golEquipo');
@@ -2866,9 +2909,12 @@ function abrirActaPartido(partidoId) {
   const local = DB.equipos.find(e=>e.id===p.localId);
   const visit = DB.equipos.find(e=>e.id===p.visitanteId);
 
-  // Contexto + sesión de goles en vivo, se reinicia cada vez que se abre el acta
+  // Contexto + sesión de goles en vivo: arranca con lo que YA estaba asignado a este partido
+  // (no en cero), para no perder de vista goles ya registrados en una sesión anterior y duplicarlos.
+  let golesPrevios = [];
+  try { golesPrevios = p.golesAsignados ? JSON.parse(p.golesAsignados) : []; } catch(e) { golesPrevios = []; }
   window._actaContextoGol = { partidoId, localId: local?.id||'local', visitId: visit?.id||'visit' };
-  window._actaSesionGoles = [];
+  window._actaSesionGoles = golesPrevios.slice();
 
   document.getElementById('modalActaContent').innerHTML = `
     <div class="acta-header" style="margin-bottom:16px">
@@ -2898,11 +2944,13 @@ function abrirActaPartido(partidoId) {
   abrirModal('modalActa');
 }
 
-// Repinta, para cada equipo, sus convocados (marcando quién lleva gol en esta sesión)
-// y un contador "goles registrados / resultado" para detectar descuadres antes de guardar.
+// Repinta, para cada equipo, sus convocados (marcando quién lleva gol en esta sesión, con opción
+// de quitarlo) y un contador "goles registrados / resultado" para detectar descuadres antes de guardar.
+// También avisa si algún gol quedó asignado a alguien que ya no está convocado.
 function actualizarLiveGolesActa() {
   const ctx = window._actaContextoGol; if (!ctx) return;
   const sesionGoles = window._actaSesionGoles || [];
+  const esc = (s) => String(s).replace(/'/g, "\\'");
 
   [['localId','actaGL'], ['visitId','actaGV']].forEach(([key, inputId]) => {
     const equipoId = ctx[key];
@@ -2915,6 +2963,7 @@ function actualizarLiveGolesActa() {
       && j.activo!==false && j.activo!=='false'
       && (j.convocado===true||j.convocado==='true'))
       .sort((a,b)=>Number(a.dorsal||99)-Number(b.dorsal||99));
+    const nombresConvocados = new Set(jugs.map(j=>j.nombre + (j.apellidos?' '+j.apellidos:'')));
 
     const golesPorJugador = {};
     let totalEquipo = 0;
@@ -2922,6 +2971,7 @@ function actualizarLiveGolesActa() {
       golesPorJugador[g.jugador] = (golesPorJugador[g.jugador]||0) + g.goles;
       totalEquipo += g.goles;
     });
+    const huerfanos = Object.keys(golesPorJugador).filter(nom => !nombresConvocados.has(nom));
 
     const objetivoRaw = document.getElementById(inputId)?.value;
     const objetivo = objetivoRaw!=='' && objetivoRaw!=null ? parseInt(objetivoRaw) : null;
@@ -2934,18 +2984,48 @@ function actualizarLiveGolesActa() {
         ${jugs.map(j=>{
           const nombreCompleto = j.nombre + (j.apellidos?' '+j.apellidos:'');
           const goles = golesPorJugador[nombreCompleto]||0;
-          return `<span style="font-size:11px;padding:3px 8px;border-radius:6px;
+          return `<span style="font-size:11px;padding:3px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;
               background:${goles>0?'#D5F5E3':'#F2F3F4'};
               color:${goles>0?'#1E8449':'inherit'};
-              font-weight:${goles>0?'700':'400'};">${j.dorsal?'#'+j.dorsal+' ':''}${nombreCompleto}${goles>0?' ('+goles+(goles===1?' gol':' goles')+')':''}</span>`;
+              font-weight:${goles>0?'700':'400'};">${j.dorsal?'#'+j.dorsal+' ':''}${nombreCompleto}${goles>0?' ('+goles+(goles===1?' gol':' goles')+')':''}
+              ${goles>0?`<span style="cursor:pointer;color:var(--rojo);font-weight:700;" onclick="quitarGolSesion('${equipo.id}','${esc(nombreCompleto)}')" title="Quitar gol">✕</span>`:''}</span>`;
         }).join('')}
       </div>` : `<div style="font-size:12px;color:var(--gris-suave);margin-bottom:6px;">Sin jugadores convocados.</div>`}
+      ${huerfanos.length ? `<div style="margin-bottom:6px;">
+        <div style="font-size:11px;color:var(--rojo);font-weight:700;margin-bottom:3px;">⚠️ Con gol asignado pero ya no convocado:</div>
+        ${huerfanos.map(nom => `<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;background:#FDEDEC;padding:4px 8px;border-radius:6px;margin-bottom:3px;">
+          <span>${nom} (${golesPorJugador[nom]} gol${golesPorJugador[nom]>1?'es':''})</span>
+          <span style="cursor:pointer;color:var(--rojo);font-weight:700;" onclick="quitarGolSesion('${equipo.id}','${esc(nom)}')">✕ Quitar</span>
+        </div>`).join('')}
+      </div>` : ''}
       <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:${colorContador};">
         ⚽ Goles registrados: ${totalEquipo}${objetivo!=null?' / '+objetivo:''}${coincide===false?' ⚠️ no coincide':''}
       </div>
       <button class="btn btn-outline btn-xs" onclick="abrirModalGol('${equipo.id}')">⚽ Añadir goleador</button>
     `;
   });
+}
+
+// Quita un gol mal asignado: lo retira de la sesión de la acta y revierte el total en Goleadores.
+function quitarGolSesion(equipoId, jugador) {
+  const sesionGoles = window._actaSesionGoles || [];
+  const idx = sesionGoles.findIndex(g=>g.equipoId===equipoId && g.jugador===jugador);
+  if (idx < 0) return;
+  const goles = sesionGoles[idx].goles;
+  sesionGoles.splice(idx, 1);
+
+  const existing = DB.goleadores.find(x=>x.jugador.toLowerCase()===jugador.toLowerCase() && x.equipoId===equipoId);
+  if (existing) {
+    existing.goles -= goles;
+    if (existing.goles <= 0) {
+      DB.goleadores = DB.goleadores.filter(x=>x.id!==existing.id);
+      if (!DB._deleted) DB._deleted = {};
+      DB._deleted[existing.id] = Date.now();
+    }
+  }
+  const partidoIdx = (DB.partidos||[]).findIndex(x=>x.id===window._actaContextoGol?.partidoId);
+  if (partidoIdx >= 0) DB.partidos[partidoIdx].golesAsignados = JSON.stringify(sesionGoles);
+  save(); renderGoleadores(); actualizarLiveGolesActa(); toast('Gol corregido');
 }
 
 function guardarActa() {
@@ -2973,6 +3053,7 @@ function guardarActa() {
   DB.partidos[idx].golesLocal     = gl;
   DB.partidos[idx].golesVisitante = gv;
   DB.partidos[idx].estado = 'jugado';
+  DB.partidos[idx].golesAsignados = JSON.stringify(sesionGoles);
   window._actaContextoGol = null;
   window._actaSesionGoles = [];
   save(); cerrarModal('modalActa'); toast('Acta guardada' + avisoDescuadre); renderAll();
