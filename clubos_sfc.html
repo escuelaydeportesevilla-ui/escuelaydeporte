@@ -1106,7 +1106,7 @@ document.addEventListener('DOMContentLoaded',_initStaticImages);
 function save() {
     localStorage.setItem('clubos_sfc', JSON.stringify(DB));
     clearTimeout(_syncTimer);
-    _syncTimer = setTimeout(_doSync, 1500);
+    _syncTimer = setTimeout(_doSync, 300);
   }
 function uid() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
 
