@@ -694,6 +694,7 @@ tbody td.center{text-align:center;}
         <h2>🏟️ Equipos</h2><div class="section-line"></div>
         <input type="text" id="buscadorEquiposGlobal" placeholder="🔎 Buscar equipo…" oninput="filtrarEquiposGlobal(this.value)"
                style="padding:8px 12px;border:1px solid var(--gris-linea);border-radius:8px;font-size:13px;width:200px;margin-right:8px;">
+        <button class="btn btn-outline" id="btnExportarDelegados" onclick="exportarDelegadosCSV()" style="display:none">📋 Exportar delegados</button>
         <button class="btn btn-rojo" id="btnNuevoEquipo" onclick="abrirModalEquipo()">+ Añadir equipo</button>
       </div>
       <div id="equiposContent"></div>
@@ -818,6 +819,8 @@ tbody td.center{text-align:center;}
       </div>
       <div class="form-field"><label>Categoría</label><input id="eqCategoria" placeholder="Alevín, Benjamín..."></div>
       <div class="form-field"><label>Delegado</label><input id="eqDelegado" placeholder="Nombre delegado"></div>
+      <div class="form-field"><label>Email delegado</label><input id="eqEmailDelegado" type="email" placeholder="email@ejemplo.com"></div>
+      <div class="form-field"><label>Teléfono delegado</label><input id="eqTelDelegado" type="tel" placeholder="600 000 000"></div>
       <div class="form-field">
         <label>Camiseta</label>
         <div id="paletaCamiseta" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;"></div>
@@ -1051,7 +1054,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhXiBTLEIxX_rBr9rhx1ln9RujvvQdOsD1ywFZcBqpM_GLJGfjjsXy1lifk9A4Y9CV/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx9XZqYU4aVMGaBFUExJ8PrcWoRr4L9TwkHZgI5xeqkCVo9tSoU9Xe56pDk_ocuxzL1/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -1207,6 +1210,8 @@ function buildNav() {
   });
   const btnNuevoEquipo = document.getElementById('btnNuevoEquipo');
   if (btnNuevoEquipo) btnNuevoEquipo.style.display = (esAdmin || esClub) ? '' : 'none';
+  const btnExp = document.getElementById('btnExportarDelegados');
+  if (btnExp) btnExp.style.display = (esAdmin || esClub) ? '' : 'none';
 }
 
 function activarTab(tab) {
@@ -1651,6 +1656,12 @@ function renderEquipos() {
     let h = `<div class="cards-equipos">`;
     equipos.forEach(e => {
       const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
+      const contacto = (isAdmin||isClub) && (e.emailDelegado||e.telDelegado)
+        ? `<div style="font-size:11px;color:var(--gris-suave);margin-top:2px;">
+            ${e.delegado?'👤 '+e.delegado+'<br>':''}
+            ${e.emailDelegado?'✉️ <a href="mailto:'+e.emailDelegado+'" style="color:var(--gris-suave);">'+e.emailDelegado+'</a><br>':''}
+            ${e.telDelegado?'📞 <a href="tel:'+e.telDelegado+'" style="color:var(--gris-suave);">'+e.telDelegado+'</a>':''}
+           </div>` : (e.delegado&&(isAdmin||isClub) ? `<div style="font-size:11px;color:var(--gris-suave);">👤 ${e.delegado}</div>` : '');
       h += `<div class="card-equipo" data-nombre="${(e.nombre||'').toLowerCase()}">
         <div class="ceq-kit">
           <div class="ceq-camiseta" style="background:${e.eq1Camiseta||'#ccc'};"></div>
@@ -1659,6 +1670,7 @@ function renderEquipos() {
         <div class="ceq-info">
           <div class="ceq-nombre" style="cursor:pointer;" onclick="abrirFichaEquipo('${e.id}')">${e.nombre}</div>
           <div class="ceq-meta">${e.categoria||'—'}${isAdmin&&e.clubId?' · '+e.clubId:''} · ${nJug} jugadores</div>
+          ${contacto}
         </div>
         <div class="ceq-actions">
           <button class="btn-xs btn-outline" onclick="abrirFichaEquipo('${e.id}')">📋</button>
@@ -1671,16 +1683,24 @@ function renderEquipos() {
     h += `<div class="tabla-equipos-desktop"><table class="tabla-base"><thead><tr>
         <th>Equipo</th><th>Equipación</th><th>Categoría</th>
         ${isAdmin?'<th>Club</th>':''}
-        <th>Jugadores</th><th>Acciones</th>
+        <th>Jugadores</th>
+        ${(isAdmin||isClub)?'<th>Delegado</th>':''}
+        <th>Acciones</th>
       </tr></thead><tbody>`;
     equipos.forEach(e => {
       const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
+      const delCell = `<td style="font-size:12px;">
+        ${e.delegado?`<div>${e.delegado}</div>`:''}
+        ${e.emailDelegado?`<div><a href="mailto:${e.emailDelegado}" style="color:var(--gris-suave);">✉️ ${e.emailDelegado}</a></div>`:''}
+        ${e.telDelegado?`<div><a href="tel:${e.telDelegado}" style="color:var(--gris-suave);">📞 ${e.telDelegado}</a></div>`:''}
+      </td>`;
       h += `<tr data-nombre="${(e.nombre||'').toLowerCase()}">
         <td><strong style="cursor:pointer;" onclick="abrirFichaEquipo('${e.id}')">${e.nombre}</strong></td>
         <td>${kitTabla(e.eq1Camiseta||'#ccc',e.eq1Pantalon||'#333')}</td>
         <td>${e.categoria||'—'}</td>
         ${isAdmin?`<td style="font-size:12px;color:var(--gris-suave);">${e.clubId||'—'}</td>`:''}
         <td>${nJug}</td>
+        ${(isAdmin||isClub)?delCell:''}
         <td>
           <button class="btn btn-outline btn-sm" onclick="abrirFichaEquipo('${e.id}')">📋</button>
           ${(isAdmin||isClub)?`<button class="btn btn-outline btn-sm" onclick="editarEquipo('${e.id}')">✏️</button>`:''}
@@ -1808,12 +1828,46 @@ function actualizarPreviewEquipo() {
   el('prev1Camiseta', c1); el('prev1Pantalon', p1);
 }
 
+// Exporta el listado de delegados a CSV.
+// Admin: todos los equipos. Club: solo los equipos de las competiciones en las que participa.
+function exportarDelegadosCSV() {
+  const isAdmin = sesion.rol === 'admin';
+  let equipos = DB.equipos || [];
+
+  if (!isAdmin) {
+    const misComps = new Set(
+      equipos.filter(e=>e.clubId===sesion.user).map(e=>e.competicionId).filter(Boolean)
+    );
+    equipos = equipos.filter(e=>misComps.has(e.competicionId));
+  }
+
+  if (!equipos.length) { toast('No hay equipos para exportar'); return; }
+
+  const filas = [
+    ['Competición','Equipo','Delegado','Email','Teléfono'],
+    ...equipos.map(e=>{
+      const c = (DB.competiciones||[]).find(x=>x.id===e.competicionId);
+      return [c?c.nombre:'', e.nombre||'', e.delegado||'', e.emailDelegado||'', e.telDelegado||''];
+    })
+  ];
+
+  const csv  = filas.map(f=>f.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'delegados.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV exportado');
+}
+
 function abrirModalEquipo() {
   editEquipoId = null;
   document.getElementById('modalEquipoTitle').textContent = 'Nuevo equipo';
   document.getElementById('eqNombre').value    = '';
   document.getElementById('eqCategoria').value = '';
   document.getElementById('eqDelegado').value  = '';
+  document.getElementById('eqEmailDelegado').value = '';
+  document.getElementById('eqTelDelegado').value   = '';
   document.getElementById('eq1CamisetaColor').value  = '#C8102E';
   document.getElementById('eq1PantaloonColor').value = '#111111';
   renderPaletaColor('paletaCamiseta','eq1CamisetaColor','#C8102E');
@@ -1834,6 +1888,8 @@ function editarEquipo(id) {
   document.getElementById('eqNombre').value    = e.nombre    ||'';
   document.getElementById('eqCategoria').value = e.categoria ||'';
   document.getElementById('eqDelegado').value  = e.delegado  ||'';
+  document.getElementById('eqEmailDelegado').value = e.emailDelegado||'';
+  document.getElementById('eqTelDelegado').value   = e.telDelegado  ||'';
   document.getElementById('eq1CamisetaColor').value  = e.eq1Camiseta ||'#C8102E';
   document.getElementById('eq1PantaloonColor').value = e.eq1Pantalon ||'#111111';
   renderPaletaColor('paletaCamiseta','eq1CamisetaColor', e.eq1Camiseta ||'#C8102E');
@@ -1864,6 +1920,8 @@ function guardarEquipo() {
     competicionNombre: comp?.nombre || '',
     categoria:      document.getElementById('eqCategoria').value,
     delegado:       document.getElementById('eqDelegado').value,
+    emailDelegado:  document.getElementById('eqEmailDelegado').value.trim(),
+    telDelegado:    document.getElementById('eqTelDelegado').value.trim(),
     clubId:         sesion.rol==='admin' ? 'sfcadmin' : (sesion.user || ''),
     eq1Camiseta:    eq1Camiseta,
     eq1Pantalon:    eq1Pantalon,
