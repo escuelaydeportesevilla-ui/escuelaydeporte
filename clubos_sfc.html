@@ -504,7 +504,7 @@ tbody td.center{text-align:center;}
   .form-grid{grid-template-columns:1fr;}
   .form-full{grid-column:1;}
   .modal-box{margin:8px auto;max-height:92vh;overflow-y:auto;border-radius:12px;width:calc(100% - 16px);}
-  .patr-grid{grid-template-columns:1fr;}
+  .patr-grid{grid-template-columns:repeat(2,1fr);}
   .section-header{flex-wrap:wrap;gap:6px;}
   .section-header h2{font-size:0.95rem;}
   .btn{padding:7px 12px;font-size:13px;}
@@ -762,8 +762,14 @@ tbody td.center{text-align:center;}
     <div class="tab-panel" id="panel-jugadores">
       <div class="section-header">
         <h2>👥 Mis jugadores</h2><div class="section-line"></div>
-        <input type="text" id="buscadorJugadoresGlobal" placeholder="🔎 Buscar jugador…" oninput="filtrarJugadoresGlobal(this.value)"
-               style="padding:8px 12px;border:1px solid var(--gris-linea);border-radius:8px;font-size:13px;width:200px;margin-right:8px;display:none;">
+        <div style="position:relative;display:inline-block;margin-right:8px;" id="wrapBuscadorJugadores">
+          <input type="text" id="buscadorJugadoresGlobal" placeholder="🔎 Buscar jugador…"
+                 oninput="filtrarJugadoresGlobal(this.value);mostrarSugerenciasJugador(this.value)"
+                 onblur="setTimeout(()=>ocultarSugerenciasJugador(),200)"
+                 autocomplete="off"
+                 style="padding:8px 12px;border:1px solid var(--gris-linea);border-radius:8px;font-size:13px;width:200px;display:none;">
+          <div id="sugerenciasJugador" style="display:none;position:absolute;top:100%;left:0;width:280px;max-height:220px;overflow-y:auto;background:white;border:1px solid var(--gris-linea);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:9999;margin-top:2px;"></div>
+        </div>
         <button class="btn btn-rojo" id="btnAddJugador" onclick="abrirModalJugador()">+ Añadir jugador</button>
       </div>
       <div id="jugadoresContent"></div>
@@ -1106,7 +1112,7 @@ document.addEventListener('DOMContentLoaded',_initStaticImages);
 function save() {
     localStorage.setItem('clubos_sfc', JSON.stringify(DB));
     clearTimeout(_syncTimer);
-    _syncTimer = setTimeout(_doSync, 300);
+    _syncTimer = setTimeout(_doSync, 1500);
   }
 function uid() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
 
@@ -2279,6 +2285,46 @@ function filtrarJugadoresGlobal(texto) {
       }
     }
   });
+}
+
+function mostrarSugerenciasJugador(texto) {
+  const q = (texto||'').toLowerCase().trim();
+  const drop = document.getElementById('sugerenciasJugador');
+  if (!drop) return;
+  if (!q) { drop.style.display = 'none'; return; }
+  const isAdmin = sesion.rol === 'admin';
+  const misEquipos = isAdmin ? (DB.equipos||[]) : (DB.equipos||[]).filter(e=>e.clubId===sesion.user);
+  const idsEquipos = new Set(misEquipos.map(e=>e.id));
+  const resultados = (DB.jugadores||[]).filter(j => {
+    if (!isAdmin && !idsEquipos.has(j.equipoId)) return false;
+    const nombre = ((j.nombre||'')+' '+(j.apellidos||'')).toLowerCase();
+    return nombre.includes(q);
+  }).slice(0,10);
+  if (!resultados.length) { drop.style.display = 'none'; return; }
+  drop.innerHTML = resultados.map(j => {
+    const equipo = (DB.equipos||[]).find(e=>e.id===j.equipoId);
+    const nombreCompleto = (j.nombre||'')+' '+(j.apellidos||'');
+    const equipoNom = equipo ? equipo.nombre : '';
+    return '<div onclick="seleccionarJugadorBuscador(\'' + j.id + '\')"'
+      + ' style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--gris-linea);font-size:13px;"'
+      + ' onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">'
+      + '<div style="font-weight:600">' + nombreCompleto + '</div>'
+      + '<div style="font-size:11px;color:#888">' + equipoNom + '</div>'
+      + '</div>';
+  }).join('');
+  drop.style.display = 'block';
+}
+
+function ocultarSugerenciasJugador() {
+  const drop = document.getElementById('sugerenciasJugador');
+  if (drop) drop.style.display = 'none';
+}
+
+function seleccionarJugadorBuscador(id) {
+  ocultarSugerenciasJugador();
+  const inp = document.getElementById('buscadorJugadoresGlobal');
+  if (inp) { inp.value = ''; filtrarJugadoresGlobal(''); }
+  editarJugador(id);
 }
 
 function abrirModalJugador() {
