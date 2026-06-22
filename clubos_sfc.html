@@ -721,7 +721,6 @@ tbody td.center{text-align:center;}
       <div class="section-header">
         <h2>⚽ Goleadores</h2><div class="section-line"></div>
         <button class="btn btn-outline" id="btnRecalcularGoleadores" onclick="recalcularGoleadoresDesdeActas()" style="display:none">🔄 Recalcular desde actas</button>
-        <button class="btn btn-rojo" id="btnNuevoGol" onclick="abrirModalGol()" style="display:none">+ Registrar gol</button>
       </div>
       <div id="goleadoresContent"></div>
     </div>
@@ -1202,7 +1201,7 @@ function buildNav() {
   const esAdmin = sesion.rol === 'admin';
   const esClub  = sesion.rol === 'club';
   const esArb   = sesion.rol === 'arbitro';
-  ['btnNuevaComp','btnNuevoPartido','btnNuevaNoticia','btnNuevoPatr','btnNuevoGol','btnGestionSedes','btnRecalcularGoleadores'].forEach(id => {
+  ['btnNuevaComp','btnNuevoPartido','btnNuevaNoticia','btnNuevoPatr','btnGestionSedes','btnRecalcularGoleadores'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = esAdmin ? '' : 'none';
   });
@@ -2723,6 +2722,7 @@ function exportarClasificacionPDF(soloCompId) {
 function renderGoleadores() {
   const el = document.getElementById('goleadoresContent');
   const isFamilia = sesion.rol === 'familias';
+  const isAdmin   = sesion.rol === 'admin';
   if (!DB.goleadores.length) {
     el.innerHTML = '<div class="empty-state"><div class="ei">⚽</div><p>Aún no hay goles registrados.</p></div>'; return;
   }
@@ -2731,20 +2731,60 @@ function renderGoleadores() {
     const partes = (nombreCompleto||'').trim().split(/\s+/);
     return partes.length > 1 ? (partes[0] + ' ' + partes[1]) : (partes[0]||'');
   };
+
+  // Construir índice de partidos donde cada jugador marcó, a partir de golesAsignados
+  const partidosPorJugador = {}; // key: equipoId+'|'+jugador.toLowerCase()
+  (DB.partidos||[]).forEach(p => {
+    if (!p.golesAsignados) return;
+    let lista;
+    try { lista = JSON.parse(p.golesAsignados); } catch(e) { return; }
+    if (!Array.isArray(lista)) return;
+    const local = (DB.equipos||[]).find(e=>e.id===p.localId);
+    const visit = (DB.equipos||[]).find(e=>e.id===p.visitanteId);
+    lista.forEach(g => {
+      if (!g||!g.jugador||!g.equipoId) return;
+      const key = g.equipoId + '|' + g.jugador.toLowerCase();
+      if (!partidosPorJugador[key]) partidosPorJugador[key] = [];
+      const rival = g.equipoId === p.localId ? (visit?visit.nombre:'?') : (local?local.nombre:'?');
+      partidosPorJugador[key].push({
+        fecha: _limpiarFecha(p.fecha)||'—',
+        rival,
+        goles: g.goles||0,
+        resultado: p.golesLocal!=null ? p.golesLocal+'-'+p.golesVisitante : '?'
+      });
+    });
+  });
+
   const sorted = [...DB.goleadores].sort((a,b)=>b.goles-a.goles);
   el.innerHTML = '<div class="card">' +
     sorted.map((g,i) => {
-      const eq = DB.equipos.find(e=>e.id===g.equipoId);
+      const eq  = DB.equipos.find(e=>e.id===g.equipoId);
       const comp = eq ? (DB.competiciones||[]).find(c=>c.id===eq.competicionId) : null;
       const pos = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'º';
-      return `<div class="goleador-row">
+      const key  = g.equipoId + '|' + g.jugador.toLowerCase();
+      const partidos = partidosPorJugador[key] || [];
+      const detalleId = 'gol-detalle-' + g.id;
+      const detalleHtml = partidos.length
+        ? `<details id="${detalleId}" style="margin-top:6px;">
+            <summary style="font-size:11px;color:var(--gris-suave);cursor:pointer;user-select:none;">Ver partidos (${partidos.length})</summary>
+            <div style="margin-top:6px;display:flex;flex-direction:column;gap:4px;">
+              ${partidos.map(p=>`
+                <div style="font-size:11px;background:#F2F3F4;padding:4px 10px;border-radius:6px;display:flex;justify-content:space-between;gap:8px;">
+                  <span>${p.fecha} · vs ${p.rival}</span>
+                  <span style="font-weight:700;color:var(--rojo);">${p.goles} ⚽ · ${p.resultado}</span>
+                </div>`).join('')}
+            </div>
+          </details>`
+        : '';
+      return `<div class="goleador-row" style="flex-wrap:wrap;">
         <div class="goleador-pos">${pos}</div>
-        <div style="flex:1">
+        <div style="flex:1;min-width:0;">
           <div class="goleador-name">${nombreCorto(g.jugador)}</div>
           <div class="goleador-equipo">${eq?eq.nombre:''}${isFamilia&&comp?' · '+comp.nombre:''}</div>
+          ${detalleHtml}
         </div>
         <div class="goleador-goles">${g.goles} ⚽</div>
-        ${sesion.rol==='admin'?`<button class="btn btn-xs btn-outline" onclick="eliminarGol('${g.id}')">🗑️</button>`:''}
+        ${isAdmin?`<button class="btn btn-xs btn-outline" onclick="eliminarGol('${g.id}')">🗑️</button>`:''}
       </div>`;
     }).join('') + '</div>';
 }
@@ -3254,7 +3294,10 @@ function previewPatrLogo(input) {
       else if (h > w && h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
       document.getElementById('patrLogoUrl').value = dataUrl;
       document.getElementById('patrLogoPreview').src = dataUrl;
