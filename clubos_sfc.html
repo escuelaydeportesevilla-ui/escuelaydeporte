@@ -1194,7 +1194,18 @@ function cerrarLogin() {
 function doLogin() {
   const u = document.getElementById('loginUser').value.trim().toLowerCase();
   const p = document.getElementById('loginPass').value;
-  const match = Object.values(CRED).find(c => c.user === u && c.pass === p && c.rol === rolPendiente);
+
+  // Buscar primero en credenciales fijas (admin, árbitro, clubes legacy)
+  let match = Object.values(CRED).find(c => c.user.toLowerCase() === u && c.pass === p && c.rol === rolPendiente);
+
+  // Si es rol club y no hay match en CRED, buscar en DB.clubes (clubes dinámicos)
+  if (!match && rolPendiente === 'club') {
+    const clubDinamico = (DB.clubes || []).find(c => c.user.toLowerCase() === u && c.pass === p);
+    if (clubDinamico) {
+      match = { user: clubDinamico.user, pass: clubDinamico.pass, rol: 'club', nombre: clubDinamico.nombre };
+    }
+  }
+
   if (!match) {
     document.getElementById('loginError').style.display = 'block';
     return;
