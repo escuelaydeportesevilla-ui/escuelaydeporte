@@ -692,9 +692,15 @@ tbody td.center{text-align:center;}
     <div class="tab-panel" id="panel-equipos">
       <div class="section-header">
         <h2>🏟️ Equipos</h2><div class="section-line"></div>
-        <input type="text" id="buscadorEquiposGlobal" placeholder="🔎 Buscar equipo…" oninput="filtrarEquiposGlobal(this.value)"
-               style="padding:8px 12px;border:1px solid var(--gris-linea);border-radius:8px;font-size:13px;width:200px;margin-right:8px;">
-        <button class="btn btn-outline" id="btnExportarDelegados" onclick="exportarDelegadosCSV()" style="display:none">📋 Exportar delegados</button>
+        <div style="position:relative;display:inline-block;margin-right:8px;" id="wrapBuscadorEquipos">
+          <input type="text" id="buscadorEquiposGlobal" placeholder="🔎 Buscar equipo…"
+                 oninput="filtrarEquiposGlobal(this.value);mostrarSugerenciasEquipo(this.value)"
+                 onblur="setTimeout(()=>ocultarSugerenciasEquipo(),200)"
+                 autocomplete="off"
+                 style="padding:8px 12px;border:1px solid var(--gris-linea);border-radius:8px;font-size:13px;width:200px;">
+          <div id="sugerenciasEquipo" style="display:none;position:absolute;top:100%;left:0;width:300px;max-height:220px;overflow-y:auto;background:white;border:1px solid var(--gris-linea);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:9999;margin-top:2px;"></div>
+        </div>
+        <button class="btn btn-outline" id="btnExportarDelegados" onclick="exportarDelegadosPDF()" style="display:none">📄 Exportar delegados</button>
         <button class="btn btn-rojo" id="btnNuevoEquipo" onclick="abrirModalEquipo()">+ Añadir equipo</button>
       </div>
       <div id="equiposContent"></div>
@@ -1901,7 +1907,7 @@ function actualizarPreviewEquipo() {
 
 // Exporta el listado de delegados a CSV.
 // Admin: todos los equipos. Club: solo los equipos de las competiciones en las que participa.
-function exportarDelegadosCSV() {
+function exportarDelegadosPDF() {
   const isAdmin = sesion.rol === 'admin';
   let equipos = DB.equipos || [];
 
@@ -1914,21 +1920,91 @@ function exportarDelegadosCSV() {
 
   if (!equipos.length) { toast('No hay equipos para exportar'); return; }
 
-  const filas = [
-    ['Competición','Equipo','Delegado','Email','Teléfono'],
-    ...equipos.map(e=>{
-      const c = (DB.competiciones||[]).find(x=>x.id===e.competicionId);
-      return [c?c.nombre:'', e.nombre||'', e.delegado||'', e.emailDelegado||'', e.telDelegado||''];
-    })
-  ];
+  // Agrupar por competición
+  const porComp = {};
+  equipos.forEach(e => {
+    const comp = (DB.competiciones||[]).find(x=>x.id===e.competicionId);
+    const compNombre = comp ? comp.nombre : 'Sin competición';
+    if (!porComp[compNombre]) porComp[compNombre] = [];
+    porComp[compNombre].push(e);
+  });
 
-  const csv  = filas.map(f=>f.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
-  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = 'delegados.csv'; a.click();
-  URL.revokeObjectURL(url);
-  toast('CSV exportado');
+  const filas = Object.entries(porComp).map(([compNombre, eqs]) => `
+    <div style="margin-bottom:28px;">
+      <div style="background:#C8102E;color:white;padding:8px 14px;font-weight:700;font-size:14px;border-radius:4px 4px 0 0;letter-spacing:.5px;">
+        ${compNombre}
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:#f5f5f3;">
+            <th style="padding:7px 10px;border:1px solid #ddd;text-align:left;">Equipo</th>
+            <th style="padding:7px 10px;border:1px solid #ddd;text-align:left;">Delegado</th>
+            <th style="padding:7px 10px;border:1px solid #ddd;text-align:left;">Email</th>
+            <th style="padding:7px 10px;border:1px solid #ddd;text-align:left;">Teléfono</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${eqs.map((e,i) => `<tr style="background:${i%2===0?'white':'#fafaf8'};">
+            <td style="padding:7px 10px;border:1px solid #ddd;font-weight:600;">${e.nombre||'—'}</td>
+            <td style="padding:7px 10px;border:1px solid #ddd;">${e.delegado||'—'}</td>
+            <td style="padding:7px 10px;border:1px solid #ddd;">${e.emailDelegado||'—'}</td>
+            <td style="padding:7px 10px;border:1px solid #ddd;">${e.telDelegado||'—'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`).join('');
+
+  const ventana = window.open('','_blank');
+  ventana.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>Delegados · SFC Academy</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:32px;color:#222;}
+      h1{font-size:20px;margin-bottom:4px;color:#111;}
+      .sub{font-size:12px;color:#888;margin-bottom:28px;}
+      @media print{body{padding:16px;}}
+    </style>
+  </head><body>
+    <h1>📋 Directorio de Delegados · SFC Academy</h1>
+    <div class="sub">Generado el ${new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'})}</div>
+    ${filas}
+    <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`);
+  ventana.document.close();
+}
+
+function mostrarSugerenciasEquipo(texto) {
+  const q = (texto||'').toLowerCase().trim();
+  const drop = document.getElementById('sugerenciasEquipo');
+  if (!drop) return;
+  if (!q) { drop.style.display = 'none'; return; }
+  const isAdmin = sesion.rol === 'admin';
+  const isClub  = sesion.rol === 'club';
+  let lista = isAdmin ? (DB.equipos||[]) : (DB.equipos||[]).filter(e=>e.clubId===sesion.user);
+  const resultados = lista.filter(e => (e.nombre||'').toLowerCase().includes(q)).slice(0,10);
+  if (!resultados.length) { drop.style.display = 'none'; return; }
+  drop.innerHTML = resultados.map(e => {
+    const comp = (DB.competiciones||[]).find(c=>c.id===e.competicionId);
+    const nJug = (DB.jugadores||[]).filter(j=>j.equipoId===e.id).length;
+    return `<div onclick="seleccionarEquipoBuscador('${e.id}')"
+      style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--gris-linea);font-size:13px;"
+      onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+      <div style="font-weight:600">${e.nombre||''}</div>
+      <div style="font-size:11px;color:#888">${comp?comp.nombre:'Sin competición'} · ${nJug} jugadores</div>
+    </div>`;
+  }).join('');
+  drop.style.display = 'block';
+}
+
+function ocultarSugerenciasEquipo() {
+  const drop = document.getElementById('sugerenciasEquipo');
+  if (drop) drop.style.display = 'none';
+}
+
+function seleccionarEquipoBuscador(id) {
+  ocultarSugerenciasEquipo();
+  const inp = document.getElementById('buscadorEquiposGlobal');
+  if (inp) { inp.value = ''; filtrarEquiposGlobal(''); }
+  editarEquipo(id);
 }
 
 function abrirModalEquipo() {
