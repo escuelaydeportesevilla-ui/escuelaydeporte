@@ -1116,7 +1116,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIO99pMYfjncQ1wJIaAz66kHj_Ro9QGpowYg3S0CkY43OXRVjUoQjtPWT-lOsPMAII/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYBvtSYWW7sLSP4uykqoP9of54bIi42ctSzTE4myLvpeyYDvLg_y1yql7MJ9MyZCn-/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -1201,15 +1201,21 @@ function doLogin() {
   const u = document.getElementById('loginUser').value.trim().toLowerCase();
   const p = document.getElementById('loginPass').value;
 
-  // Buscar primero en credenciales fijas (admin, árbitro, clubes legacy)
+  // 1. Buscar en credenciales fijas (admin, árbitro, clubes legacy)
   let match = Object.values(CRED).find(c => c.user.toLowerCase() === u && c.pass === p && c.rol === rolPendiente);
 
-  // Si es rol club y no hay match en CRED, buscar en DB.clubes (clubes dinámicos)
+  // 2. Buscar en DB.clubes local (dispositivo ya sincronizado)
   if (!match && rolPendiente === 'club') {
     const clubDinamico = (DB.clubes || []).find(c => c.user.toLowerCase() === u && c.pass === p);
     if (clubDinamico) {
       match = { user: clubDinamico.user, pass: clubDinamico.pass, rol: 'club', nombre: clubDinamico.nombre };
     }
+  }
+
+  // 3. Si sigue sin match y es club, consultar servidor (dispositivo limpio)
+  if (!match && rolPendiente === 'club') {
+    doLoginRemoto(u, p);
+    return;
   }
 
   if (!match) {
@@ -1218,6 +1224,25 @@ function doLogin() {
   }
   cerrarLogin();
   iniciarSesion(match);
+}
+
+async function doLoginRemoto(u, p) {
+  const btnLogin = document.querySelector('#loginModal .btn-login');
+  if (btnLogin) { btnLogin.disabled = true; btnLogin.textContent = 'Verificando...'; }
+  try {
+    const url = SCRIPT_URL + '?action=checkClub&user=' + encodeURIComponent(u) + '&pass=' + encodeURIComponent(p);
+    const j = await jsonpFetch(url, 8000);
+    if (j && j.ok) {
+      cerrarLogin();
+      iniciarSesion({ user: u, pass: p, rol: 'club', nombre: j.nombre || u });
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  } catch(e) {
+    document.getElementById('loginError').style.display = 'block';
+  } finally {
+    if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Entrar'; }
+  }
 }
 
 function entrarDirecto(rol) {
