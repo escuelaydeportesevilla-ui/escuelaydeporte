@@ -3854,21 +3854,21 @@ console.log('Familias: acceso directo (sin contraseña)');
         sesion.rol==='club'    ? sesion.user :
         sesion.rol==='arbitro' ? 'arb2627'  : ''
       );
-      // saveCollection vía POST (evita el límite de longitud de URL en GET)
+      // saveCollection vía POST — todas las colecciones en paralelo
       const cols = ['competiciones','equipos','jugadores','partidos','actas','noticias','goleadores','sugerencias','patrocinadores','sedes','clubes'];
-      for (const col of cols) {
+      await Promise.all(cols.map(col => {
         const items = DB[col];
-        if (!items || !items.length) continue;
+        if (!items || !items.length) return Promise.resolve();
         const payloadItems = (col === 'patrocinadores')
           ? items.map(p => { const { logoUrl, ...resto } = p; return resto; })
           : items;
-        await fetch(SCRIPT_URL, {
+        return fetch(SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'saveCollection', pwd: decodeURIComponent(pwd), col, data: payloadItems })
         });
-      }
+      }));
       // enviar _deleted via deleteIds
       if (DB._deleted && Object.keys(DB._deleted).length) {
         const ids = Object.keys(DB._deleted);
