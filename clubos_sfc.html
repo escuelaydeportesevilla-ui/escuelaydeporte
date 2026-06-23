@@ -774,10 +774,41 @@ tbody td.center{text-align:center;}
       </div>
       <div id="jugadoresContent"></div>
     </div>
+
+    <!-- ══ PANEL: CLUBES (Admin) ══ -->
+    <div class="tab-panel" id="panel-clubes">
+      <div class="section-header">
+        <h2>🏛️ Clubes</h2><div class="section-line"></div>
+        <button class="btn btn-rojo" onclick="abrirModalClub()">+ Nuevo club</button>
+      </div>
+      <div id="clubesContent"></div>
+    </div>
   </div>
 </div>
 
 <!-- MODALES -->
+<!-- MODAL CLUB -->
+<div class="modal" id="modalClub">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-header">
+      <h3 id="modalClubTitle">Nuevo club</h3>
+      <button class="modal-close" onclick="cerrarModal('modalClub')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field form-full"><label>Nombre del club</label><input id="cNombre" placeholder="CD Centro Histórico"></div>
+      <div class="form-field"><label>Usuario</label><input id="cUser" placeholder="club03" autocomplete="off"></div>
+      <div class="form-field"><label>Contraseña</label><input id="cPass" placeholder="••••••" autocomplete="off"></div>
+      <div class="form-field form-full"><label>Email de contacto</label><input id="cEmail" type="email" placeholder="contacto@club.com"></div>
+      <div class="form-field form-full"><label>Teléfono de contacto</label><input id="cTel" placeholder="600 000 000"></div>
+      <div class="form-field form-full"><label>Notas internas</label><textarea id="cNotas" rows="2" placeholder="Observaciones sobre el club..." style="width:100%;font-size:13px;border:1px solid var(--gris-linea);border-radius:6px;padding:8px;resize:vertical;font-family:inherit;"></textarea></div>
+    </div>
+    <input type="hidden" id="cEditId">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+      <button class="btn btn-outline" onclick="cerrarModal('modalClub')">Cancelar</button>
+      <button class="btn btn-rojo" onclick="guardarClub()">Guardar club</button>
+    </div>
+  </div>
+</div>
 <div class="modal" id="modalComp">
   <div class="modal-box" style="max-width:520px;width:calc(100% - 24px);margin:12px auto;">
     <div class="modal-header">
@@ -1079,7 +1110,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyGq5odDzXR29lK48iY9R5kjdKLDzKjBhnAY2x2ZbwGO1nZjIZWJ-ftvHcm5Ccd9MC-/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIO99pMYfjncQ1wJIaAz66kHj_Ro9QGpowYg3S0CkY43OXRVjUoQjtPWT-lOsPMAII/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -1108,6 +1139,7 @@ let DB = JSON.parse(localStorage.getItem('clubos_sfc') || JSON.stringify({
   sugerencias: [],
   jugadores: [],
   sedes: [],
+  clubes: [],
   actaEditId: null
 }));
 
@@ -1206,7 +1238,7 @@ function logout() {
 //  NAVEGACIÓN POR ROL
 // ══════════════════════════════════════════════════════
 const TABS_POR_ROL = {
-  admin:    ['competicion','equipos','jugadores','calendario','clasificacion','goleadores','actas','noticias','patrocinadores','sugerencias'],
+  admin:    ['competicion','equipos','jugadores','calendario','clasificacion','goleadores','actas','noticias','patrocinadores','sugerencias','clubes'],
   club:     ['competicion','equipos','jugadores','calendario','clasificacion','goleadores','actas','noticias','patrocinadores','sugerencias'],
   familias: ['competicion','equipos','calendario','clasificacion','goleadores','noticias','patrocinadores','sugerencias'],
   arbitro:  ['competicion','calendario','equipos','jugadores','actas','goleadores','noticias','patrocinadores','sugerencias'],
@@ -1214,7 +1246,7 @@ const TABS_POR_ROL = {
 const TAB_LABELS = {
   competicion:'⚙️ Competición', equipos:'🏟️ Equipos', jugadores:'👥 Jugadores',
   calendario:'📅 Calendario', clasificacion:'📊 Clasificación', goleadores:'⚽ Goleadores',
-  actas:'📋 Actas', noticias:'📰 Noticias', patrocinadores:'🤝 Patrocinadores', sugerencias:'💬 Sugerencias'
+  actas:'📋 Actas', noticias:'📰 Noticias', patrocinadores:'🤝 Patrocinadores', sugerencias:'💬 Sugerencias', clubes:'🏛️ Clubes'
 };
 
 function getDefaultTab() {
@@ -1262,7 +1294,7 @@ function renderTab(tab) {
     calendario: renderCalendario, clasificacion: renderClasificacion,
     goleadores: renderGoleadores, actas: renderActas,
     noticias: renderNoticias, patrocinadores: renderPatrocinadores,
-    sugerencias: renderSugerencias, jugadores: renderJugadores
+    sugerencias: renderSugerencias, jugadores: renderJugadores, clubes: renderClubes
   };
   if (fn[tab]) fn[tab]();
 }
@@ -3766,6 +3798,7 @@ console.log('Familias: acceso directo (sin contraseña)');
         if (d.sugerencias?.length)   DB.sugerencias   = merge(DB.sugerencias,   d.sugerencias);
         if (d.patrocinadores?.length) DB.patrocinadores = merge(DB.patrocinadores, d.patrocinadores);
         if (d.sedes?.length)         DB.sedes         = merge(DB.sedes,         d.sedes);
+        if (d.clubes?.length)        DB.clubes        = merge(DB.clubes,        d.clubes);
         delete DB.competicion;
         localStorage.setItem('clubos_sfc', JSON.stringify(DB));
         renderAll(); setSyncStatus('ok');
@@ -3792,6 +3825,7 @@ console.log('Familias: acceso directo (sin contraseña)');
         DB.sugerencias   = d.sugerencias   || DB.sugerencias || [];
         DB.patrocinadores = d.patrocinadores || DB.patrocinadores || [];
         DB.sedes         = d.sedes         || [];
+        DB.clubes        = d.clubes        || DB.clubes || [];
         // DB._deleted se conserva intacto para no resucitar borrados
         delete DB.competicion;
         localStorage.setItem('clubos_sfc', JSON.stringify(DB));
@@ -3810,7 +3844,7 @@ console.log('Familias: acceso directo (sin contraseña)');
         sesion.rol==='arbitro' ? 'arb2627'  : ''
       );
       // saveCollection vía POST (evita el límite de longitud de URL en GET)
-      const cols = ['competiciones','equipos','jugadores','partidos','actas','noticias','goleadores','sugerencias','patrocinadores','sedes'];
+      const cols = ['competiciones','equipos','jugadores','partidos','actas','noticias','goleadores','sugerencias','patrocinadores','sedes','clubes'];
       for (const col of cols) {
         const items = DB[col];
         if (!items || !items.length) continue;
@@ -3838,6 +3872,104 @@ console.log('Familias: acceso directo (sin contraseña)');
   }
 
   async function syncToSheets() { /* deprecated — use _doSync */ }
+
+// ══════════════════════════════════════════════════════
+//  GESTIÓN DE CLUBES (solo admin, fase 1)
+// ══════════════════════════════════════════════════════
+function renderClubes() {
+  const el = document.getElementById('clubesContent'); if (!el) return;
+  if (sesion.rol !== 'admin') { el.innerHTML = ''; return; }
+  const lista = DB.clubes || [];
+  if (!lista.length) {
+    el.innerHTML = '<div class="empty-state"><div class="ei">🏛️</div><p>No hay clubes registrados todavía. Crea el primero con el botón de arriba.</p></div>';
+    return;
+  }
+  el.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="tabla-base">
+        <thead><tr>
+          <th>Club</th>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>Notas</th>
+          <th></th>
+        </tr></thead>
+        <tbody>
+          ${lista.map(c => `<tr>
+            <td style="font-weight:600;">${c.nombre||'—'}</td>
+            <td><code style="background:#f0f0ee;padding:2px 6px;border-radius:4px;font-size:12px;">${c.user||'—'}</code></td>
+            <td style="font-size:13px;">${c.email||'—'}</td>
+            <td style="font-size:13px;">${c.tel||'—'}</td>
+            <td style="font-size:12px;color:var(--gris-suave);max-width:180px;white-space:pre-wrap;">${c.notas||'—'}</td>
+            <td style="white-space:nowrap;">
+              <button class="btn-xs btn-outline" onclick="editarClub('${c.id}')">✏️ Editar</button>
+              <button class="btn-xs" style="background:var(--rojo-suave);color:var(--rojo);border:none;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;margin-left:4px;" onclick="eliminarClub('${c.id}')">🗑️</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function abrirModalClub() {
+  document.getElementById('modalClubTitle').textContent = 'Nuevo club';
+  ['cNombre','cUser','cPass','cEmail','cTel','cNotas'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('cEditId').value = '';
+  abrirModal('modalClub');
+}
+
+function editarClub(id) {
+  const c = (DB.clubes||[]).find(x=>x.id===id); if (!c) return;
+  document.getElementById('modalClubTitle').textContent = 'Editar club';
+  document.getElementById('cNombre').value = c.nombre || '';
+  document.getElementById('cUser').value   = c.user   || '';
+  document.getElementById('cPass').value   = c.pass   || '';
+  document.getElementById('cEmail').value  = c.email  || '';
+  document.getElementById('cTel').value    = c.tel    || '';
+  document.getElementById('cNotas').value  = c.notas  || '';
+  document.getElementById('cEditId').value = c.id;
+  abrirModal('modalClub');
+}
+
+function guardarClub() {
+  const editId = document.getElementById('cEditId').value;
+  const nombre = document.getElementById('cNombre').value.trim();
+  const user   = document.getElementById('cUser').value.trim();
+  const pass   = document.getElementById('cPass').value.trim();
+  if (!nombre) { toast('El nombre del club es obligatorio'); return; }
+  if (!user)   { toast('El usuario es obligatorio'); return; }
+  if (!pass)   { toast('La contraseña es obligatoria'); return; }
+  // Verificar usuario duplicado
+  const duplicado = (DB.clubes||[]).find(c => c.user === user && c.id !== editId);
+  if (duplicado) { toast('Ese usuario ya existe'); return; }
+  const c = {
+    id:     editId || uid(),
+    nombre, user, pass,
+    email:  document.getElementById('cEmail').value.trim(),
+    tel:    document.getElementById('cTel').value.trim(),
+    notas:  document.getElementById('cNotas').value.trim(),
+  };
+  if (!DB.clubes) DB.clubes = [];
+  if (editId) {
+    const idx = DB.clubes.findIndex(x=>x.id===editId);
+    if (idx>=0) DB.clubes[idx] = c;
+  } else {
+    DB.clubes.push(c);
+  }
+  save(); cerrarModal('modalClub'); toast(editId?'Club actualizado':'Club creado'); renderClubes(); _doSync();
+}
+
+function eliminarClub(id) {
+  const c = (DB.clubes||[]).find(x=>x.id===id); if (!c) return;
+  if (!confirm('¿Eliminar el club "' + c.nombre + '"? Esta acción no se puede deshacer.')) return;
+  DB.clubes = (DB.clubes||[]).filter(x=>x.id!==id);
+  DB._deleted = DB._deleted || {};
+  DB._deleted[id] = Date.now();
+  save(); toast('Club eliminado'); renderClubes(); _doSync();
+}
 
 </script>
 <div id="syncStatusBar" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:6px;text-align:center;font-size:12px;font-weight:700;color:white;z-index:9999;"></div>
