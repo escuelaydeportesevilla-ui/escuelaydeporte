@@ -1036,6 +1036,25 @@ tbody td.center{text-align:center;}
       </label>
     </div>
     <input type="hidden" id="jEditId">
+    <!-- NOTAS DEL JUGADOR -->
+    <div id="seccionNotas" style="display:none;margin-top:18px;">
+      <div style="font-weight:700;font-size:13px;letter-spacing:.5px;text-transform:uppercase;color:var(--gris-suave);margin-bottom:8px;">📝 Notas del jugador</div>
+      <!-- Historial -->
+      <div id="listaNotas" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:200px;overflow-y:auto;"></div>
+      <!-- Formulario nueva nota / edición -->
+      <div style="background:#f9f9f7;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <label style="font-size:12px;font-weight:600;white-space:nowrap;">Fecha</label>
+          <input type="date" id="jNotaFecha" style="font-size:13px;border:1px solid var(--gris-linea);border-radius:6px;padding:4px 8px;">
+          <input type="hidden" id="jNotaEditId">
+        </div>
+        <textarea id="jNotaTexto" rows="3" placeholder="Escribe una nota sobre el jugador..." style="width:100%;font-size:13px;border:1px solid var(--gris-linea);border-radius:6px;padding:8px;resize:vertical;font-family:inherit;"></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button class="btn btn-outline" onclick="cancelarEditarNota()" id="btnCancelarNota" style="display:none;">Cancelar</button>
+          <button class="btn btn-rojo" onclick="agregarNota()" id="btnGuardarNota">➕ Añadir nota</button>
+        </div>
+      </div>
+    </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
       <button class="btn btn-outline" onclick="cerrarModal('modalJugador')">Cancelar</button>
       <button class="btn btn-rojo" onclick="guardarJugador()">Guardar jugador</button>
@@ -1060,7 +1079,7 @@ tbody td.center{text-align:center;}
 <div id="toast"></div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz0KUIbjqLBDi6eWZPdPiuWM3CNYe4hFwD6CMvgJVJUyGbic7IjcOO_jem7fb4ePq5z/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvFABNO1yO4N9LQPzyiTUS23MBCA6wBtH7etIzlWx_GASo6GYZMQhpaPsZPyQQUK-b/exec';
 
 // ══════════════════════════════════════════════════════
 //  BASE DE DATOS LOCAL
@@ -2346,6 +2365,7 @@ function abrirModalJugador() {
 function editarJugador(id) {
   const j = (DB.jugadores||[]).find(x=>x.id===id); if(!j) return;
   const isAdmin = sesion.rol === 'admin';
+  const isClub  = sesion.rol === 'club';
   const misEquipos = isAdmin ? (DB.equipos||[]) : (DB.equipos||[]).filter(e=>e.clubId===sesion.user);
   const sel = document.getElementById('jEquipo');
   sel.innerHTML = misEquipos.map(e=>`<option value="${e.id}"${e.id===j.equipoId?' selected':''}>${e.nombre}${isAdmin?' ('+( e.clubId||'sfcadmin')+')':''}</option>`).join('');
@@ -2358,11 +2378,102 @@ function editarJugador(id) {
   document.getElementById('jActivo').checked    = j.activo !== false;
   document.getElementById('jConvocado').checked = !!j.convocado;
   const t = document.getElementById('modalJugadorTitle'); if(t) t.textContent = 'Editar jugador';
+
+  // Notas: visibles solo para admin (equipos sfcadmin) y club (equipos propios)
+  const eq = (DB.equipos||[]).find(e=>e.id===j.equipoId);
+  const puedeVerNotas = (isAdmin && (!eq || !eq.clubId || eq.clubId==='sfcadmin')) ||
+                        (isClub  && eq && eq.clubId===sesion.user);
+  const seccion = document.getElementById('seccionNotas');
+  if (seccion) seccion.style.display = puedeVerNotas ? '' : 'none';
+  if (puedeVerNotas) {
+    document.getElementById('jNotaFecha').value  = new Date().toISOString().split('T')[0];
+    document.getElementById('jNotaTexto').value  = '';
+    document.getElementById('jNotaEditId').value = '';
+    document.getElementById('btnCancelarNota').style.display = 'none';
+    document.getElementById('btnGuardarNota').textContent = '\u2795 A\u00f1adir nota';
+    renderListaNotas(j.notas || []);
+  }
+
   abrirModal('modalJugador');
+}
+
+function renderListaNotas(notas) {
+  const el = document.getElementById('listaNotas'); if (!el) return;
+  if (!notas || !notas.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--gris-suave);padding:4px 0;">Sin notas todavía.</div>';
+    return;
+  }
+  el.innerHTML = [...notas].reverse().map(n => `
+    <div style="background:#fff;border:1px solid var(--gris-linea);border-radius:8px;padding:10px 12px;font-size:13px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-weight:700;color:var(--gris-suave);font-size:11px;">📅 ${n.fecha||'Sin fecha'}</span>
+        <span style="display:flex;gap:6px;">
+          <button class="btn-xs btn-outline" onclick="iniciarEditarNota('${n.id}')">✏️</button>
+          <button class="btn-xs" style="background:var(--rojo-suave);color:var(--rojo);border:none;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;" onclick="borrarNota('${n.id}')">🗑️</button>
+        </span>
+      </div>
+      <div style="white-space:pre-wrap;line-height:1.5;">${n.texto||''}</div>
+    </div>
+  `).join('');
+}
+
+function agregarNota() {
+  const editId  = document.getElementById('jEditId').value; if (!editId) return;
+  const notaId  = document.getElementById('jNotaEditId').value;
+  const fecha   = document.getElementById('jNotaFecha').value;
+  const texto   = document.getElementById('jNotaTexto').value.trim();
+  if (!texto) { toast('Escribe el texto de la nota'); return; }
+  const j = (DB.jugadores||[]).find(x=>x.id===editId); if (!j) return;
+  if (!j.notas) j.notas = [];
+  if (notaId) {
+    const idx = j.notas.findIndex(n=>n.id===notaId);
+    if (idx>=0) j.notas[idx] = { id: notaId, fecha, texto };
+  } else {
+    j.notas.push({ id: uid(), fecha, texto });
+  }
+  save(); _doSync();
+  document.getElementById('jNotaFecha').value  = new Date().toISOString().split('T')[0];
+  document.getElementById('jNotaTexto').value  = '';
+  document.getElementById('jNotaEditId').value = '';
+  document.getElementById('btnCancelarNota').style.display = 'none';
+  document.getElementById('btnGuardarNota').textContent = '\u2795 A\u00f1adir nota';
+  renderListaNotas(j.notas);
+  toast(notaId ? 'Nota actualizada' : 'Nota a\u00f1adida');
+}
+
+function iniciarEditarNota(notaId) {
+  const editId = document.getElementById('jEditId').value; if (!editId) return;
+  const j = (DB.jugadores||[]).find(x=>x.id===editId); if (!j) return;
+  const n = (j.notas||[]).find(x=>x.id===notaId); if (!n) return;
+  document.getElementById('jNotaFecha').value  = n.fecha||'';
+  document.getElementById('jNotaTexto').value  = n.texto||'';
+  document.getElementById('jNotaEditId').value = n.id;
+  document.getElementById('btnCancelarNota').style.display = '';
+  document.getElementById('btnGuardarNota').textContent = '💾 Guardar cambios';
+}
+
+function cancelarEditarNota() {
+  document.getElementById('jNotaFecha').value  = new Date().toISOString().split('T')[0];
+  document.getElementById('jNotaTexto').value  = '';
+  document.getElementById('jNotaEditId').value = '';
+  document.getElementById('btnCancelarNota').style.display = 'none';
+  document.getElementById('btnGuardarNota').textContent = '\u2795 A\u00f1adir nota';
+}
+
+function borrarNota(notaId) {
+  const editId = document.getElementById('jEditId').value; if (!editId) return;
+  const j = (DB.jugadores||[]).find(x=>x.id===editId); if (!j) return;
+  if (!confirm('\u00bfEliminar esta nota?')) return;
+  j.notas = (j.notas||[]).filter(n=>n.id!==notaId);
+  save(); _doSync();
+  renderListaNotas(j.notas);
+  toast('Nota eliminada');
 }
 
 function guardarJugador() {
   const editId = document.getElementById('jEditId').value;
+  // Preservar notas existentes si las hay
+  const jugadorExistente = editId ? (DB.jugadores||[]).find(x=>x.id===editId) : null;
   const j = {
     id:        editId || uid(),
     nombre:    document.getElementById('jNombre').value.trim(),
@@ -2373,6 +2484,7 @@ function guardarJugador() {
     equipoId:  document.getElementById('jEquipo').value,
     activo:    document.getElementById('jActivo').checked,
     convocado: document.getElementById('jConvocado').checked,
+    notas:     jugadorExistente ? (jugadorExistente.notas || []) : [],
   };
   if (!j.nombre) { toast('El nombre es obligatorio'); return; }
   if (!DB.jugadores) DB.jugadores = [];
