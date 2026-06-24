@@ -559,6 +559,35 @@ tbody td.center{text-align:center;}
   .tabla-jugadores-desktop{display:block;}
 }
 
+/* ── OVERLAY DE BLOQUEO SYNC ── */
+#syncOverlay {
+  display:none;position:fixed;inset:0;z-index:9990;
+  background:rgba(0,0,0,0.75);
+  align-items:center;justify-content:center;flex-direction:column;gap:20px;
+}
+#syncOverlay.open { display:flex; }
+.sync-overlay-box {
+  background:white;border-radius:18px;padding:36px 40px;max-width:420px;width:90%;
+  text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4);
+}
+.sync-overlay-icon { font-size:3rem;margin-bottom:12px; }
+.sync-overlay-title {
+  font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:900;
+  text-transform:uppercase;letter-spacing:1px;color:var(--negro);margin-bottom:8px;
+}
+.sync-overlay-desc { font-size:13px;color:var(--gris-suave);margin-bottom:24px;line-height:1.5; }
+.sync-overlay-btn {
+  font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;
+  letter-spacing:1px;text-transform:uppercase;padding:14px 32px;
+  border:none;border-radius:10px;cursor:pointer;width:100%;margin-bottom:10px;
+  transition:all .2s;
+}
+.sync-overlay-btn.primario { background:var(--rojo);color:white; }
+.sync-overlay-btn.primario:hover { background:var(--rojo-oscuro); }
+.sync-overlay-btn.secundario { background:var(--crema);color:var(--gris-suave);border:1.5px solid var(--gris-linea); }
+.sync-overlay-btn.secundario:hover { color:var(--rojo);border-color:var(--rojo); }
+.sync-overlay-status { font-size:12px;color:var(--gris-suave);min-height:18px;margin-top:4px; }
+
 </style>
 </head>
 <body>
@@ -622,6 +651,18 @@ tbody td.center{text-align:center;}
   </div>
 </div>
 
+<!-- OVERLAY SYNC OBLIGATORIO -->
+<div id="syncOverlay">
+  <div class="sync-overlay-box">
+    <div class="sync-overlay-icon" id="overlayIcon">⬇️</div>
+    <div class="sync-overlay-title" id="overlayTitle">Recargar datos</div>
+    <div class="sync-overlay-desc" id="overlayDesc">Para comenzar, descarga los datos actuales del servidor.</div>
+    <button class="sync-overlay-btn primario" id="overlayBtnPrimary" onclick="overlayAccionPrimaria()">⬇️ Recargar ahora</button>
+    <button class="sync-overlay-btn secundario" id="overlayBtnSecondary" onclick="overlaySaltar()" style="display:none;">Continuar sin recargar</button>
+    <div class="sync-overlay-status" id="overlayStatus"></div>
+  </div>
+</div>
+
 <!-- MODAL LOGIN -->
 <div class="login-modal" id="loginModal">
   <div class="login-box">
@@ -656,18 +697,20 @@ tbody td.center{text-align:center;}
     <div class="topbar-right">
       <span class="rol-badge" id="rolBadge">Admin</span>
       <span id="tbUserName" style="font-size:12px;color:var(--gris-suave);"></span>
-      <button id="btnSync" onclick="manualSync()"
+      <button id="btnSync" onclick="manualSyncEnviar()"
   style="background:#C8102E;color:white;border:none;border-radius:8px;
   padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;
-  margin-right:8px;display:flex;align-items:center;gap:6px;
+  margin-right:4px;display:flex;align-items:center;gap:6px;
   box-shadow:0 2px 8px rgba(0,0,0,.3);">
-  <span style="font-size:16px;">🔄</span><span id="syncLabel">Actualizar</span>
+  <span style="font-size:16px;">☁️</span><span id="syncLabel">Sync</span>
 </button>
 <button id="btnRecargaTotal" onclick="recargaCompleta()"
-  style="background:#fff;color:#888;border:1px solid var(--gris-linea);border-radius:8px;
-  padding:7px 10px;font-size:12px;cursor:pointer;margin-right:8px;display:none;"
-  title="Recarga completa desde el servidor">⟲</button>
-<button class="btn-logout" onclick="logout()">← Salir</button>
+  style="background:#1A56A0;color:white;border:none;border-radius:8px;
+  padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;margin-right:8px;display:none;gap:4px;align-items:center;"
+  title="Descargar datos del servidor">
+  <span>⬇️</span><span>Recargar</span>
+</button>
+<button class="btn-logout" onclick="pedirSyncAntesDeLogout()">← Salir</button>
     </div>
   </div>
 
@@ -1170,8 +1213,6 @@ document.addEventListener('DOMContentLoaded',_initStaticImages);
 
 function save() {
     localStorage.setItem('clubos_sfc', JSON.stringify(DB));
-    clearTimeout(_syncTimer);
-    _syncTimer = setTimeout(_doSync, 1500);
   }
 function uid() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
 
@@ -1258,14 +1299,22 @@ function iniciarSesion(cred) {
   document.getElementById('rolBadge').textContent = cred.rol.charAt(0).toUpperCase() + cred.rol.slice(1);
   document.getElementById('tbUserName').textContent = cred.nombre || '';
   const btnRecarga = document.getElementById('btnRecargaTotal');
-  if (btnRecarga) btnRecarga.style.display = (cred.rol === 'admin') ? '' : 'none';
+  if (btnRecarga) btnRecarga.style.display = (cred.rol === 'admin') ? 'flex' : 'none';
 
   const subtexts = { admin: 'SFC Academy · Admin', club: cred.nombre, familias: 'Consulta pública', arbitro: 'Panel Árbitro' };
   document.getElementById('tbSub').textContent = subtexts[cred.rol] || 'SFC Academy';
 
   buildNav();
   activarTab(getDefaultTab());
-  manualSync().then(() => renderAll()).catch(() => renderAll());
+  renderAll();
+
+  // Admin: forzar recarga desde servidor al iniciar sesión
+  if (cred.rol === 'admin') {
+    mostrarOverlay('recarga');
+  } else {
+    // Resto de roles: carga silenciosa en segundo plano sin bloquear
+    manualSync().then(() => renderAll()).catch(() => {});
+  }
 }
 
 function logout() {
@@ -1274,6 +1323,11 @@ function logout() {
   document.getElementById('app').style.display = 'none';
   document.getElementById('portada').style.display = 'flex';
   document.getElementById('portada').style.flexDirection = 'column';
+  ocultarOverlay();
+}
+
+function pedirSyncAntesDeLogout() {
+  mostrarOverlay('logout');
 }
 
 // ══════════════════════════════════════════════════════
@@ -1487,7 +1541,7 @@ function guardarSede() {
     DB.sedes.push({ id: uid(), nombre, campos });
   }
   cancelarEdicionSede();
-  save(); toast('Sede guardada'); renderListaSedes(); _doSync();
+  save(); toast('Sede guardada'); renderListaSedes();
 }
 
 function editarSede(id) {
@@ -1510,7 +1564,7 @@ function eliminarSede(id) {
   DB.sedes = (DB.sedes||[]).filter(x=>x.id!==id);
   if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
-  save(); toast('Sede eliminada'); renderListaSedes(); _doSync();
+  save(); toast('Sede eliminada'); renderListaSedes();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1687,7 +1741,7 @@ function generarCalendarioFinal() {
     fechaJornada = _sumarDias(fechaJornada, 7);
   });
 
-  save(); cerrarModal('modalGeneradorCalendario'); toast('Calendario generado correctamente'); renderAll(); _doSync();
+  save(); cerrarModal('modalGeneradorCalendario'); toast('Calendario generado correctamente'); renderAll();
 }
 
 function guardarComp() {
@@ -1707,7 +1761,7 @@ function guardarComp() {
   const idx = DB.competiciones.findIndex(c=>c.id===rec.id);
   if (idx>=0) DB.competiciones[idx] = rec; else DB.competiciones.push(rec);
   window._editCompId = null;
-  save(); cerrarModal('modalComp'); renderAll(); _doSync();
+  save(); cerrarModal('modalComp'); renderAll();
 }
 
 // ══════════════════════════════════════════════════════
@@ -2102,7 +2156,7 @@ function guardarEquipo() {
   const idx = DB.equipos.findIndex(e=>e.id===editEquipoId);
   if (idx>=0) DB.equipos[idx]=rec; else DB.equipos.push(rec);
   editEquipoId = null;
-  save(); cerrarModal('modalEquipo'); renderEquipos(); renderCompeticion(); _doSync();
+  save(); cerrarModal('modalEquipo'); renderEquipos(); renderCompeticion();
 }
 
 function eliminarEquipo(id) {
@@ -2110,7 +2164,7 @@ function eliminarEquipo(id) {
   DB.equipos = (DB.equipos||[]).filter(x => x.id !== id);
   if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
-  save(); renderEquipos(); toast('Equipo eliminado'); _doSync();
+  save(); renderEquipos(); toast('Equipo eliminado');
 }
 
 // ── BUSCADOR DE EQUIPOS ──────────────────────────────────
@@ -2227,7 +2281,7 @@ function guardarFichaEquipo() {
     j.activo     = fila.querySelector('[data-campo="activo"]').checked;
     j.convocado  = fila.querySelector('[data-campo="convocado"]').checked;
   });
-  save(); renderJugadores(); renderEquipos(); toast('Ficha guardada'); _doSync();
+  save(); renderJugadores(); renderEquipos(); toast('Ficha guardada');
   cerrarModal('modalFichaEquipo');
 }
 
@@ -2575,7 +2629,7 @@ function agregarNota() {
   } else {
     j.notas.push({ id: uid(), fecha, texto });
   }
-  save(); _doSync();
+  save();
   document.getElementById('jNotaFecha').value  = new Date().toISOString().split('T')[0];
   document.getElementById('jNotaTexto').value  = '';
   document.getElementById('jNotaEditId').value = '';
@@ -2609,7 +2663,7 @@ function borrarNota(notaId) {
   const j = (DB.jugadores||[]).find(x=>x.id===editId); if (!j) return;
   if (!confirm('\u00bfEliminar esta nota?')) return;
   j.notas = (j.notas||[]).filter(n=>n.id!==notaId);
-  save(); _doSync();
+  save();
   renderListaNotas(j.notas);
   toast('Nota eliminada');
 }
@@ -2638,19 +2692,19 @@ function guardarJugador() {
   } else {
     DB.jugadores.push(j);
   }
-  save(); cerrarModal('modalJugador'); toast(editId?'Jugador actualizado':'Jugador añadido'); renderJugadores(); _doSync();
+  save(); cerrarModal('modalJugador'); toast(editId?'Jugador actualizado':'Jugador añadido'); renderJugadores();
 }
 
 function toggleJugadorActivo(id) {
   const j = (DB.jugadores||[]).find(x=>x.id===id); if(!j) return;
   j.activo = j.activo === false ? true : false;
-  save(); renderJugadores(); _doSync();
+  save(); renderJugadores();
 }
 
 function toggleJugadorConvocado(id) {
   const j = (DB.jugadores||[]).find(x=>x.id===id); if(!j) return;
   j.convocado = !j.convocado;
-  save(); renderJugadores(); _doSync();
+  save(); renderJugadores();
 }
 
 function eliminarJugador(id) {
@@ -2661,7 +2715,6 @@ function eliminarJugador(id) {
   save();
   renderJugadores();
   toast('Jugador eliminado');
-  _doSync();
 }
 
 // ══════════════════════════════════════════════════════
@@ -2954,7 +3007,7 @@ function guardarPartido() {
   } else {
     DB.partidos.push({ id: uid(), acta: '', ...datos });
   }
-  save(); cerrarModal('modalPartido'); toast('Partido guardado'); renderAll(); _doSync();
+  save(); cerrarModal('modalPartido'); toast('Partido guardado'); renderAll();
 }
 
 function eliminarPartido(id) {
@@ -2962,7 +3015,7 @@ function eliminarPartido(id) {
   DB.partidos = DB.partidos.filter(p=>p.id!==id);
   if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
-  save(); toast('Partido eliminado'); renderAll(); _doSync();
+  save(); toast('Partido eliminado'); renderAll();
 }
 
 // ══════════════════════════════════════════════════════
@@ -3191,7 +3244,7 @@ function recalcularGoleadoresDesdeActas() {
   });
 
   DB.goleadores = nuevos;
-  save(); renderGoleadores(); toast('Goleadores recalculados desde las actas'); _doSync();
+  save(); renderGoleadores(); toast('Goleadores recalculados desde las actas');
 }
 
 function abrirModalGol(equipoFijo) {
@@ -3569,7 +3622,7 @@ function eliminarNoticia(id) {
   DB.noticias = DB.noticias.filter(n=>n.id!==id);
   if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
-  save(); toast('Noticia eliminada'); renderNoticias(); _doSync();
+  save(); toast('Noticia eliminada'); renderNoticias();
 }
 
 // ══════════════════════════════════════════════════════
@@ -3708,7 +3761,6 @@ async function guardarPatr() {
   }
   window._patrLogoChanged = false;
   save(); cerrarModal('modalPatr'); toast('Patrocinador guardado'); renderPatrocinadores();
-  await _doSync();
   if (logoCambiado) await syncLogoPatrocinador(id, datos.logoUrl);
 }
 
@@ -3717,7 +3769,7 @@ function eliminarPatr(id) {
   DB.patrocinadores = DB.patrocinadores.filter(p=>p.id!==id);
   if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
-  save(); toast('Eliminado'); renderPatrocinadores(); _doSync();
+  save(); toast('Eliminado'); renderPatrocinadores();
 }
 
 // ══════════════════════════════════════════════════════
@@ -3770,14 +3822,14 @@ function guardarSug() {
   window._sugEnviada = true;
   document.getElementById('sugTexto').value = '';
   document.getElementById('sugNombre').value = '';
-  save(); cerrarModal('modalSug'); toast('Sugerencia enviada, gracias'); renderSugerencias(); _doSync();
+  save(); cerrarModal('modalSug'); toast('Sugerencia enviada, gracias'); renderSugerencias();
 }
 
 function eliminarSug(id) {
   DB.sugerencias = DB.sugerencias.filter(s=>s.id!==id);
   if (!DB._deleted) DB._deleted = {};
   DB._deleted[id] = Date.now();
-  save(); toast('Eliminada'); renderSugerencias(); _doSync();
+  save(); toast('Eliminada'); renderSugerencias();
 }
 
 // ══════════════════════════════════════════════════════
@@ -3807,49 +3859,92 @@ console.log('Familias: acceso directo (sin contraseña)');
   // ══ GOOGLE SHEETS SYNC ══════════════════════════════════════
   let _syncTimer = null;
 
-  // ── SYNC ────────────────────────────────────────────────
+  // ── OVERLAY DE BLOQUEO ─────────────────────────────────────
+  // modo: 'recarga' (al entrar como admin) | 'logout' (al salir)
+  let _overlayModo = null;
+
+  function mostrarOverlay(modo) {
+    _overlayModo = modo;
+    const icon    = document.getElementById('overlayIcon');
+    const title   = document.getElementById('overlayTitle');
+    const desc    = document.getElementById('overlayDesc');
+    const btnP    = document.getElementById('overlayBtnPrimary');
+    const btnS    = document.getElementById('overlayBtnSecondary');
+    const status  = document.getElementById('overlayStatus');
+    status.textContent = '';
+
+    if (modo === 'recarga') {
+      icon.textContent  = '⬇️';
+      title.textContent = 'Recarga obligatoria';
+      desc.textContent  = 'Para trabajar con los datos más recientes, descarga primero la información del servidor.';
+      btnP.textContent  = '⬇️ Recargar desde servidor';
+      btnS.style.display = 'block';
+      btnS.textContent   = 'Continuar sin recargar';
+    } else if (modo === 'logout') {
+      icon.textContent  = '☁️';
+      title.textContent = 'Sincroniza antes de salir';
+      desc.textContent  = 'Hay cambios locales pendientes. Envíalos al servidor antes de cerrar sesión.';
+      btnP.textContent  = '☁️ Enviar y salir';
+      btnS.style.display = 'block';
+      btnS.textContent   = 'Salir sin guardar';
+    }
+    document.getElementById('syncOverlay').classList.add('open');
+  }
+
+  function ocultarOverlay() {
+    document.getElementById('syncOverlay').classList.remove('open');
+    _overlayModo = null;
+  }
+
+  async function overlayAccionPrimaria() {
+    const btnP   = document.getElementById('overlayBtnPrimary');
+    const status = document.getElementById('overlayStatus');
+    btnP.disabled = true;
+
+    if (_overlayModo === 'recarga') {
+      btnP.textContent = '⏳ Descargando...';
+      status.textContent = 'Conectando con el servidor...';
+      await recargaCompleta(true); // true = modo silencioso (sin confirm)
+      ocultarOverlay();
+    } else if (_overlayModo === 'logout') {
+      btnP.textContent = '⏳ Enviando...';
+      status.textContent = 'Enviando datos al servidor...';
+      await _doSync();
+      ocultarOverlay();
+      logout();
+    }
+    btnP.disabled = false;
+  }
+
+  function overlaySaltar() {
+    if (_overlayModo === 'logout') {
+      ocultarOverlay();
+      logout();
+    } else {
+      ocultarOverlay(); // recarga: continuar sin recargar
+    }
+  }
+
+  // ── SYNC STATUS ────────────────────────────────────────────
   function setSyncStatus(state) {
     const label = document.getElementById('syncLabel');
     const btn   = document.getElementById('btnSync');
     if (!label) return;
-    const txt = {ok:'↻ Sync', syncing:'Guardando...', loading:'Cargando...', error:'Error ⚠️', local:'↻ Sync'};
-    label.textContent = txt[state] || '↻ Sync';
-    if (btn) btn.style.borderColor = state==='error' ? 'rgba(200,16,46,.6)' : state==='loading'||state==='syncing' ? 'rgba(212,160,23,.6)' : 'rgba(255,255,255,.25)';
-    if (state==='ok'||state==='local') setTimeout(()=>{ if(label) label.textContent='↻ Sync'; if(btn) btn.style.borderColor='rgba(255,255,255,.25)'; }, 2500);
+    const txt = { ok:'Sync ✓', syncing:'Enviando...', loading:'Cargando...', error:'Error ⚠️', local:'Sync' };
+    label.textContent = txt[state] || 'Sync';
+    if (btn) btn.style.opacity = (state === 'syncing' || state === 'loading') ? '0.7' : '1';
+    const overlayStatus = document.getElementById('overlayStatus');
+    if (overlayStatus && _overlayModo) {
+      if (state === 'syncing') overlayStatus.textContent = 'Enviando datos...';
+      else if (state === 'loading') overlayStatus.textContent = 'Descargando datos...';
+      else if (state === 'ok') overlayStatus.textContent = '✅ Completado';
+      else if (state === 'error') overlayStatus.textContent = '⚠️ Error de conexión. Intenta de nuevo.';
+    }
+    if (state === 'ok' || state === 'local') setTimeout(() => { if (label) label.textContent = 'Sync'; if (btn) btn.style.opacity = '1'; }, 2500);
   }
   function setStatus(s) { setSyncStatus(s); }
 
-  function showSyncBanner(mensaje, fnCall) {
-    let b = document.getElementById('syncBanner');
-    if (!b) {
-      b = document.createElement('div');
-      b.id = 'syncBanner';
-      b.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1B3A5C;color:white;padding:10px 16px;border-radius:10px;display:flex;align-items:center;gap:10px;z-index:9999;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.3);max-width:90vw;';
-      document.body.appendChild(b);
-    }
-    b.innerHTML =
-      '<span>' + mensaje + '</span>' +
-      '<button onclick="' + fnCall + ';hideSyncBanner();" style="background:var(--rojo);color:white;border:none;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;">☁️ Guardar</button>' +
-      '<button onclick="hideSyncBanner()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:18px;cursor:pointer;line-height:1;">✕</button>';
-    clearTimeout(window._bannerTimer);
-    window._bannerTimer = setTimeout(hideSyncBanner, 15000);
-  }
-
-  function hideSyncBanner() {
-    const b = document.getElementById('syncBanner');
-    if (b) b.remove();
-  }
-
-  async function syncRecord(action, data) {
-    setSyncStatus('syncing');
-    try {
-      const pwd = encodeURIComponent(sesion.rol==='admin'?'sfc2627':sesion.rol==='club'?sesion.user:sesion.rol==='arbitro'?'arb2627':'');
-      const url = SCRIPT_URL + '?action=' + action + '&pwd=' + pwd + '&data=' + encodeURIComponent(JSON.stringify(data));
-      await fetch(url, {mode:'no-cors'});
-      setSyncStatus('ok');
-    } catch(e) { setSyncStatus('error'); }
-  }
-
+  // ── JSONP ──────────────────────────────────────────────────
   function jsonpFetch(url, timeoutMs) {
     timeoutMs = timeoutMs || 10000;
     return new Promise(function(resolve, reject) {
@@ -3857,23 +3952,21 @@ console.log('Familias: acceso directo (sin contraseña)');
       var script = document.createElement('script');
       script.src = url + '&callback=' + cb + '&_=' + Date.now();
       script.crossOrigin = 'anonymous';
-
-      var timer = setTimeout(function() {
-        cleanup(); reject(new Error('JSONP timeout'));
-      }, timeoutMs);
-
-      function cleanup() {
-        clearTimeout(timer);
-        if (window[cb]) delete window[cb];
-        if (script.parentNode) script.remove();
-      }
-
+      var timer = setTimeout(function() { cleanup(); reject(new Error('JSONP timeout')); }, timeoutMs);
+      function cleanup() { clearTimeout(timer); if (window[cb]) delete window[cb]; if (script.parentNode) script.remove(); }
       window[cb] = function(data) { cleanup(); resolve(data); };
       script.onerror = function() { cleanup(); reject(new Error('JSONP load error')); };
       document.head.appendChild(script);
     });
   }
 
+  // ── ENVIAR AL SHEET (botón Sync) ──────────────────────────
+  async function manualSyncEnviar() {
+    if (!SCRIPT_URL || !sesion) return;
+    await _doSync();
+  }
+
+  // ── DESCARGAR DEL SHEET — merge local+remoto (uso interno) ─
   async function manualSync() {
     if (!SCRIPT_URL || !sesion) return;
     setSyncStatus('loading');
@@ -3889,13 +3982,10 @@ console.log('Familias: acceso directo (sin contraseña)');
           (local||[]).forEach(x  => {
             if (!x?.id || del[x.id]) return;
             if (map[x.id]) {
-              // fusionar: local gana campo por campo si tiene valor
               const merged = {...map[x.id]};
               Object.keys(x).forEach(k => { if (x[k] !== '' && x[k] !== undefined && x[k] !== null) merged[k] = x[k]; });
               map[x.id] = merged;
-            } else {
-              map[x.id] = {...x};
-            }
+            } else { map[x.id] = {...x}; }
           });
           Object.keys(del).forEach(k => delete map[k]);
           return Object.values(map);
@@ -3918,8 +4008,9 @@ console.log('Familias: acceso directo (sin contraseña)');
     } catch(e) { setSyncStatus('error'); }
   }
 
-  async function recargaCompleta() {
-    if (!confirm('⚠️ Recuerda sincronizar tus datos antes de continuar.\n\nEsta acción reemplazará los datos locales de este dispositivo por los del servidor. Cualquier cambio que aún no se haya sincronizado se perderá.\n\n¿Continuar?')) return;
+  // ── RECARGAR DEL SHEET — reemplaza todo (botón Recargar) ──
+  async function recargaCompleta(silencioso) {
+    if (!silencioso && !confirm('¿Reemplazar datos locales con los del servidor? Los cambios no enviados se perderán.')) return;
     if (!SCRIPT_URL || !sesion) return;
     setSyncStatus('loading');
     try {
@@ -3927,25 +4018,26 @@ console.log('Familias: acceso directo (sin contraseña)');
       const j = await jsonpFetch(SCRIPT_URL + '?action=getAll&pwd=' + pwd);
       if (j.ok && j.data) {
         const d = j.data;
-        DB.competiciones = d.competiciones || [];
-        DB.equipos       = d.equipos       || [];
-        DB.jugadores     = d.jugadores     || [];
-        DB.partidos      = d.partidos      || [];
-        DB.actas         = d.actas         || [];
-        DB.noticias      = d.noticias      || [];
-        DB.goleadores    = d.goleadores    || [];
-        DB.sugerencias   = d.sugerencias   || DB.sugerencias || [];
+        DB.competiciones  = d.competiciones  || [];
+        DB.equipos        = d.equipos        || [];
+        DB.jugadores      = d.jugadores      || [];
+        DB.partidos       = d.partidos       || [];
+        DB.actas          = d.actas          || [];
+        DB.noticias       = d.noticias       || [];
+        DB.goleadores     = d.goleadores     || [];
+        DB.sugerencias    = d.sugerencias    || DB.sugerencias || [];
         DB.patrocinadores = d.patrocinadores || DB.patrocinadores || [];
-        DB.sedes         = d.sedes         || [];
-        DB.clubes        = d.clubes        || DB.clubes || [];
-        // DB._deleted se conserva intacto para no resucitar borrados
+        DB.sedes          = d.sedes          || [];
+        DB.clubes         = d.clubes         || DB.clubes || [];
         delete DB.competicion;
         localStorage.setItem('clubos_sfc', JSON.stringify(DB));
-        renderAll(); setSyncStatus('ok'); toast('Datos recargados desde el servidor');
-      } else { setSyncStatus('error'); toast('No se pudo recargar'); }
-    } catch(e) { setSyncStatus('error'); toast('Error al recargar'); }
+        renderAll(); setSyncStatus('ok');
+        if (!silencioso) toast('Datos recargados desde el servidor');
+      } else { setSyncStatus('error'); if (!silencioso) toast('No se pudo recargar'); }
+    } catch(e) { setSyncStatus('error'); if (!silencioso) toast('Error al recargar'); }
   }
 
+  // ── ENVIAR DATOS AL SHEET ─────────────────────────────────
   async function _doSync() {
     if (!SCRIPT_URL || !sesion) return;
     setSyncStatus('syncing');
@@ -3955,7 +4047,6 @@ console.log('Familias: acceso directo (sin contraseña)');
         sesion.rol==='club'    ? sesion.user :
         sesion.rol==='arbitro' ? 'arb2627'  : ''
       );
-      // saveCollection vía POST — todas las colecciones en paralelo
       const cols = ['competiciones','equipos','jugadores','partidos','actas','noticias','goleadores','sugerencias','patrocinadores','sedes','clubes'];
       await Promise.all(cols.map(col => {
         const items = DB[col];
@@ -3970,13 +4061,9 @@ console.log('Familias: acceso directo (sin contraseña)');
           body: JSON.stringify({ action: 'saveCollection', pwd: decodeURIComponent(pwd), col, data: payloadItems })
         });
       }));
-      // enviar _deleted via deleteIds
       if (DB._deleted && Object.keys(DB._deleted).length) {
         const ids = Object.keys(DB._deleted);
-        const url = SCRIPT_URL
-          + '?action=deleteIds'
-          + '&pwd=' + pwd
-          + '&ids=' + encodeURIComponent(JSON.stringify(ids));
+        const url = SCRIPT_URL + '?action=deleteIds' + '&pwd=' + pwd + '&ids=' + encodeURIComponent(JSON.stringify(ids));
         await fetch(url, {mode:'no-cors'});
       }
       setSyncStatus('ok');
@@ -3984,6 +4071,7 @@ console.log('Familias: acceso directo (sin contraseña)');
   }
 
   async function syncToSheets() { /* deprecated — use _doSync */ }
+  async function syncRecord() { /* deprecated */ }
 
 // ══════════════════════════════════════════════════════
 //  GESTIÓN DE CLUBES (solo admin, fase 1)
@@ -4071,7 +4159,7 @@ function guardarClub() {
   } else {
     DB.clubes.push(c);
   }
-  save(); cerrarModal('modalClub'); toast(editId?'Club actualizado':'Club creado'); renderClubes(); _doSync();
+  save(); cerrarModal('modalClub'); toast(editId?'Club actualizado':'Club creado'); renderClubes();
 }
 
 function eliminarClub(id) {
@@ -4080,7 +4168,7 @@ function eliminarClub(id) {
   DB.clubes = (DB.clubes||[]).filter(x=>x.id!==id);
   DB._deleted = DB._deleted || {};
   DB._deleted[id] = Date.now();
-  save(); toast('Club eliminado'); renderClubes(); _doSync();
+  save(); toast('Club eliminado'); renderClubes();
 }
 
 </script>
