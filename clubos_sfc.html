@@ -3514,7 +3514,7 @@ function actualizarLiveGolesActa() {
 }
 
 // Quita un gol mal asignado: lo retira de la sesión de la acta y revierte el total en Goleadores.
-function quitarGolSesion(equipoId, jugador) {
+async function quitarGolSesion(equipoId, jugador) {
   const sesionGoles = window._actaSesionGoles || [];
   const idx = sesionGoles.findIndex(g=>g.equipoId===equipoId && g.jugador===jugador);
   if (idx < 0) return;
