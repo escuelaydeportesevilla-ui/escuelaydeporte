@@ -482,6 +482,7 @@ tbody td.center{text-align:center;}
   .topbar{padding:0 10px;height:50px;}
   .topbar-left .tb-logo-text .tb-club{font-size:1rem;}
   .topbar-left .tb-logo-text .tb-sub{display:none;}
+  .topbar-left .tb-logo-text .tb-sub.visible-mobile{display:block;font-size:9px;}
   .tb-logo-img{height:30px;}
   .topbar-right{gap:4px;align-items:center;}
   #tbUserName{display:none;}
@@ -1327,6 +1328,7 @@ function iniciarSesion(cred) {
 
   const subtexts = { admin: 'SFC Academy · Admin', club: cred.nombre, familias: 'Consulta pública', arbitro: 'Panel Árbitro' };
   document.getElementById('tbSub').textContent = subtexts[cred.rol] || 'SFC Academy';
+  document.getElementById('tbSub').classList.toggle('visible-mobile', cred.rol === 'club');
 
   buildNav();
   activarTab(getDefaultTab());
