@@ -561,6 +561,13 @@ tbody td.center{text-align:center;}
   .tabla-jugadores-desktop{display:block;}
 }
 
+.cards-clubes-mobile { display:none; }
+.tabla-clubes-desktop { display:block; }
+@media (max-width:768px) {
+  .cards-clubes-mobile  { display:block; }
+  .tabla-clubes-desktop { display:none;  }
+}
+
 /* ── OVERLAY DE BLOQUEO SYNC ── */
 #syncOverlay {
   display:none;position:fixed;inset:0;z-index:9990;
@@ -4142,15 +4149,11 @@ function renderClubes() {
     return;
   }
   el.innerHTML = `
-    <div style="overflow-x:auto;">
+    <!-- TABLA: desktop -->
+    <div class="tabla-clubes-desktop" style="overflow-x:auto;">
       <table class="tabla-base">
         <thead><tr>
-          <th>Club</th>
-          <th>Usuario</th>
-          <th>Email</th>
-          <th>Teléfono</th>
-          <th>Notas</th>
-          <th></th>
+          <th>Club</th><th>Usuario</th><th>Email</th><th>Teléfono</th><th>Observaciones</th><th></th>
         </tr></thead>
         <tbody>
           ${lista.map(c => `<tr>
@@ -4166,6 +4169,25 @@ function renderClubes() {
           </tr>`).join('')}
         </tbody>
       </table>
+    </div>
+    <!-- CARDS: móvil -->
+    <div class="cards-clubes-mobile">
+      ${lista.map(c => `
+        <div style="background:white;border:1px solid var(--gris-linea);border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;">${c.nombre||'—'}</span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-xs btn-outline" onclick="editarClub('${c.id}')">✏️</button>
+              <button class="btn-xs" style="background:var(--rojo-suave);color:var(--rojo);border:none;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;" onclick="eliminarClub('${c.id}')">🗑️</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px;">
+            <div><span style="color:var(--gris-suave);text-transform:uppercase;font-size:10px;letter-spacing:.5px;">Usuario</span><br><code style="background:#f0f0ee;padding:1px 5px;border-radius:3px;">${c.user||'—'}</code></div>
+            <div><span style="color:var(--gris-suave);text-transform:uppercase;font-size:10px;letter-spacing:.5px;">Teléfono</span><br>${c.tel||'—'}</div>
+            <div style="grid-column:1/-1;margin-top:4px;"><span style="color:var(--gris-suave);text-transform:uppercase;font-size:10px;letter-spacing:.5px;">Email</span><br>${c.email||'—'}</div>
+            ${c.observaciones ? `<div style="grid-column:1/-1;margin-top:4px;"><span style="color:var(--gris-suave);text-transform:uppercase;font-size:10px;letter-spacing:.5px;">Observaciones</span><br><span style="color:var(--gris-suave);">${c.observaciones}</span></div>` : ''}
+          </div>
+        </div>`).join('')}
     </div>`;
 }
 
