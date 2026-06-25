@@ -1781,7 +1781,7 @@ async function guardarComp() {
   if (!nombre) { alert('El nombre es obligatorio'); return; }
   const rec = {
     id:          window._editCompId || ('comp_'+Date.now()),
-    activa:      document.getElementById('compActiva')?.checked !== false,
+    activa:      document.getElementById('compActiva')?.checked === true,
     nombre,
     temporada:   document.getElementById('compTemporada').value.trim(),
     formato:     document.getElementById('compFormato').value,
