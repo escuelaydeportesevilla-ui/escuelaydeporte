@@ -1798,6 +1798,12 @@ async function guardarComp() {
 //  EQUIPOS
 // ══════════════════════════════════════════════════════
 let editEquipoId = null;
+function nombreClub(clubId) {
+  if (!clubId || clubId === 'sfcadmin') return 'SFC Academy';
+  const c = (DB.clubes||[]).find(c => c.user === clubId);
+  return c ? c.nombre : clubId;
+}
+
 function renderEquipos() {
   const el        = document.getElementById('equiposContent');
   const isAdmin   = sesion.rol === 'admin';
@@ -1855,7 +1861,7 @@ function renderEquipos() {
         </div>
         <div class="ceq-info">
           <div class="ceq-nombre" style="cursor:pointer;" onclick="abrirFichaEquipo('${e.id}')">${e.nombre}</div>
-          <div class="ceq-meta">${e.categoria||'—'}${isAdmin&&e.clubId?' · '+e.clubId:''} · ${nJug} jugadores</div>
+          <div class="ceq-meta">${e.categoria||'—'}${isAdmin&&e.clubId?' · '+nombreClub(e.clubId):''} · ${nJug} jugadores</div>
           ${contacto}
         </div>
         <div class="ceq-actions">
@@ -1884,7 +1890,7 @@ function renderEquipos() {
         <td><strong style="cursor:pointer;" onclick="abrirFichaEquipo('${e.id}')">${e.nombre}</strong></td>
         <td>${kitTabla(e.eq1Camiseta||'#ccc',e.eq1Pantalon||'#333')}</td>
         <td>${e.categoria||'—'}</td>
-        ${isAdmin?`<td style="font-size:12px;color:var(--gris-suave);">${e.clubId||'—'}</td>`:''}
+        ${isAdmin?`<td style="font-size:12px;color:var(--gris-suave);">${nombreClub(e.clubId)||'—'}</td>`:''}
         <td>${nJug}</td>
         ${(isAdmin||isClub)?delCell:''}
         <td>
@@ -1961,7 +1967,7 @@ function exportarEquiposPDF(soloCompId) {
             <td>${e.nombre}</td>
             <td>${kitMini(e.eq1Camiseta,e.eq1Pantalon)}</td>
             <td>${e.categoria||'—'}</td>
-            <td>${e.clubId||'—'}</td>
+            <td>${nombreClub(e.clubId)||'—'}</td>
             <td>${nJug}</td>
           </tr>`;
         }).join('')}
