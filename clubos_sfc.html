@@ -1031,6 +1031,7 @@ tbody td.center{text-align:center;}
       <div class="form-field form-full"><label>Contenido</label><textarea id="nTexto" placeholder="Escribe la noticia aquí…"></textarea></div>
       <div class="form-field"><label>Fecha</label><input type="date" id="nFecha"></div>
       <div class="form-field"><label>Categoría</label><select id="nCategoria"><option value="general">General</option><option value="resultado">Resultado</option><option value="convocatoria">Convocatoria</option><option value="aviso">Aviso</option></select></div>
+      <div class="form-field"><label>Destinatario</label><select id="nDestinatario"></select></div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-outline" onclick="cerrarModal('modalNoticia')">Cancelar</button>
@@ -3594,17 +3595,25 @@ function renderNoticias() {
   const addBtn = esAdmin
     ? '<button class="btn btn-primary" style="margin-bottom:16px;" onclick="abrirModalNoticia()">+ Nueva noticia</button>'
     : '';
-  if (!DB.noticias.length) {
+  const todasNoticias = DB.noticias.filter(n => {
+    if (esAdmin) return true;
+    const dest = n.destinatario || 'todos';
+    if (dest === 'todos') return true;
+    if (sesion.rol === 'club') return dest === sesion.user;
+    return false;
+  });
+  if (!todasNoticias.length) {
     el.innerHTML = addBtn + '<div class="empty-state"><div class="ei">📰</div><p>No hay noticias publicadas aún.</p></div>'; return;
   }
   const catBadge = {general:'#E8F0FB',resultado:'#D5F5E3',convocatoria:'#FBF5E0',aviso:'#FDECEA'};
   const catColor = {general:'#1A56A0',resultado:'#1A7A3C',convocatoria:'#8B6914',aviso:'#9B0D22'};
-  el.innerHTML = [...DB.noticias].reverse().map(n => `
+  el.innerHTML = [...todasNoticias].reverse().map(n => `
     <div class="noticia-card">
       <div class="noticia-body">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
           <span style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:10px;background:${catBadge[n.categoria]||'#eee'};color:${catColor[n.categoria]||'#333'}">${n.categoria||'general'}</span>
           <span class="noticia-fecha">${_limpiarFecha(n.fecha)||''}</span>
+          ${esAdmin && n.destinatario && n.destinatario!=='todos' ? `<span style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:10px;background:#EAF0FB;color:#1A56A0;">→ ${nombreClub(n.destinatario)}</span>` : ''}
         </div>
         <div class="noticia-titulo">${n.titulo}</div>
         <div class="noticia-texto">${n.texto}</div>
@@ -3622,7 +3631,16 @@ function abrirModalNoticia() {
   ['nTitulo','nTexto'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('nFecha').value = _hoyLocal();
   document.getElementById('nCategoria').value = 'general';
+  _poblarDestinatarios('todos');
   abrirModal('modalNoticia');
+}
+
+function _poblarDestinatarios(valorActual) {
+  const sel = document.getElementById('nDestinatario');
+  const clubes = DB.clubes || [];
+  sel.innerHTML = '<option value="todos">📢 Todos</option>' +
+    clubes.map(c => `<option value="${c.user}">${c.nombre}</option>`).join('');
+  sel.value = valorActual || 'todos';
 }
 
 function editarNoticia(id) {
@@ -3633,15 +3651,17 @@ function editarNoticia(id) {
   document.getElementById('nTexto').value     = n.texto||'';
   document.getElementById('nFecha').value     = n.fecha||'';
   document.getElementById('nCategoria').value = n.categoria||'general';
+  _poblarDestinatarios(n.destinatario||'todos');
   abrirModal('modalNoticia');
 }
 
 async function guardarNoticia() {
   const datos = {
-    titulo: document.getElementById('nTitulo').value.trim(),
-    texto:  document.getElementById('nTexto').value.trim(),
-    fecha:  document.getElementById('nFecha').value,
-    categoria: document.getElementById('nCategoria').value,
+    titulo:       document.getElementById('nTitulo').value.trim(),
+    texto:        document.getElementById('nTexto').value.trim(),
+    fecha:        document.getElementById('nFecha').value,
+    categoria:    document.getElementById('nCategoria').value,
+    destinatario: document.getElementById('nDestinatario').value || 'todos',
   };
   if (!datos.titulo) { toast('El título es obligatorio'); return; }
   if (editNoticiaId) {
